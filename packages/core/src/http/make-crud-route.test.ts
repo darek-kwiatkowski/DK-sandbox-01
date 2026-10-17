@@ -66,6 +66,16 @@ describe("makeCrudRoute", () => {
     expect(run).not.toHaveBeenCalled();
   });
 
+  it("reads a single item by id on an item route", async () => {
+    const read = vi.fn(async (_ctx, id: string) => ({ id }));
+    const { GET } = makeCrudRoute({ access: "public", read });
+
+    const response = await GET(request("GET"), withId(ID));
+
+    expect(await response.json()).toEqual({ ok: true, data: { id: ID } });
+    expect(read).toHaveBeenCalledWith(expect.objectContaining({ session: null }), ID);
+  });
+
   it("rejects a non-UUID id on item routes", async () => {
     const remove = vi.fn();
     const { DELETE } = makeCrudRoute({ access: "public", remove });

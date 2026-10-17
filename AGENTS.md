@@ -43,7 +43,7 @@ Nazwy plików: `YYYY-MM-DD-slug.md`, gdzie data to dzień utworzenia, a `slug` t
 ## Zasady pracy
 
 1. **Plan przed kodem.** Zadanie wieloetapowe, obejmujące kilka plików lub z kilkoma sensownymi podejściami zacznij od planu i uzgodnij go z użytkownikiem. Plan opieraj na specyfikacji z `.ai/specs/` (sekcja „Struktura `.ai/`”, zasada 2). Jeśli implementacja zaczyna się sypać, przerwij, zaktualizuj plan lub specyfikację i dopiero wtedy kontynuuj. Nie łataj na siłę.
-2. **Weryfikacja przed zgłoszeniem.** Zanim uznasz zmianę za gotową, uruchom z roota `npm run lint`, `npm run typecheck`, `npm test` oraz `npm run build`. Przy zmianach w `packages/db` uruchom `npm test` z `TEST_DATABASE_URL`, bo bez tej zmiennej testy integracyjne są pomijane, a pominięcia nie raportuj jako sukcesu. Przy zmianach w schemacie bazy wygeneruj i zastosuj migrację. Przy zmianach w UI uruchom aplikację (`npm run dev`) i sprawdź efekt. Raportuj rzeczywiste wyniki. Jeśli coś pominięto albo nie przeszło, napisz to wprost.
+2. **Weryfikacja przed zgłoszeniem.** Zanim uznasz zmianę za gotową, uruchom z roota to samo, co CI: `npm run lint`, `npm run typecheck`, `npm run test:unit` (próg 100% pokrycia), `npm run test:integration`, `NODE_ENV=production npm run build` i `npm run test:e2e`. Przy zmianach w schemacie bazy wygeneruj i zastosuj migrację. Przy zmianach w UI dodatkowo sprawdź aplikację w przeglądarce. Raportuj rzeczywiste wyniki. Jeśli coś pominięto albo nie przeszło, napisz to wprost.
 3. **Krytyczny przegląd.** Po nietrywialnej poprawce przejrzyj diff tak, jak zrobiłby to recenzent. Jeśli rozwiązanie jest prowizoryczne, zastąp je eleganckim, skoro znasz już pełny kontekst.
 4. **Wnioski po poprawkach.** Po każdej korekcie od użytkownika lub naprawie błędu sformułuj regułę, która zapobiegnie powtórce, i zapisz ją zgodnie z zasadą 4 sekcji „Struktura `.ai/`”. Jeśli reguła dotyczy wszystkich przyszłych zadań, zaproponuj dopisanie jej do tego pliku.
 5. **Samodzielne naprawianie błędów.** Gdy dostajesz zgłoszenie błędu lub nieprzechodzący build, sam zbadaj logi i kod, znajdź przyczynę i ją napraw. Nie czekaj na instrukcje, jak to zrobić.
@@ -139,7 +139,7 @@ Gdzie trafia nowy komponent:
 - Do `em.create()` lub `em.assign()` trafia wyłącznie wynik schematu Zod (`parseInput`), nigdy surowe body. Nie używaj surowego SQL z interpolowanym wejściem.
 - Każda zmiana schematu wymaga migracji: `npm run db:migration:create`, potem `npm run db:migrate`. Commituj wygenerowaną migrację razem z `.snapshot.json`. Nie edytuj migracji już zastosowanych, tylko dodaj nową. Nie używaj `schema:update` zamiast migracji.
 - Połączenie konfiguruje wyłącznie `DATABASE_URL`. Zmienne środowiskowe mają pierwszeństwo przed `.env` w roocie.
-- Testy integracyjne łączą się **wyłącznie** przez `TEST_DATABASE_URL` z osobną, jednorazową bazą, bo kasują schemat. Nigdy nie ustawiaj tam adresu bazy deweloperskiej ani produkcyjnej. Test odmawia działania, gdy `TEST_DATABASE_URL` jest równy `DATABASE_URL`.
+- Testy integracyjne i E2E dostają efemeryczny PostgreSQL z Testcontainers (`test/support/postgres.ts`). Ustawiony `TEST_DATABASE_URL` zastępuje kontener i musi wskazywać osobną, jednorazową bazę, bo testy kasują schemat. Nigdy nie wskazuj tam bazy deweloperskiej ani produkcyjnej. Testy odmawiają działania, gdy ten adres jest równy `DATABASE_URL`.
 
 **Bezpieczeństwo** (minimum; pełna lista i checklista review w `.ai/docs/engineering-standards.md`)
 - **Uwierzytelnianie:** każdy route niepubliczny ma `access: "session"` lub `requireSession`. Route publiczny ma `access: "public"` i komentarz z uzasadnieniem.
@@ -153,9 +153,31 @@ Gdzie trafia nowy komponent:
 
 **TypeScript i zależności**
 - `typescript` pozostaje na `~6.0`, a `eslint` na `^9`, bo wtyczki z `eslint-config-next` (`typescript-eslint`, `eslint-plugin-import`, `jsx-a11y`, `react`) nie obsługują jeszcze TS 7 ani ESLint 10. Nie podbijaj tych wersji głównych, dopóki peer dependencies na to nie pozwolą. `npm install` nie powinien zgłaszać `ERESOLVE`.
-- **Testy:** Vitest. Pliki `*.test.ts(x)` umieszczaj obok testowanego kodu. Komponenty testujesz w jsdom (`// @vitest-environment jsdom`) przez Testing Library. W pakiecie z testami dodaj `vitest` do devDependencies i skrypt `"test": "vitest run"`.
+- Szczegóły testów są w sekcji „Testy i CI” poniżej.
 - **Kod:** bez `any` (lint), bez pustych `catch`, bez martwego i zakomentowanego kodu. Stałe mają nazwy i, gdy wartość nie jest oczywista, komentarz z uzasadnieniem.
 - Zależność instaluj w pakiecie, który jej używa (`npm install <pkg> -w @devmentor/<pakiet>`). Do roota trafiają tylko narzędzia całego repo.
+
+### Testy i CI (obowiązkowe)
+
+**Każda nowa funkcja i każda zmiana kodu musi mieć 100% pokrycia testami jednostkowymi:** lines, branches, functions i statements, dla całego kodu w `packages/*/src`. CI blokuje pull request, który obniża pokrycie poniżej 100%.
+- Testy jednostkowe piszesz **w tym samym PR** co kod. Funkcja bez testów nie jest skończona. Naprawa błędu dodaje test, który bez poprawki failuje.
+- Pokrycie liczą wyłącznie testy jednostkowe (`*.test.ts(x)`), bez integracyjnych i E2E. Każda gałąź (`if`, `??`, `?.`, parametr domyślny, `catch`) ma test, który ją wykonuje.
+- **Zakazane bez zgody użytkownika:** obniżanie progów w `vitest.config.ts`, rozszerzanie `coverage.exclude`, komentarze `/* v8 ignore */` i `istanbul ignore` oraz testy, które wykonują kod bez asercji tylko po to, żeby podbić pokrycie.
+- Kod, którego nie da się pokryć bez sztuczek, refaktoruj tak, żeby był testowalny (np. wstrzyknij zależność przez DI albo wydziel czystą funkcję).
+- Testy leżą obok kodu (`foo.ts` → `foo.test.ts`). Komponenty testujesz w jsdom (`// @vitest-environment jsdom`) przez Testing Library, a zależności zewnętrzne mockujesz (`vi.mock`, `vi.stubGlobal("fetch", …)`). Testy jednostkowe nie łączą się z bazą ani siecią.
+
+**Testy integracyjne** (`*.integration.test.ts`, `npm run test:integration`) sprawdzają zachowanie wymagające prawdziwego PostgreSQL: migracje, zapytania, ograniczenia unikalności, transakcje. Uruchamia je `vitest.integration.config.ts`, którego `globalSetup` startuje kontener Testcontainers. Każda nowa encja, migracja i zapytanie z logiką SQL ma test integracyjny.
+
+**Testy E2E** (`test/e2e/*.e2e.test.ts`, `npm run test:e2e`) sprawdzają przepływy użytkownika na efemerycznie uruchomionej aplikacji. `globalSetup` stawia kontener z bazą, uruchamia migracje przez CLI i odpala `next start` z buildu produkcyjnego. Przeglądarką steruje **agent-browser** przez helper `test/support/agent-browser.ts`. Każda nowa strona lub przepływ widoczny dla użytkownika ma scenariusz E2E. Scenariusz sprawdza też, że strona nie zgłasza błędów JS (`pageErrors()`). Dane seedujesz przez serwisy `@devmentor/core`, a nie surowym SQL.
+
+**CI** (`.github/workflows/ci.yml`) uruchamia na każdym pull requeście równolegle:
+- lint i typecheck,
+- build,
+- testy jednostkowe z progiem 100% i artefaktem `coverage`,
+- testy integracyjne,
+- testy E2E.
+
+Wszystkie joby muszą być zielone. Nie wyłączaj ani nie omijaj jobów, a nowy rodzaj sprawdzenia dodawaj jako krok w tym workflow.
 
 ### Komendy (z roota)
 
@@ -165,7 +187,9 @@ Gdzie trafia nowy komponent:
 | `npm run build` / `npm start` | Build produkcyjny i jego uruchomienie. |
 | `npm run lint` | ESLint dla całego monorepo. |
 | `npm run typecheck` | `tsc --noEmit` we wszystkich pakietach. |
-| `npm test` | Testy (Vitest) we wszystkich pakietach. Integracyjne testy `db` wymagają `TEST_DATABASE_URL`. |
+| `npm test` / `npm run test:unit` | Testy jednostkowe wszystkich pakietów z pokryciem (próg 100%, raport w `coverage/`). |
+| `npm run test:integration` | Testy integracyjne na PostgreSQL z Testcontainers (wymaga Dockera albo `TEST_DATABASE_URL`). |
+| `npm run test:e2e` | Testy E2E: efemeryczna aplikacja i baza, sterowane przez agent-browser (wymaga wcześniejszego `npm run build` oraz Dockera albo `TEST_DATABASE_URL`). |
 | `npm run db:migrate` | Zastosowanie oczekujących migracji. |
 | `npm run db:migration:create` | Nowa migracja z różnicy encji i snapshotu. |
 | `npm run db:migration:list` | Lista zastosowanych migracji. |

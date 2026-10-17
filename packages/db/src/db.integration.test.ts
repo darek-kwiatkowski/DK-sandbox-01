@@ -4,11 +4,15 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createOrmConfig } from "./config";
 import { migratorOptions } from "./migrator-config";
 
-// Runs against a dedicated, disposable database: the suite DROPS the schema.
-// It never falls back to DATABASE_URL, which points at a real dev database.
+// Run through `npm run test:integration`: its global setup starts an ephemeral
+// PostgreSQL (Testcontainers) and sets TEST_DATABASE_URL. The suite DROPS the
+// schema, so it never falls back to DATABASE_URL (a real dev database).
 const testDatabaseUrl = process.env.TEST_DATABASE_URL;
+if (!testDatabaseUrl) {
+  throw new Error("TEST_DATABASE_URL is not set: run integration tests with `npm run test:integration`.");
+}
 
-describe.skipIf(!testDatabaseUrl)("@devmentor/db against PostgreSQL (requires TEST_DATABASE_URL)", () => {
+describe("@devmentor/db against PostgreSQL", () => {
   const overrides = { clientUrl: testDatabaseUrl, debug: false };
   let orm: MikroORM;
 

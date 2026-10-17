@@ -12,7 +12,8 @@ Aplikacja webowa DevMentor zbudowana jako monorepo na Next.js, React i TypeScrip
 | Dependency Injection | Awilix 13 |
 | Style — frontend | Tailwind CSS 4 |
 | Style — backend | shadcn-ui (na Tailwind CSS 4) |
-| Testy | Vitest |
+| Testy | Vitest (unit, 100% pokrycia), Testcontainers (integracja), agent-browser (E2E) |
+| CI | GitHub Actions |
 | Monorepo | npm workspaces |
 
 ## Architektura
@@ -129,27 +130,32 @@ Zmienne ustawione w środowisku mają pierwszeństwo przed `.env`.
 | `npm run build` / `npm start` | Build produkcyjny i jego uruchomienie |
 | `npm run lint` | ESLint dla całego repo |
 | `npm run typecheck` | Sprawdzenie typów we wszystkich pakietach |
-| `npm test` | Testy (Vitest) we wszystkich pakietach |
+| `npm test` | Testy jednostkowe z pokryciem 100% |
+| `npm run test:integration` | Testy integracyjne (Testcontainers) |
+| `npm run test:e2e` | Testy E2E (agent-browser, po `npm run build`) |
 | `npm run db:migrate` | Zastosowanie migracji |
 | `npm run db:migration:create` | Nowa migracja na podstawie zmian w encjach |
 | `npm run db:migration:list` | Lista zastosowanych migracji |
 
 Nowy komponent shadcn dodajesz poleceniem `npx shadcn@latest add <komponent>`, uruchomionym w `packages/ui`.
 
-## Testy
+## Testy i CI
 
-Testy (Vitest) leżą obok kodu jako pliki `*.test.ts`:
+| Rodzaj | Komenda | Co sprawdza |
+| --- | --- | --- |
+| Jednostkowe | `npm test` (`npm run test:unit`) | Cały kod w `packages/*/src`, z wymaganym **100% pokryciem** (raport w `coverage/`). |
+| Integracyjne | `npm run test:integration` | Migracje i serwisy na prawdziwym PostgreSQL, uruchamianym efemerycznie przez **Testcontainers**. |
+| E2E | `npm run build && npm run test:e2e` | Aplikacja uruchomiona efemerycznie (`next start` + PostgreSQL z Testcontainers), sterowana przez **[agent-browser](https://github.com/vercel-labs/agent-browser)**. |
 
-- `packages/core`: testy jednostkowe kontenera DI i warstwy HTTP (`apiHandler`, `makeCrudRoute`, sesje) oraz test integracyjny `UserService`.
-- `packages/db`: testy integracyjne na prawdziwym PostgreSQL. Sprawdzają, że migracje działają na pustej bazie i pokrywają encje.
-- `packages/ui`: testy komponentów w jsdom (`apiCall`, `DataTable`, `CrudForm`).
+- **Testy jednostkowe** (Vitest, `*.test.ts(x)` obok kodu) mockują zależności zewnętrzne i nie potrzebują bazy.
+- **Testy integracyjne i E2E** wymagają Dockera. Zamiast niego możesz ustawić `TEST_DATABASE_URL`, który musi wskazywać **osobną, jednorazową** bazę, bo testy kasują jej schemat.
+- **agent-browser** potrzebuje przeglądarki Chrome. Pobierasz ją jednorazowo:
 
-Testy integracyjne łączą się przez `TEST_DATABASE_URL` z **osobną, jednorazową** bazą, bo kasują jej schemat. Bez tej zmiennej są pomijane. Plik `.env` nie jest wczytywany przez testy.
+  ```bash
+  npx agent-browser install            # na Linuksie: --with-deps
+  ```
 
-```bash
-docker compose exec postgres createdb -U devmentor devmentor_test   # jednorazowo
-TEST_DATABASE_URL=postgresql://devmentor:devmentor@localhost:5432/devmentor_test npm test
-```
+**CI** (`.github/workflows/ci.yml`) uruchamia na każdym pull requeście równolegle: lint i typecheck, build, testy jednostkowe (próg 100%), integracyjne i E2E.
 
 ## Dla agentów AI
 

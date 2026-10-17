@@ -36,6 +36,19 @@ describe("session auth", () => {
     await expect(requireSession(new Request("http://test"))).rejects.toBeInstanceOf(UnauthorizedError);
   });
 
+  it("rejects a request whose cookies do not include the session cookie", async () => {
+    const request = new Request("http://test", { headers: { cookie: "theme=dark; flag; other=1" } });
+    await expect(requireSession(request)).rejects.toBeInstanceOf(UnauthorizedError);
+  });
+
+  it("finds the session cookie among malformed and URL-encoded cookie parts", async () => {
+    const token = await createSessionToken(session);
+    const request = new Request("http://test", {
+      headers: { cookie: `flag; ${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}` },
+    });
+    await expect(requireSession(request)).resolves.toEqual(session);
+  });
+
   it("rejects a token signed with another secret", async () => {
     const forged = await new SignJWT({ role: "mentor" })
       .setProtectedHeader({ alg: "HS256" })

@@ -25,5 +25,6 @@ Szczegółowe wpisy trafiają do `.ai/lessons/YYYY-MM-DD-slug.md`. Tutaj dodaj t
 
 <!-- Dodawaj nowe wpisy poniżej, od najnowszych. -->
 
+- [2026-10-17-testing-pitfalls](lessons/2026-10-17-testing-pitfalls.md) — coverage per `--project` mierzy 0/0; nic w `db/src/migrations/` poza migracjami; Docker w sandboksie przez `sudo dockerd`.
 - [2026-10-17-full-install-output](lessons/2026-10-17-full-install-output.md) — po instalacji sprawdzaj `ERESOLVE`/peer w pełnym logu; nie dobieraj wersji głównych bez sprawdzenia peerDependencies.
 - [2026-10-17-sandbox-environment](lessons/2026-10-17-sandbox-environment.md) — sandbox: `NODE_ENV=development` psuje `next build`, `DATABASE_URL` wskazuje bazę `open-mercato`, podgląd zajmuje :3000, `mv` katalogów nie działa; stosuj przy buildzie, migracjach i testach.

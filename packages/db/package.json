@@ -10,8 +10,7 @@
     "typecheck": "tsc --noEmit",
     "migrate": "mikro-orm migration:up",
     "migration:create": "mikro-orm migration:create",
-    "migration:list": "mikro-orm migration:list",
-    "test": "vitest run"
+    "migration:list": "mikro-orm migration:list"
   },
   "dependencies": {
     "@mikro-orm/core": "^7.2.5",
@@ -20,6 +19,7 @@
   },
   "devDependencies": {
     "@mikro-orm/cli": "^7.2.5",
+    "@vitest/coverage-v8": "^5.0.5",
     "tsx": "^4.23.15",
     "vitest": "^5.0.5"
   }
