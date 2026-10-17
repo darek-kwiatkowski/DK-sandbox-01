@@ -1,8 +1,8 @@
 # CI na GitHub Actions, testy jednostkowe ze 100% pokryciem, integracja (Testcontainers) i E2E (agent-browser)
 
 - **Data:** 2026-10-17
-- **Status:** wdrożona lokalnie (2026-10-17); czeka na pierwszy przebieg na GitHubie (wymaga wypchnięcia gałęzi)
-- **Zastępuje:** fazę 4 (CI) z [planu migracji](2026-10-17-monorepo-migration-plan.md)
+- **Status:** wdrożona (2026-10-17)
+- **Zastępuje:** fazę 4 (CI) z [planu migracji](../2026-10-17-monorepo-migration-plan.md)
 
 ## Cel
 
@@ -32,11 +32,21 @@ Każdy pull request przechodzi automatycznie:
 - [x] `npm run test:e2e` przechodzi: aplikacja startuje efemerycznie, a agent-browser weryfikuje `/`, `/backend` (dane, stan pusty) i brak błędów JS
 - [x] workflow CI ma joby build, lint, unit, integration i e2e; plik jest poprawny składniowo, a kroki są odtworzone lokalnie
 - [x] AGENTS.md wymaga 100% pokrycia testami jednostkowymi dla każdej nowej funkcji; README opisuje komendy
-- [ ] przebieg CI na GitHubie: wymaga wypchnięcia gałęzi (zgoda użytkownika)
+- [x] przebieg CI na GitHubie: [PR #1](https://github.com/darek-kwiatkowski/DK-sandbox-01/pull/1), run 39020654680, 5/5 jobów zielonych
 
 ## Postęp
 
 <!-- Najnowsze wpisy na górze. -->
+
+- **2026-10-17 — CI na GitHubie zielone.** PR #1, wszystkie joby przeszły za pierwszym razem:
+
+  | Job | Czas |
+  | --- | --- |
+  | Build | 49 s |
+  | Lint & typecheck | 49 s |
+  | Integration (Testcontainers) | 49 s |
+  | Unit (100%) | 1 min 2 s |
+  | E2E (agent-browser) | 1 min 15 s |
 
 - **2026-10-17 — wdrożenie.**
   - `vitest.config.ts`: projekty `app`, `core`, `db`, `ui`; coverage v8, próg 100% łącznie (czyli w każdym pakiecie).
