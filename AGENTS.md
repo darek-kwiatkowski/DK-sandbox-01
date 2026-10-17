@@ -18,6 +18,7 @@ Katalog `.ai/` to pamięć i warsztat agentów AI w tym repozytorium. Korzystani
 │   ├── YYYY-MM-DD-slug.md  # aktywne specyfikacje
 │   ├── implemented/        # specyfikacje w pełni wdrożone
 │   └── archive/            # specyfikacje porzucone lub zastąpione
+├── docs/                   # trwałe standardy projektu (np. engineering-standards.md); nadrzędne wobec specs
 ├── runs/                   # logi autonomicznych przebiegów AI
 │   └── YYYY-MM-DD-slug.md
 ├── lessons.md              # indeks wniosków (pamięć długoterminowa)
@@ -57,54 +58,103 @@ DevMentor to monorepo oparte na **npm workspaces** (`packages/*`). Stack:
 - **PostgreSQL** + **MikroORM 7**
 - **Awilix 13** (DI)
 - **Tailwind CSS 4** na stronach frontendowych, **shadcn-ui** na stronach backendowych
+- **Zod 4** (walidacja i env), **pino** (logi), **jose** (sesje JWT)
 
 Nie zmieniaj żadnej z tych technologii ani nie dodawaj alternatywnych (innego ORM-a, kontenera DI czy biblioteki UI/CSS) bez zgody użytkownika.
+
+Pełne standardy (nazewnictwo, zasady SRP/DRY/DIP/YAGNI, minimum bezpieczeństwa, checklista code review, docelowa struktura) są w **[`.ai/docs/engineering-standards.md`](.ai/docs/engineering-standards.md)**. Ten dokument jest obowiązujący. Poniżej są reguły egzekwowane w kodzie.
 
 ### Pakiety
 
 | Pakiet | Katalog | Odpowiedzialność |
 | --- | --- | --- |
-| `@devmentor/app` | `packages/app` | Aplikacja Next.js: routing, strony, server actions, route handlers, składanie kontenera DI (`src/server/container.ts`). |
-| `@devmentor/core` | `packages/core` | Kod wielokrotnego użytku niezależny od frameworka: infrastruktura DI (`buildContainer`, `AppCradle`, `ContainerModule`), typy i narzędzia. **Bez** importów z Next, React, MikroORM ani innych pakietów workspace. |
-| `@devmentor/db` | `packages/db` | Dostęp do danych: konfiguracja MikroORM, encje, migracje, serwisy danych oraz `dbModule` rejestrujący je w DI. |
-| `@devmentor/ui` | `packages/ui` | Komponenty shadcn-ui, motyw (`globals.css`) i `cn`. Tylko prezentacja, bez dostępu do danych. |
+| `@devmentor/app` | `packages/app` | Next.js: strony, route handlers (`src/app/api/<concept>/route.ts`), okablowanie HTTP. Bez logiki biznesowej i bez zapytań do bazy. |
+| `@devmentor/core` | `packages/core` | Reguły biznesowe: serwisy (`services/<concept>/`), kontener DI (`container/{container,cradle}.ts`, `withScope`), warstwa HTTP (`http/`), `config/env.ts`, `logger.ts`. Bez Next i Reacta. |
+| `@devmentor/db` | `packages/db` | Persystencja: encje (`entities/<concept>/<name>.entity.ts`), konfiguracja MikroORM, migracje. **Jedyny** pakiet importujący `@mikro-orm/*`; re-eksportuje typy potrzebne `core`. |
+| `@devmentor/ui` | `packages/ui` | Prezentacja: prymitywy shadcn (`components/ui/`), komponenty konceptów (`components/<concept>/`), bloki panelu (`backend/`). |
 
-**Kierunek zależności:** `app → ui, db, core` oraz `db → core`. Pakiety `ui` i `core` nie zależą od innych pakietów workspace. Zabronione są cykle oraz importy „w górę”, np. `db → app`.
+**Kierunek zależności:** `app → core → db`, a `ui` jest importowany tylko przez `app`. `db` nie zależy od żadnego pakietu workspace, a `ui` nie importuje `core` ani `db`. Tej granicy nie luzujemy dla wygody.
 
-Granice pakietów wymusza `npm run lint` (sekcja „Architecture boundaries” w `eslint.config.mjs`). Te same reguły egzekwuje też DI i podział frontend/backend opisany niżej.
+Granice wymusza `npm run lint` (sekcja „Architecture boundaries” w `eslint.config.mjs`).
 - Naruszenia napraw w kodzie. Nie wyłączaj reguł (`eslint-disable`) i nie dopisuj zależności do `package.json` tylko po to, żeby obejść granicę.
 - Nie używaj `--fix` dla `import/no-relative-packages`, bo podsuwa ścieżkę `@devmentor/<pkg>/src/...` spoza `exports`.
-- Nowy pakiet lub nowa strefa tras wymaga dopisania reguł do tej sekcji.
+- Nowy pakiet lub nowa grupa tras wymaga dopisania reguł do tej sekcji. Piąty pakiet (np. `packages/shared`) to zmiana architektury, która wymaga zgody użytkownika.
 
-Pakiety udostępniają **surowe źródła TS** przez pole `exports` w `package.json`, bez kroku budowania. Importuj je wyłącznie przez nazwę pakietu (`@devmentor/db`, `@devmentor/ui/components/button`), nigdy ścieżką względną do innego pakietu. Nowy pakiet musi mieć nazwę `@devmentor/<nazwa>`, `"type": "module"`, `tsconfig.json` rozszerzający `tsconfig.base.json` oraz skrypt `typecheck`.
+Pakiety udostępniają **surowe źródła TS** przez pole `exports` w `package.json`, bez kroku budowania. Importuj je wyłącznie przez nazwę pakietu (`@devmentor/core`, `@devmentor/ui/components/ui/button`, `@devmentor/ui/backend/tables`), nigdy ścieżką względną do innego pakietu. Nowy pakiet musi mieć nazwę `@devmentor/<nazwa>`, `"type": "module"`, `tsconfig.json` rozszerzający `tsconfig.base.json` oraz skrypt `typecheck`.
+
+### Konwencja konceptów domenowych
+
+Kod domenowy **nie** jest organizowany w `modules/`. Każdy koncept (`auth`, `mentors`, `availability`, `bookings`, `payments`, `messages`, `favorites`, `reviews`…) to podkatalog o tej samej nazwie, powtarzany w warstwach, które go potrzebują:
+
+- `packages/db/src/entities/<concept>/<name>.entity.ts` (rejestracja w `entities/index.ts`; wspólne kolumny z `entities/base.entity.ts`)
+- `packages/core/src/services/<concept>/<name>.service.ts` (jawna rejestracja w `container.ts` jako `asClass(...).scoped()` i typ w `cradle.ts`)
+- `packages/core/src/validators/<concept>/<name>-<action>.schema.ts` (wspólne schematy Zod dla route i formularza)
+- `packages/app/src/app/api/<concept>/route.ts` oraz `page.tsx` w odpowiedniej grupie person (`(marketing)`, `(auth)`, `(student)`, `(mentor)`)
+
+Folder konceptu tworzysz dopiero przy jego pierwszym pliku; nigdy nie tworzysz pustych zawczasu. To konwencja katalogów, a nie runtime modułów: bez `setup.ts`/`acl.ts` per koncept i bez auto-discovery (np. `loadModules`).
+
+Zdarzenia domenowe mają identyfikatory `concept.entity.action` (np. `bookings.booking.created`). Emitowane są przez typowany emitter w `packages/core/src/events`, zarejestrowany w `Cradle`. Działa on tylko w procesie; projekt nie ma kolejek ani workerów. `events/` i `validators/` powstają przy pierwszej funkcji, która ich potrzebuje.
+
+### Warstwa API i UI wielokrotnego użytku
+
+Każdy route i każda strona korzystają z dwóch wspólnych warstw, zamiast powielać fetch, walidację, autoryzację i obsługę błędów:
+
+- **`packages/core/src/http/`:**
+  - `errors.ts`: hierarchia `AppError`. Serwisy rzucają wyłącznie te błędy i nie budują odpowiedzi HTTP.
+  - `api-handler.ts` (`apiHandler`): mapuje błędy na status i kopertę `{ ok, data } / { ok: false, error: { code, message, fieldErrors? } }`, loguje nieoczekiwane błędy i wymaga nagłówka `x-devmentor-request: 1` przy metodach zmieniających stan (CSRF).
+  - `make-crud-route.ts` (`makeCrudRoute`): zwykły CRUD z konfiguracji. Wymaga jawnego `access: "public" | "session"`; nieskonfigurowane metody zwracają 405.
+  - `auth.ts`: `requireSession`, `requireRole`, `assertOwnership`; *fail closed*.
+  - `validation.ts`: `parseInput`, `readJsonBody`.
+- **`packages/ui/src/backend/`:**
+  - `api/` (`apiCall`, `apiCallOrThrow`, `useApiResource`): jedyne miejsce z `fetch()` do `/api/*`.
+  - `forms/CrudForm.tsx`, `tables/DataTable.tsx`, `feedback/{LoadingMessage,ErrorMessage,EmptyState}.tsx`.
+
+Gdzie trafia nowy komponent:
+1. Prymityw shadcn → `ui/src/components/ui/`, wyłącznie przez `npx shadcn@latest add <name>` uruchomione w `packages/ui`. Nigdy nie piszesz go ręcznie.
+2. Generyczny wzorzec panelu, niezależny od konceptu → `ui/src/backend/<category>/`.
+3. Komponent związany z kształtem jednego konceptu → `ui/src/components/<concept>/`, z tą samą nazwą folderu co w `db` i `core`.
+4. Komponent używany przez jedną stronę → obok tego `page.tsx`, dopóki nie pojawi się drugi konsument.
 
 ### Reguły
 
 **Next.js**
-- Frontend (publiczny) to grupa `src/app/(frontend)` z czystym Tailwindem, bez komponentów z `@devmentor/ui`. Backend (panel) to `src/app/backend` (URL `/backend`) z komponentami shadcn z `@devmentor/ui`.
-- Każda z tych gałęzi ma własny root layout. Nie twórz `src/app/layout.tsx`.
-- Strona, która czyta z bazy bez Request-time API, musi wywołać `await connection()` (`next/server`). Inaczej `next build` spróbuje ją prerenderować i połączyć się z bazą.
+- Grupa `src/app/(marketing)` to publiczne strony w czystym Tailwindzie, bez prymitywów `@devmentor/ui/components/ui/*` i bez bloków `@devmentor/ui/backend/*`. Komponenty konceptów są dozwolone. Panel administracyjny to `src/app/backend` (URL `/backend`) z shadcn.
+- Każda gałąź ma własny root layout. Nie twórz `src/app/layout.tsx`.
+- Dostęp do bazy tylko w route'ach i stronach z `export const dynamic = "force-dynamic"`. Aplikacja musi się budować i startować bez dostępnej bazy (`/api/health` nie dotyka bazy).
+- Route handler eksportuje wynik `apiHandler` lub `makeCrudRoute`. Nie pisze własnego `try/catch` ani ręcznego `NextResponse.json` (lint).
+- Komponenty klienckie pobierają dane przez `apiCall` lub `useApiResource`, nigdy przez surowy `fetch` (lint).
 - Pakiety MikroORM muszą być w `serverExternalPackages` w `next.config.ts`. Po dodaniu nowego pakietu `@mikro-orm/*` dopisz go tam.
 
 **Dependency Injection (Awilix)**
-- Jeden kontener na proces: `getContainer()`. Na żądanie pobieraj scope przez `getRequestScope()` z `@/server/container` i rozwiązuj serwisy z `scope.cradle`. Nie twórz serwisów ręcznie (`new UserService(...)`) w kodzie aplikacji.
-- Każdy pakiet rejestruje zależności przez `ContainerModule` i deklaruje ich typy, rozszerzając `AppCradle` przez `declare module "@devmentor/core"`.
+- Każda zależność to jedna jawna linia w `core/src/container/container.ts` i jedna w `cradle.ts`. Bez auto-discovery.
+- Serwisy rozwiązujesz przez `withScope((cradle) => …)`: jeden scope (własny `EntityManager`) na żądanie, render lub job, zwalniany po wywołaniu. Wywołuj go raz i przekazuj serwisy dalej. `getContainer()` nie jest eksportowany, bo rozwiązanie serwisu scoped na korzeniu dzieliłoby `em` między żądaniami.
 - Tryb `PROXY` i `strict: true`: konstruktor przyjmuje obiekt `{ zależność }`. Singleton nie może zależeć od zależności scoped. Wszystko, co używa `em`, jest scoped.
+- Integracje zewnętrzne (płatności, powiadomienia) to port w `core` (`<name>.port.ts`) z adapterem w `adapters/`; dla MVP jest adapter mock lub in-memory.
 
 **Baza danych (MikroORM)**
-- Encje definiuj przez `defineEntity` + `p` z `@mikro-orm/postgresql`, bez dekoratorów i `reflect-metadata`. Każdą encję dopisz do `entities` w `packages/db/src/entities/index.ts`.
-- Używaj wyłącznie `em` z DI (fork na żądanie), nigdy globalnego `orm.em`. W MikroORM 7 zapisuj przez `em.persist(x).flush()` (`persistAndFlush` nie istnieje).
+- Encje definiuj przez `defineEntity` + `p` z `@mikro-orm/postgresql`, bez dekoratorów i `reflect-metadata`. Id to UUID (`baseProperties()`).
+- Używaj wyłącznie `em` z DI, nigdy globalnego `orm.em`. W MikroORM 7 zapisuj przez `em.persist(x).flush()` (`persistAndFlush` nie istnieje).
+- Wyjątki ORM (np. `UniqueConstraintViolationException`) serwis mapuje na `AppError` (np. `ConflictError` z `fieldErrors`).
+- Operacje typu sprawdź-i-zapisz na współdzielonym stanie (sloty, statusy rezerwacji) wykonujesz w transakcji i/lub zabezpieczasz unikalnym ograniczeniem.
+- Do `em.create()` lub `em.assign()` trafia wyłącznie wynik schematu Zod (`parseInput`), nigdy surowe body. Nie używaj surowego SQL z interpolowanym wejściem.
 - Każda zmiana schematu wymaga migracji: `npm run db:migration:create`, potem `npm run db:migrate`. Commituj wygenerowaną migrację razem z `.snapshot.json`. Nie edytuj migracji już zastosowanych, tylko dodaj nową. Nie używaj `schema:update` zamiast migracji.
 - Połączenie konfiguruje wyłącznie `DATABASE_URL`. Zmienne środowiskowe mają pierwszeństwo przed `.env` w roocie.
 - Testy integracyjne łączą się **wyłącznie** przez `TEST_DATABASE_URL` z osobną, jednorazową bazą, bo kasują schemat. Nigdy nie ustawiaj tam adresu bazy deweloperskiej ani produkcyjnej. Test odmawia działania, gdy `TEST_DATABASE_URL` jest równy `DATABASE_URL`.
 
+**Bezpieczeństwo** (minimum; pełna lista i checklista review w `.ai/docs/engineering-standards.md`)
+- **Uwierzytelnianie:** każdy route niepubliczny ma `access: "session"` lub `requireSession`. Route publiczny ma `access: "public"` i komentarz z uzasadnieniem.
+- **Autoryzacja:** dotyczy konkretnego rekordu (`assertOwnership`). Błąd w trakcie sprawdzania uprawnień oznacza odmowę.
+- **Sesje:** JWT HS256 z `AUTH_SECRET` (≥ 32 bajty, z `env.ts`), ważne 24 h, cookie `httpOnly`/`secure` (prod)/`sameSite=lax`. Nigdy w `localStorage`.
+- **Logi:** nie logujesz haseł, tokenów ani pełnych JWT (`redact` w `logger.ts`). Używasz `logger` zamiast `console` (lint).
+
 **UI**
-- Komponenty shadcn dodawaj CLI z katalogu `packages/ui`: `npx shadcn@latest add <komponent>`. Nie kopiuj ich ręcznie i nie twórz ich w `packages/app`.
 - Kolorów i tokenów motywu backendu nie zapisuj na sztywno. Używaj zmiennych z `packages/ui/src/styles/globals.css` (`bg-background`, `text-muted-foreground` itd.).
+- Teksty interfejsu i komunikaty `AppError` widoczne dla użytkownika piszesz po polsku. Kody błędów (`code`) zostają po angielsku.
 
 **TypeScript i zależności**
 - `typescript` pozostaje na `~6.0`, a `eslint` na `^9`, bo wtyczki z `eslint-config-next` (`typescript-eslint`, `eslint-plugin-import`, `jsx-a11y`, `react`) nie obsługują jeszcze TS 7 ani ESLint 10. Nie podbijaj tych wersji głównych, dopóki peer dependencies na to nie pozwolą. `npm install` nie powinien zgłaszać `ERESOLVE`.
-- **Testy:** Vitest. Pliki `*.test.ts` umieszczaj obok testowanego kodu, a w pakiecie z testami dodaj `vitest` do devDependencies i skrypt `"test": "vitest run"`.
+- **Testy:** Vitest. Pliki `*.test.ts(x)` umieszczaj obok testowanego kodu. Komponenty testujesz w jsdom (`// @vitest-environment jsdom`) przez Testing Library. W pakiecie z testami dodaj `vitest` do devDependencies i skrypt `"test": "vitest run"`.
+- **Kod:** bez `any` (lint), bez pustych `catch`, bez martwego i zakomentowanego kodu. Stałe mają nazwy i, gdy wartość nie jest oczywista, komentarz z uzasadnieniem.
 - Zależność instaluj w pakiecie, który jej używa (`npm install <pkg> -w @devmentor/<pakiet>`). Do roota trafiają tylko narzędzia całego repo.
 
 ### Komendy (z roota)

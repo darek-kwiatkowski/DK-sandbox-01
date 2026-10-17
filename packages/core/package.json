@@ -11,7 +11,11 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "awilix": "^13.0.5"
+    "@devmentor/db": "*",
+    "awilix": "^13.0.5",
+    "jose": "^6.2.12",
+    "pino": "^10.4.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "vitest": "^5.0.5"

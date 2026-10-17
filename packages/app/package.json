@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@devmentor/core": "*",
-    "@devmentor/db": "*",
     "@devmentor/ui": "*",
     "@next/env": "16.4.2",
     "next": "16.4.2",
