@@ -28,7 +28,38 @@ describe("parseInput", () => {
   });
 });
 
+describe("toFieldErrors via parseInput", () => {
+  it("files issues without a path (object-level rules) under _form", () => {
+    const passwords = z
+      .object({ password: z.string(), repeat: z.string() })
+      .refine((value) => value.password === value.repeat, "Hasła muszą być identyczne");
+
+    try {
+      parseInput(passwords, { password: "a", repeat: "b" });
+      expect.unreachable();
+    } catch (error) {
+      expect((error as ValidationError).fieldErrors).toEqual({ _form: ["Hasła muszą być identyczne"] });
+    }
+  });
+
+  it("collects several messages for the same field", () => {
+    const strict = z.object({ name: z.string().min(3, "Za krótkie").regex(/^[A-Z]/, "Wielka litera") });
+
+    try {
+      parseInput(strict, { name: "a" });
+      expect.unreachable();
+    } catch (error) {
+      expect((error as ValidationError).fieldErrors).toEqual({ name: ["Za krótkie", "Wielka litera"] });
+    }
+  });
+});
+
 describe("readJsonBody", () => {
+  it("returns the parsed JSON body", async () => {
+    const request = new Request("http://test", { method: "POST", body: JSON.stringify({ a: 1 }) });
+    await expect(readJsonBody(request)).resolves.toEqual({ a: 1 });
+  });
+
   it("turns malformed JSON into a ValidationError", async () => {
     const request = new Request("http://test", { method: "POST", body: "{not json" });
     await expect(readJsonBody(request)).rejects.toBeInstanceOf(ValidationError);

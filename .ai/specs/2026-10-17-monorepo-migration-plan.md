@@ -38,7 +38,7 @@ Kryteria ukończenia:
 - [x] `npm test` z roota przechodzi
 - [x] zasada weryfikacji w AGENTS.md obejmuje `npm test`
 
-### Faza 4 — CI
+### Faza 4 — CI ✅ (zrealizowana w [implemented/2026-10-17-ci-and-test-coverage.md](implemented/2026-10-17-ci-and-test-coverage.md))
 
 Zakres: pipeline z `lint`, `typecheck`, `build`, migracjami na serwisie PostgreSQL i testami.
 
