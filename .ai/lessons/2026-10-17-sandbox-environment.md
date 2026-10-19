@@ -9,6 +9,7 @@
   4. `mv` / `git mv` katalogów zwraca `Invalid cross-device link` (overlay FS).
   5. Nie ma `ss`/`netstat`, więc `ss ... || echo free` daje fałszywe „wolne”. `pkill -f <wzorzec>` dopasowuje też powłokę narzędzia, która ma wzorzec w linii poleceń, i ją zabija (exit 144).
   6. W sandboksie nie ma przeglądarki. Playwright z Chromium instaluje się poza repo: `mkdir /tmp/pw && cd /tmp/pw && npm i playwright && npx playwright install chromium` (binaria lądują w `~/.cache/ms-playwright`). W lokatorach `getByRole("alert")` filtruj tekstem (`.filter({ hasText: /\S/ })`), bo Next.js renderuje pusty route announcer z `role="alert"`.
+  7. W sandboksie nie ma `jq`, a skille `om-*` wczytują nim `.ai/agentic.config.json` (`jq -r ...`). Bez niego każdy skill pipeline'u pada na starcie. Instalacja: `sudo apt-get install -y jq`.
 - **Jak stosować:**
   - Weryfikuj build poleceniem `NODE_ENV=production npm run build`.
   - Pamiętaj, że `npm run db:migrate` zmienia bazę `open-mercato`. Dane testowe usuwaj po sobie.
