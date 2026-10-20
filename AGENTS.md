@@ -159,7 +159,7 @@ Gdzie trafia nowy komponent:
 
 ### Testy i CI (obowiązkowe)
 
-**Każda nowa funkcja i każda zmiana kodu musi mieć 100% pokrycia testami jednostkowymi:** lines, branches, functions i statements, dla całego kodu w `packages/*/src`. CI blokuje pull request, który obniża pokrycie poniżej 100%.
+**Każda nowa funkcja i każda zmiana kodu musi mieć 100% pokrycia testami jednostkowymi:** lines, branches, functions i statements, dla całego kodu w `packages/*/src` oraz skryptów w `scripts/`. CI blokuje pull request, który obniża pokrycie poniżej 100%.
 - Testy jednostkowe piszesz **w tym samym PR** co kod. Funkcja bez testów nie jest skończona. Naprawa błędu dodaje test, który bez poprawki failuje.
 - Pokrycie liczą wyłącznie testy jednostkowe (`*.test.ts(x)`), bez integracyjnych i E2E. Każda gałąź (`if`, `??`, `?.`, parametr domyślny, `catch`) ma test, który ją wykonuje.
 - **Zakazane bez zgody użytkownika:** obniżanie progów w `vitest.config.ts`, rozszerzanie `coverage.exclude`, komentarze `/* v8 ignore */` i `istanbul ignore` oraz testy, które wykonują kod bez asercji tylko po to, żeby podbić pokrycie.
@@ -183,6 +183,7 @@ Wszystkie joby muszą być zielone. Nie wyłączaj ani nie omijaj jobów, a nowy
 
 | Komenda | Działanie |
 | --- | --- |
+| `npm run setup` | Idempotentna instalacja lokalna (zależności, `.env`, PostgreSQL, migracje). Używa bazy z `DATABASE_URL`, a Dockera tylko wtedy, gdy ona nie odpowiada. Pomija kroki już wykonane. |
 | `npm run dev` | Serwer deweloperski aplikacji. |
 | `npm run build` / `npm start` | Build produkcyjny i jego uruchomienie. |
 | `npm run lint` | ESLint dla całego monorepo. |

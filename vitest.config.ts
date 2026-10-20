@@ -13,10 +13,14 @@ const unitProject = (name: string) => ({
 
 export default defineConfig({
   test: {
-    projects: ["app", "core", "db", "ui"].map(unitProject),
+    projects: [
+      ...["app", "core", "db", "ui"].map(unitProject),
+      // Repo tooling run by npm scripts (e.g. `npm run setup`).
+      { test: { name: "scripts", root: "scripts", include: ["**/*.test.ts"] } },
+    ],
     coverage: {
       provider: "v8",
-      include: ["packages/*/src/**/*.{ts,tsx}"],
+      include: ["packages/*/src/**/*.{ts,tsx}", "scripts/**/*.mjs"],
       exclude: ["packages/*/src/**/*.test.{ts,tsx}"],
       reporter: ["text", "json-summary", "html"],
       reportsDirectory: "coverage",
