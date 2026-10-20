@@ -2,7 +2,10 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "lib": ["esnext", "dom"],
-    "types": ["node"]
+    "types": ["node"],
+    // Type-checks the JSDoc of the dependency-free scripts in scripts/.
+    "allowJs": true,
+    "checkJs": true
   },
-  "include": ["test/**/*.ts", "vitest*.config.ts"]
+  "include": ["test/**/*.ts", "vitest*.config.ts", "scripts/**/*.ts", "scripts/**/*.mjs"]
 }

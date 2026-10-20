@@ -112,6 +112,31 @@ Kontener Awilix (`packages/core/src/container/`) działa w trybie `PROXY` z `str
 
 Wymagania: Node.js ≥ 22.17 oraz PostgreSQL (lokalnie albo przez Docker).
 
+### Instalator (zalecane)
+
+```bash
+npm run setup
+npm run dev                   # http://localhost:3000, panel: /backend
+```
+
+`npm run setup` wykonuje po kolei kroki instalacji ręcznej:
+
+1. instaluje zależności (`npm install`),
+2. tworzy `.env` z `.env.example`,
+3. sprawdza, czy pod `DATABASE_URL` działa PostgreSQL. Jeśli nie, uruchamia go z `docker-compose.yml` i czeka, aż baza przyjmie połączenia,
+4. stosuje migracje (`npm run db:migrate`).
+
+Instalator można uruchamiać wielokrotnie. Kroki już wykonane są pomijane, a przy każdym z nich instalator podaje powód:
+
+- zależności są zgodne z `package-lock.json`,
+- `.env` już istnieje (nigdy nie jest nadpisywany),
+- PostgreSQL pod `DATABASE_URL` przyjmuje połączenia,
+- brak oczekujących migracji.
+
+Docker nie jest potrzebny, jeśli masz już PostgreSQL: ustaw `DATABASE_URL` w środowisku albo w `.env`, a instalator połączy się z tą bazą i nie uruchomi kontenera. Docker jest używany tylko wtedy, gdy pod `DATABASE_URL` nic nie odpowiada, a adres jest domyślny z `.env.example`. Po błędzie usuń jego przyczynę i uruchom `npm run setup` ponownie: instalator zacznie od nieudanego kroku.
+
+### Instalacja ręczna
+
 ```bash
 npm install
 cp .env.example .env          # DATABASE_URL
@@ -126,6 +151,7 @@ Zmienne ustawione w środowisku mają pierwszeństwo przed `.env`.
 
 | Komenda | Działanie |
 | --- | --- |
+| `npm run setup` | Idempotentna instalacja środowiska lokalnego (zależności, `.env`, PostgreSQL, migracje) |
 | `npm run dev` | Serwer deweloperski |
 | `npm run build` / `npm start` | Build produkcyjny i jego uruchomienie |
 | `npm run lint` | ESLint dla całego repo |
@@ -143,7 +169,7 @@ Nowy komponent shadcn dodajesz poleceniem `npx shadcn@latest add <komponent>`, u
 
 | Rodzaj | Komenda | Co sprawdza |
 | --- | --- | --- |
-| Jednostkowe | `npm test` (`npm run test:unit`) | Cały kod w `packages/*/src`, z wymaganym **100% pokryciem** (raport w `coverage/`). |
+| Jednostkowe | `npm test` (`npm run test:unit`) | Cały kod w `packages/*/src` i `scripts/`, z wymaganym **100% pokryciem** (raport w `coverage/`). |
 | Integracyjne | `npm run test:integration` | Migracje i serwisy na prawdziwym PostgreSQL, uruchamianym efemerycznie przez **Testcontainers**. |
 | E2E | `npm run build && npm run test:e2e` | Aplikacja uruchomiona efemerycznie (`next start` + PostgreSQL z Testcontainers), sterowana przez **[agent-browser](https://github.com/vercel-labs/agent-browser)**. |
 
