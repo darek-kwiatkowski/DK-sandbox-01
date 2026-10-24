@@ -1,4 +1,8 @@
 {
+  "discovery": {
+    "enabled": true,
+    "roles": { "domainExpert": false, "designer": false }
+  },
   "version": 1,
   "baseBranch": "auto",
   "tracker": "github",
