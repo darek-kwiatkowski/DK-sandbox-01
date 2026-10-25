@@ -1,0 +1,55 @@
+{
+  "format": 1,
+  "created": "2026-09-26",
+  "scope": "Demonstration input only; skills not included",
+  "files": [
+    {
+      "path": ".ai/specs/product-brief.md",
+      "sha256": "6bee5568ccbe799d1aa1fa9a7b15240ced30256c969535b564070b8520c69fba"
+    },
+    {
+      "path": ".ai/specs/research/2026-08-20-interview-working-dev.md",
+      "sha256": "3f612899938e430fc4d66252ea87e647e0558e7e451ce6b1cdf6bc9eec7bc597"
+    },
+    {
+      "path": ".ai/specs/research/2026-09-02-interview-platform-dev-solves-alone.md",
+      "sha256": "3b30968bc3c912ddfbcc5ed7be0a2678ddef90448b80928fa3348d1021f3797c"
+    },
+    {
+      "path": ".ai/specs/research/SOURCES.md",
+      "sha256": "3f99bf011e7c5c25f68f8dea124bc532551ef82770cffdf0ef0389c880aecaaf"
+    },
+    {
+      "path": ".ai/specs/research/decisions/D07-login.md",
+      "sha256": "91c579d871fdd07922f066457b4de6455e47031ff63542b4f6bdb6569c0db4be"
+    },
+    {
+      "path": ".ai/specs/research/decisions/D09-pricing.md",
+      "sha256": "7be22793a652dc0732189c1b12d1a4cca6bdcc06bfcc9035dd04a24c6c99f6ae"
+    },
+    {
+      "path": ".ai/specs/research/decisions/D21-finding-a-mentor.md",
+      "sha256": "b31d62fac04d1aa833100ec41d6994b9fe168fcc9196ed4552ffb6eaccf619bb"
+    },
+    {
+      "path": ".ai/specs/research/decisions/D22-session-timing.md",
+      "sha256": "c5c8fe50af26a697b219e6873ab84247f87f14ec9a2533e0dd28362e0cf9c59b"
+    },
+    {
+      "path": ".ai/specs/research/decisions/D27-session-channel.md",
+      "sha256": "96810304f235c1e127b409725d4604dd044bb9bdcfad37f5aae8cec0e9c05708"
+    },
+    {
+      "path": ".ai/specs/research/decisions/N01-no-video.md",
+      "sha256": "c88f0e85388ec95476fad9b581ce0f3d4d34ab954954661d4998ff744d692453"
+    },
+    {
+      "path": ".ai/specs/research/holdout/2026-09-01-interview-backend-dev-fintech.md",
+      "sha256": "7da9f365de5267fce2728d4782d4bfdaa047f73eeb9da6d7c50912a55401822e"
+    },
+    {
+      "path": "README.md",
+      "sha256": "9d25704c334cc34c2d7d89d88c1cefb4c3e7e3e6455cf5866335f130afec44bd"
+    }
+  ]
+}
