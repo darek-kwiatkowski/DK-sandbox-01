@@ -4,4 +4,4 @@
 - Decision and why: The operator gets screens for invitations, price bounds, the platform fee and disputes in 1.0. No reason was given beyond the choice.
 - Consequences, and what would make us revisit it: Adds operator stories to 1.0. Who acts as operator (both founders under D19) was not changed.
 - Confirmation: Confirmed in the discovery session on 2026-10-26 by founder B (Maciej), who reported that founder A (Oliwia) agrees; founder A's own confirmation was not observed in the session and she can supersede it.
-- Status: active; supersedes D19 (manual operator work)
+- Status: active; supersedes D19 (manual operator work); dispute screen part superseded by D48
