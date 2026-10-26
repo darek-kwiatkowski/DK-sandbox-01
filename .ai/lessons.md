@@ -25,6 +25,8 @@ Szczegółowe wpisy trafiają do `.ai/lessons/YYYY-MM-DD-slug.md`. Tutaj dodaj t
 
 <!-- Dodawaj nowe wpisy poniżej, od najnowszych. -->
 
+- [2026-10-26-brief-table-edits-anchor-on-row-start](lessons/2026-10-26-brief-table-edits-anchor-on-row-start.md) — wiersze tabel briefu wyszukuj po prefiksie linii, bo id występują też w innych kolumnach.
+- [2026-10-26-research-files-not-trustworthy-by-name](lessons/2026-10-26-research-files-not-trustworthy-by-name.md) — przed oceną briefu sprawdzaj istnienie i treść cytowanych plików oraz numery issue; część plików w `research/` ma treść niezgodną z nazwą.
 - [2026-10-24-discovery-brief-citation-paths](lessons/2026-10-24-discovery-brief-citation-paths.md) — lokalne cytowania w briefie weryfikuj względem katalogu briefu.
 - [2026-10-20-setup-detects-real-state](lessons/2026-10-20-setup-detects-real-state.md) — kroki instalatora pomijaj po sprawdzeniu zasobu (sonda PostgreSQL), nie po konfiguracji; `migration:pending` nie sprawdza połączenia.
 - [2026-10-17-testing-pitfalls](lessons/2026-10-17-testing-pitfalls.md) — coverage per `--project` mierzy 0/0; nic w `db/src/migrations/` poza migracjami; Docker w sandboksie przez `sudo dockerd`, plugin `docker compose` z wydania GitHub.
