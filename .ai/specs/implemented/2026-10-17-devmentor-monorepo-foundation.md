@@ -1,35 +1,35 @@
-# DevMentor — fundament monorepo
+# DevMentor — monorepo foundation
 
-- **Data:** 2026-10-17
-- **Status:** wdrożona (2026-10-17)
+- **Date:** 2026-10-17
+- **Status:** implemented (2026-10-17)
 
-## Cel
+## Goal
 
-Przekształcić jednopakietowy starter Next.js w monorepo aplikacji DevMentor z docelowym stackiem:
+Turn the single-package Next.js starter into the DevMentor application monorepo with the target stack:
 Next.js (App Router) + React + TypeScript, PostgreSQL + MikroORM, Awilix (DI), Tailwind (frontend), shadcn-ui (backend).
 
-## Zakres
+## Scope
 
-1. **npm workspaces** w katalogu `packages/*`. Root zawiera wyłącznie orkiestrację: skrypty, wspólny `tsconfig.base.json` i dokumentację.
-2. **Pakiety** (ze źródłami TS, bez kroku budowania, z importem przez nazwę pakietu):
-   - `@devmentor/app`: aplikacja Next.js (przeniesiona z roota).
-   - `@devmentor/core`: logika wielokrotnego użytku, bez zależności od Next/React; kontener DI (Awilix) i jego typy.
-   - `@devmentor/db`: konfiguracja MikroORM, encje, migracje, rejestracja serwisów bazodanowych w DI.
-   - `@devmentor/ui`: komponenty shadcn-ui, `cn`, motyw (CSS variables) dla Tailwind v4.
-3. **Kierunek zależności:** `app → ui, db, core`; `db → core`; `ui` i `core` nie zależą od innych pakietów workspace.
-4. **Strony:** frontend (publiczny, czysty Tailwind) w grupie `(frontend)`, backend (panel administracyjny, shadcn-ui) pod `/backend`.
-5. **Baza danych:** PostgreSQL przez `DATABASE_URL`. Migracje MikroORM w `packages/db/src/migrations`, skrypty `db:*` w roocie. `docker-compose.yml` z lokalnym Postgresem i plik `.env.example`.
-6. **DI:** jeden kontener aplikacji (singleton na proces) oraz scope na żądanie z własnym `EntityManager` (`em.fork()`).
-7. **Przykładowy pionowy przekrój:** encja `User`, migracja początkowa, serwis w DI i strona backendu listująca użytkowników.
-8. Root `npm run dev` nadal uruchamia aplikację, bo korzysta z niego `openmercato.toml`.
+1. **npm workspaces** in the `packages/*` directory. The root contains only orchestration: scripts, a shared `tsconfig.base.json` and documentation.
+2. **Packages** (with TS sources, no build step, imported by package name):
+   - `@devmentor/app`: the Next.js application (moved from the root).
+   - `@devmentor/core`: reusable logic, with no dependency on Next/React; the DI container (Awilix) and its types.
+   - `@devmentor/db`: MikroORM configuration, entities, migrations, registration of database services in DI.
+   - `@devmentor/ui`: shadcn-ui components, `cn`, theme (CSS variables) for Tailwind v4.
+3. **Dependency direction:** `app → ui, db, core`; `db → core`; `ui` and `core` do not depend on other workspace packages.
+4. **Pages:** frontend (public, plain Tailwind) in the `(frontend)` group, backend (admin panel, shadcn-ui) under `/backend`.
+5. **Database:** PostgreSQL via `DATABASE_URL`. MikroORM migrations in `packages/db/src/migrations`, `db:*` scripts in the root. A `docker-compose.yml` with a local Postgres and an `.env.example` file.
+6. **DI:** one application container (singleton per process) plus a per-request scope with its own `EntityManager` (`em.fork()`).
+7. **Sample vertical slice:** a `User` entity, an initial migration, a service in DI and a backend page listing users.
+8. The root `npm run dev` still runs the application, because `openmercato.toml` uses it.
 
-## Poza zakresem
+## Out of scope
 
-Autoryzacja, testy automatyczne (framework testowy do wyboru później), CI, deployment.
+Authorization, automated tests (test framework to be chosen later), CI, deployment.
 
-## Kryteria akceptacji
+## Acceptance criteria
 
-- `npm run lint`, `npm run typecheck` i `npm run build` z roota przechodzą.
-- `npm run db:migrate` tworzy schemat na pustej bazie PostgreSQL.
-- `/` renderuje stronę frontendu (Tailwind), a `/backend` renderuje panel (shadcn) z listą użytkowników z bazy.
-- `AGENTS.md` opisuje architekturę i reguły, a `README.md` opisuje architekturę i uruchomienie.
+- `npm run lint`, `npm run typecheck` and `npm run build` from the root pass.
+- `npm run db:migrate` creates the schema on an empty PostgreSQL database.
+- `/` renders the frontend page (Tailwind), and `/backend` renders the panel (shadcn) with a list of users from the database.
+- `AGENTS.md` describes the architecture and rules, and `README.md` describes the architecture and how to run it.

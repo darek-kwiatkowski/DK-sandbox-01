@@ -1,88 +1,88 @@
-# Plan migracji do monorepo DevMentor
+# DevMentor monorepo migration plan
 
-- **Data:** 2026-10-17
-- **Status:** w realizacji
-- **Specyfikacja bazowa:** [implemented/2026-10-17-devmentor-monorepo-foundation.md](implemented/2026-10-17-devmentor-monorepo-foundation.md)
-- **Architektura:** `AGENTS.md` (sekcja „Architektura DevMentor”), `README.md`
+- **Date:** 2026-10-17
+- **Status:** in progress
+- **Base specification:** [implemented/2026-10-17-devmentor-monorepo-foundation.md](implemented/2026-10-17-devmentor-monorepo-foundation.md)
+- **Architecture:** `AGENTS.md` (section „Architektura DevMentor” (DevMentor architecture)), `README.md`
 
-## Fazy
+## Phases
 
-### Faza 1 — Struktura monorepo i przeniesienie aplikacji ✅
+### Phase 1 — Monorepo structure and moving the application ✅
 
-Zakres:
+Scope:
 - npm workspaces,
-- przeniesienie aplikacji do `packages/app`,
-- wydzielenie `core` (DI), `db` (MikroORM, encje, migracje) i `ui` (shadcn),
-- zależności między pakietami, importy przez nazwy pakietów,
-- skrypty w roocie i migracja początkowa.
+- moving the application to `packages/app`,
+- extracting `core` (DI), `db` (MikroORM, entities, migrations) and `ui` (shadcn),
+- dependencies between packages, imports by package name,
+- root scripts and the initial migration.
 
-Kryteria ukończenia:
-- [x] `npm run lint`, `npm run typecheck`, `npm run build` z roota przechodzą
-- [x] `npm run db:migrate` tworzy schemat na **pustej**, odizolowanej bazie, a `db:migration:create` nie wykrywa różnic
-- [x] `npm run dev` (komenda podglądu z `openmercato.toml`) serwuje `/` (Tailwind) i `/backend` (shadcn, dane z bazy przez DI)
-- [x] żaden pakiet nie importuje niezadeklarowanych zależności ani innego pakietu ścieżką względną
+Completion criteria:
+- [x] `npm run lint`, `npm run typecheck`, `npm run build` from the root pass
+- [x] `npm run db:migrate` creates the schema on an **empty**, isolated database, and `db:migration:create` detects no differences
+- [x] `npm run dev` (the preview command from `openmercato.toml`) serves `/` (Tailwind) and `/backend` (shadcn, data from the database via DI)
+- [x] no package imports undeclared dependencies or another package via a relative path
 
-### Faza 2 — Egzekwowanie granic architektury ✅
+### Phase 2 — Enforcing architecture boundaries ✅
 
-Zakres: reguły z AGENTS.md (kierunek zależności, frontend bez `@devmentor/ui`, `core` niezależny od frameworka, brak importów względnych między pakietami) wymuszane przez ESLint, nie tylko przez dokumentację.
+Scope: the rules from AGENTS.md (dependency direction, frontend without `@devmentor/ui`, `core` framework-independent, no relative imports between packages) enforced by ESLint, not just by documentation.
 
-Kryteria ukończenia:
-- [x] naruszenie każdej reguły daje błąd `npm run lint` (sprawdzone na celowo złym kodzie)
-- [x] obecny kod przechodzi `npm run lint` bez wyjątków i wyłączeń
+Completion criteria:
+- [x] violating any rule produces an `npm run lint` error (verified on deliberately bad code)
+- [x] the current code passes `npm run lint` with no exceptions or disables
 
-### Faza 3 — Testy automatyczne ✅
+### Phase 3 — Automated tests ✅
 
-Zakres: framework testowy: Vitest (rekomendacja planu, przyjęta przy braku innej decyzji użytkownika), skrypt `npm test`, testy jednostkowe `core` (kontener, scope) i test integracyjny `db` (migracja i `UserService` na izolowanej bazie).
+Scope: test framework: Vitest (the plan's recommendation, adopted in the absence of another decision from the user), an `npm test` script, `core` unit tests (container, scope) and a `db` integration test (migration and `UserService` on an isolated database).
 
-Kryteria ukończenia:
-- [x] `npm test` z roota przechodzi
-- [x] zasada weryfikacji w AGENTS.md obejmuje `npm test`
+Completion criteria:
+- [x] `npm test` from the root passes
+- [x] the verification rule in AGENTS.md covers `npm test`
 
-### Faza 4 — CI ✅ (zrealizowana w [implemented/2026-10-17-ci-and-test-coverage.md](implemented/2026-10-17-ci-and-test-coverage.md))
+### Phase 4 — CI ✅ (delivered in [implemented/2026-10-17-ci-and-test-coverage.md](implemented/2026-10-17-ci-and-test-coverage.md))
 
-Zakres: pipeline z `lint`, `typecheck`, `build`, migracjami na serwisie PostgreSQL i testami.
+Scope: a pipeline with `lint`, `typecheck`, `build`, migrations on a PostgreSQL service, and tests.
 
-Kryteria ukończenia:
-- [ ] pipeline przechodzi na czystym checkoucie
+Completion criteria:
+- [ ] the pipeline passes on a clean checkout
 
-## Postęp
+## Progress
 
-<!-- Najnowsze wpisy na górze. -->
+<!-- Newest entries at the top. -->
 
-- **2026-10-17 — Faza 3 ukończona.**
-  - Vitest 5 w `core` i `db`; `npm test` w roocie uruchamia testy we wszystkich pakietach.
-  - `core`: 5 testów jednostkowych DI (kolejność modułów, PROXY, singleton/scoped, strict, dispose). Mutacja `strict: false` wykryta.
-  - `db`: 4 testy integracyjne na PostgreSQL przez `TEST_DATABASE_URL`:
-    - migracje działają na pustej bazie,
-    - migracje pokrywają encje (mutacja: pole bez migracji wykryta, test pokazał brakujący SQL),
-    - `UserService` przez DI z osobnymi `em` per scope,
-    - duplikat e-maila odrzucony.
-  - Bezpiecznik `TEST_DATABASE_URL == DATABASE_URL` przerywa test (exit 1), a schemat zostaje nietknięty (sprawdzone tabelą kontrolną).
-  - Refaktor `db`:
-    - `createOrmConfig` honoruje `clientUrl` z overrides,
-    - nowy `createDbModule(overrides)`,
-    - opcje migratora w `migrator-config.ts`, wspólne dla CLI i testów.
-  - Poprawka: `eslint` 10 → 9.39.5, bo wtyczki `eslint-config-next` deklarują peer `eslint ^9`. `npm install` nie zgłasza już `ERESOLVE`. Reguły granic z fazy 2 sprawdzone ponownie sondami.
-  - Wyniki: `lint`, `typecheck`, `build` i `npm test` mają exit 0 (bez bazy 5 passed / 4 skipped, z izolowaną bazą 9/9), podgląd `/` i `/backend` zwraca 200.
-- **Następny etap: Faza 4 (CI)**, ostatnia. Repo ma `origin` na GitHubie, więc pipeline to GitHub Actions. Musi ustawić `TEST_DATABASE_URL` na serwis PostgreSQL. Kryterium „przechodzi na czystym checkoucie” wymaga wypchnięcia gałęzi (wymaga zgody użytkownika).
+- **2026-10-17 — Phase 3 complete.**
+  - Vitest 5 in `core` and `db`; `npm test` in the root runs the tests in all packages.
+  - `core`: 5 DI unit tests (module order, PROXY, singleton/scoped, strict, dispose). The `strict: false` mutation was detected.
+  - `db`: 4 integration tests on PostgreSQL via `TEST_DATABASE_URL`:
+    - migrations work on an empty database,
+    - migrations cover the entities (mutation: a field without a migration was detected, the test showed the missing SQL),
+    - `UserService` via DI with separate `em` per scope,
+    - a duplicate e-mail is rejected.
+  - The `TEST_DATABASE_URL == DATABASE_URL` safeguard aborts the test (exit 1), and the schema stays untouched (verified with a control table).
+  - `db` refactor:
+    - `createOrmConfig` honors `clientUrl` from overrides,
+    - new `createDbModule(overrides)`,
+    - migrator options in `migrator-config.ts`, shared by the CLI and the tests.
+  - Fix: `eslint` 10 → 9.39.5, because the `eslint-config-next` plugins declare peer `eslint ^9`. `npm install` no longer reports `ERESOLVE`. The phase 2 boundary rules were re-checked with probes.
+  - Results: `lint`, `typecheck`, `build` and `npm test` exit 0 (without a database 5 passed / 4 skipped, with an isolated database 9/9), the `/` and `/backend` preview returns 200.
+- **Next stage: Phase 4 (CI)**, the last one. The repo has an `origin` on GitHub, so the pipeline is GitHub Actions. It must set `TEST_DATABASE_URL` to a PostgreSQL service. The "passes on a clean checkout" criterion requires pushing the branch (requires the user's consent).
 
-- **2026-10-17 — Faza 2 ukończona.** `eslint.config.mjs` wymusza teraz:
+- **2026-10-17 — Phase 2 complete.** `eslint.config.mjs` now enforces:
   - `import/no-relative-packages`,
-  - `import/no-extraneous-dependencies` (devDependencies tylko w plikach `*.config.*`),
-  - `@typescript-eslint/no-restricted-imports` per zakres: `core`, `db`, `ui`, trasy `app` (dane tylko przez DI, typy dozwolone) i `(frontend)` (bez `@devmentor/ui`).
+  - `import/no-extraneous-dependencies` (devDependencies only in `*.config.*` files),
+  - `@typescript-eslint/no-restricted-imports` per scope: `core`, `db`, `ui`, `app` routes (data only via DI, types allowed) and `(frontend)` (without `@devmentor/ui`).
 
-  Weryfikacja:
-  - sondy z celowymi naruszeniami w każdym zakresie dały 18/18 oczekiwanych błędów,
-  - plik z dozwolonymi importami dał 0 błędów,
-  - sondy usunięto,
-  - `lint`, `typecheck` i `build` przechodzą (exit 0), podgląd `/` i `/backend` zwraca 200.
+  Verification:
+  - probes with deliberate violations in every scope produced 18/18 expected errors,
+  - a file with allowed imports produced 0 errors,
+  - the probes were removed,
+  - `lint`, `typecheck` and `build` pass (exit 0), the `/` and `/backend` preview returns 200.
 
-  Uwaga: `--fix` reguły `no-relative-packages` podsuwa ścieżkę spoza `exports` (opisane w AGENTS.md).
+  Note: `--fix` for the `no-relative-packages` rule suggests a path outside `exports` (described in AGENTS.md).
 
 
-- **2026-10-17 — Faza 1 ukończona.** Weryfikacja na kopii drzewa po `npm ci` (bez lokalnego stanu):
-  - `lint`, `typecheck` i `build` przechodzą,
-  - na pustym, odizolowanym PostgreSQL migracja tworzy schemat `users`, a `migration:create` zgłasza „No changes required”,
-  - build produkcyjny (`npm start`): `/` 200, `/backend` 200 (stan pusty, potem dane po insercie), nieznana ścieżka 404,
-  - podgląd `npm run dev` na :3000 zwraca 200,
-  - audyt importów nie wykazał niezadeklarowanych zależności ani importów względnych między pakietami.
+- **2026-10-17 — Phase 1 complete.** Verification on a copy of the tree after `npm ci` (no local state):
+  - `lint`, `typecheck` and `build` pass,
+  - on an empty, isolated PostgreSQL the migration creates the `users` schema, and `migration:create` reports "No changes required",
+  - production build (`npm start`): `/` 200, `/backend` 200 (empty state, then data after an insert), unknown path 404,
+  - the `npm run dev` preview on :3000 returns 200,
+  - the import audit found no undeclared dependencies or relative imports between packages.

@@ -1,46 +1,46 @@
-# CI na GitHub Actions, testy jednostkowe ze 100% pokryciem, integracja (Testcontainers) i E2E (agent-browser)
+# CI on GitHub Actions, unit tests with 100% coverage, integration (Testcontainers) and E2E (agent-browser)
 
-- **Data:** 2026-10-17
-- **Status:** wdrożona (2026-10-17)
-- **Zastępuje:** fazę 4 (CI) z [planu migracji](../2026-10-17-monorepo-migration-plan.md)
+- **Date:** 2026-10-17
+- **Status:** implemented (2026-10-17)
+- **Supersedes:** phase 4 (CI) of the [migration plan](../2026-10-17-monorepo-migration-plan.md)
 
-## Cel
+## Goal
 
-Każdy pull request przechodzi automatycznie:
+Every pull request automatically goes through:
 - build,
 - lint (+ typecheck),
-- testy jednostkowe ze **100% pokryciem** (lines/branches/functions/statements),
-- testy integracyjne na efemerycznym PostgreSQL z **Testcontainers**,
-- testy E2E na efemerycznie uruchomionej aplikacji, sterowanej przez **agent-browser** (Vercel Labs).
+- unit tests with **100% coverage** (lines/branches/functions/statements),
+- integration tests on an ephemeral PostgreSQL with **Testcontainers**,
+- E2E tests on an ephemerally launched application, driven by **agent-browser** (Vercel Labs).
 
-## Decyzje
+## Decisions
 
-| Obszar | Wybór | Uzasadnienie |
+| Area | Choice | Rationale |
 | --- | --- | --- |
-| Testy jednostkowe | Vitest 5 (już w repo) + `@vitest/coverage-v8` 5.0.5 | Peer `vitest` musi mieć dokładnie tę samą wersję. |
-| Zakres pokrycia | `packages/*/src/**/*.{ts,tsx}` bez plików testowych | Cały kod aplikacji, łącznie z wygenerowanymi prymitywami shadcn, migracjami i `mikro-orm.config.ts`. Poza `src` zostają tylko pliki konfiguracji narzędzi (`next.config.ts`, `postcss.config.mjs`), weryfikowane przez build i lint. |
-| Progi | 100% dla wszystkich metryk, liczone łącznie w jednym `vitest.config.ts` | 100% łącznie oznacza 100% w każdym pliku, więc słabe pokrycie jednego pakietu nie chowa się w średniej. Nie trzeba powielać konfiguracji per pakiet. |
-| Integracja | Root `vitest.integration.config.ts`, `globalSetup` z `@testcontainers/postgresql` | Kontener PostgreSQL 17 na czas przebiegu. `TEST_DATABASE_URL` w środowisku zastępuje kontener (np. gdy brak Dockera). Testy integracyjne nie są już pomijane, tylko failują bez bazy. |
-| E2E | Root `test/e2e`, Vitest steruje CLI `agent-browser` (`--json`, osobna sesja) | `globalSetup` stawia kontener, uruchamia migracje przez prawdziwe CLI (`npm run db:migrate`), dane seeduje i czyści przez serwisy `@devmentor/core` i startuje `next start` z buildu produkcyjnego na losowym porcie. |
-| Infrastruktura testów | Katalog `test/` w roocie (nie pakiet workspace) | Piąty pakiet wymaga zgody (AGENTS.md); narzędzia repo żyją w roocie. |
-| CI | `.github/workflows/ci.yml`, `pull_request`, Node 24, 5 równoległych jobów | `actions/checkout@v7`, `actions/setup-node@v7` (cache npm), `actions/upload-artifact@v7`. Docker jest dostępny na `ubuntu-latest`. |
+| Unit tests | Vitest 5 (already in the repo) + `@vitest/coverage-v8` 5.0.5 | The `vitest` peer must have exactly the same version. |
+| Coverage scope | `packages/*/src/**/*.{ts,tsx}` excluding test files | All application code, including generated shadcn primitives, migrations and `mikro-orm.config.ts`. Only tool configuration files (`next.config.ts`, `postcss.config.mjs`) stay outside `src`; they are verified by build and lint. |
+| Thresholds | 100% for all metrics, computed jointly in a single `vitest.config.ts` | 100% jointly means 100% in every file, so weak coverage in one package does not hide in the average. No need to duplicate the configuration per package. |
+| Integration | Root `vitest.integration.config.ts`, `globalSetup` with `@testcontainers/postgresql` | A PostgreSQL 17 container for the duration of the run. `TEST_DATABASE_URL` in the environment replaces the container (e.g. when Docker is missing). Integration tests are no longer skipped; they fail without a database. |
+| E2E | Root `test/e2e`, Vitest drives the `agent-browser` CLI (`--json`, separate session) | `globalSetup` starts the container, runs migrations through the real CLI (`npm run db:migrate`), seeds and cleans data through `@devmentor/core` services, and starts `next start` from the production build on a random port. |
+| Test infrastructure | A `test/` directory in the root (not a workspace package) | A fifth package requires consent (AGENTS.md); repo tooling lives in the root. |
+| CI | `.github/workflows/ci.yml`, `pull_request`, Node 24, 5 parallel jobs | `actions/checkout@v7`, `actions/setup-node@v7` (npm cache), `actions/upload-artifact@v7`. Docker is available on `ubuntu-latest`. |
 
-## Kryteria ukończenia
+## Completion criteria
 
-- [x] `npm run test:unit` (alias `npm test`) przechodzi z progiem 100% w każdym pakiecie
-- [x] `npm run test:integration` przechodzi na kontenerze Testcontainers (lokalnie, przez Docker)
-- [x] `npm run test:e2e` przechodzi: aplikacja startuje efemerycznie, a agent-browser weryfikuje `/`, `/backend` (dane, stan pusty) i brak błędów JS
-- [x] workflow CI ma joby build, lint, unit, integration i e2e; plik jest poprawny składniowo, a kroki są odtworzone lokalnie
-- [x] AGENTS.md wymaga 100% pokrycia testami jednostkowymi dla każdej nowej funkcji; README opisuje komendy
-- [x] przebieg CI na GitHubie: [PR #1](https://github.com/darek-kwiatkowski/DK-sandbox-01/pull/1), run 39020654680, 5/5 jobów zielonych
+- [x] `npm run test:unit` (alias `npm test`) passes with the 100% threshold in every package
+- [x] `npm run test:integration` passes on a Testcontainers container (locally, via Docker)
+- [x] `npm run test:e2e` passes: the application starts ephemerally, and agent-browser verifies `/`, `/backend` (data, empty state) and the absence of JS errors
+- [x] the CI workflow has build, lint, unit, integration and e2e jobs; the file is syntactically valid, and the steps were reproduced locally
+- [x] AGENTS.md requires 100% unit test coverage for every new feature; the README describes the commands
+- [x] CI run on GitHub: [PR #1](https://github.com/darek-kwiatkowski/DK-sandbox-01/pull/1), run 39020654680, 5/5 jobs green
 
-## Postęp
+## Progress
 
-<!-- Najnowsze wpisy na górze. -->
+<!-- Newest entries at the top. -->
 
-- **2026-10-17 — CI na GitHubie zielone.** PR #1, wszystkie joby przeszły za pierwszym razem:
+- **2026-10-17 — CI on GitHub green.** PR #1, all jobs passed on the first try:
 
-  | Job | Czas |
+  | Job | Time |
   | --- | --- |
   | Build | 49 s |
   | Lint & typecheck | 49 s |
@@ -48,13 +48,13 @@ Każdy pull request przechodzi automatycznie:
   | Unit (100%) | 1 min 2 s |
   | E2E (agent-browser) | 1 min 15 s |
 
-- **2026-10-17 — wdrożenie.**
-  - `vitest.config.ts`: projekty `app`, `core`, `db`, `ui`; coverage v8, próg 100% łącznie (czyli w każdym pakiecie).
+- **2026-10-17 — implementation.**
+  - `vitest.config.ts`: projects `app`, `core`, `db`, `ui`; v8 coverage, 100% threshold jointly (i.e. in every package).
   - `vitest.integration.config.ts` + `test/integration/global-setup.ts`: Testcontainers `postgres:17-alpine`.
-  - `vitest.e2e.config.ts` + `test/e2e/global-setup.ts`: kontener → `npm run db:migrate` → `next start` na wolnym porcie → `/api/health`. Do tego `test/support/agent-browser.ts` i 5 scenariuszy w `test/e2e/app.e2e.test.ts`.
-  - `.github/workflows/ci.yml`: 5 jobów; actionlint OK.
-  - 26 nowych lub rozszerzonych plików testów jednostkowych, 139 testów. Pokrycie: lines 354/354, branches 207/207, functions 127/127, statements 366/366. Bez komentarzy `ignore` i bez zmian w kodzie źródłowym.
-  - Lokalnie (Docker zainstalowany w sandboksie): `lint`, `typecheck`, `test:unit`, `test:integration` (4), `build` i `test:e2e` (5) mają exit 0.
-  - Mutacje:
-    - nieprzetestowana funkcja daje `test:unit` exit 1 (próg),
-    - zmieniony tekst stanu pustego wywraca test E2E.
+  - `vitest.e2e.config.ts` + `test/e2e/global-setup.ts`: container → `npm run db:migrate` → `next start` on a free port → `/api/health`. Plus `test/support/agent-browser.ts` and 5 scenarios in `test/e2e/app.e2e.test.ts`.
+  - `.github/workflows/ci.yml`: 5 jobs; actionlint OK.
+  - 26 new or extended unit test files, 139 tests. Coverage: lines 354/354, branches 207/207, functions 127/127, statements 366/366. No `ignore` comments and no changes to source code.
+  - Locally (Docker installed in the sandbox): `lint`, `typecheck`, `test:unit`, `test:integration` (4), `build` and `test:e2e` (5) exit 0.
+  - Mutations:
+    - an untested function makes `test:unit` exit 1 (threshold),
+    - a changed empty-state text breaks the E2E test.

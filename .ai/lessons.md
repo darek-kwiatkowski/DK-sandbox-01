@@ -25,6 +25,8 @@ Szczegółowe wpisy trafiają do `.ai/lessons/YYYY-MM-DD-slug.md`. Tutaj dodaj t
 
 <!-- Dodawaj nowe wpisy poniżej, od najnowszych. -->
 
+- [2026-10-31-page-guards-not-in-root-layouts](lessons/2026-10-31-page-guards-not-in-root-layouts.md) — role gates go in `page.tsx` via `pageScope`, not in group root layouts (`forbidden()` is experimental there, and layouts need a second scope).
+- [2026-10-31-coverage-include-scripts-mjs-only](lessons/2026-10-31-coverage-include-scripts-mjs-only.md) — `coverage.include` counts only `scripts/**/*.mjs`; widen it when adding a `.ts` script.
 - [2026-10-26-brief-table-edits-anchor-on-row-start](lessons/2026-10-26-brief-table-edits-anchor-on-row-start.md) — wiersze tabel briefu wyszukuj po prefiksie linii, bo id występują też w innych kolumnach.
 - [2026-10-26-research-files-not-trustworthy-by-name](lessons/2026-10-26-research-files-not-trustworthy-by-name.md) — przed oceną briefu sprawdzaj istnienie i treść cytowanych plików oraz numery issue; część plików w `research/` ma treść niezgodną z nazwą.
 - [2026-10-24-discovery-brief-citation-paths](lessons/2026-10-24-discovery-brief-citation-paths.md) — lokalne cytowania w briefie weryfikuj względem katalogu briefu.
