@@ -1,15 +1,15 @@
 # Platform primitives for DevMentor 1.0
 
 - **Date:** 2026-10-31
-- **Status:** design accepted at the gate (2026-10-31). Built incrementally: each primitive is implemented by the first story that consumes it (see Phasing). The spec moves to `implemented/` when the last phase ships.
+- **Status:** design accepted at the gate; review corrections applied with user authorization (2026-10-31). Built incrementally: each primitive is implemented by the first story that consumes it (see Phasing). The spec moves to `implemented/` when the last phase ships.
 - **Design authority:** `AGENTS.md`, `.ai/docs/engineering-standards.md`, `.ai/specs/product-brief.md`
 - **First consumer:** [E01-S01 accounts and role access](2026-10-31-e01-s01-accounts-and-role-access.md) (#11)
 
 ## 📝 TLDR
 
-The 1.0 backlog (#11–#24) has 13 stories across five epics. They keep needing the same dozen mechanisms: knowing who is acting and under which role, checking a record belongs to a party, talking to a vendor (GitHub, Stripe, notifications), PLN money and fees, operator-set settings that gate features, status lifecycles, exactly-once webhooks, side effects after a change, audit of operator actions, single-use links, paginated lists, and screens that refresh while open.
+The 1.0 backlog (#11–#24) has 13 stories across five epics. They keep needing the same mechanisms: knowing who is acting and under which role, checking a record belongs to a party, talking to a vendor (GitHub, Stripe, notifications), PLN money and fees, operator-set settings that gate features, status lifecycles, deduplicated webhook processing, side effects after a change, audit of operator actions, single-use links, paginated lists, and screens that refresh while open.
 
-This spec defines each mechanism once, as a contract with its package location, so each story adds one concept and **no new mechanism**. It extends the existing `core/src/http` and `ui/src/backend` layers and stays inside the four-package architecture. It adds no new technology except `bcryptjs` (already mandated by the standards).
+This spec defines shared contracts and their package locations. A consuming story ratifies or amends future contracts when its concrete requirements are known; the catalogue is not a requirement to build a framework in advance. It extends the existing `core/src/http` and `ui/src/backend` layers and stays inside the four-package architecture. S01 adds `bcryptjs` (already mandated by the standards) and the root `tsx` development tool.
 
 Decisions taken at the gate (2026-10-31):
 - the catalogue is designed here, and each primitive is built with its first consumer (YAGNI);
@@ -42,7 +42,7 @@ How the backlog maps onto mechanisms:
 | Operator-set fee/bounds/terms that block features until set (R28, R29, R33) | #14, #17 | P8 platform settings |
 | Invitation, booking, payment, payout, note lifecycles | #12, #17, #18, #20, #21 | P9 state transitions |
 | Notify both parties, record booking-to-start | #17, #18, #19 | P10 domain events |
-| Stripe webhooks exactly once | #17, #21, #24 | P11 webhook inbox |
+| Stripe webhook deduplication and atomic local effects | #17, #21, #24 | P11 webhook inbox |
 | Operator actions on access and money (R35) | #12, #14, #21 | P12 audit log |
 | Invitation links | #12 | P13 one-time tokens |
 | Filtered public list, operator tables, "my bookings" | #12, #16, #18 | P14 list queries |
@@ -94,7 +94,7 @@ flowchart LR
   page --> be
 ```
 
-Every request and every render opens **one** scope. Inside it, the actor is resolved, input is parsed, the service runs (policies plus a transaction), and events are dispatched after commit. Pages and routes share the same `Actor` and the same policy functions, so a gate is written once.
+Every request and every render opens **one** main scope. Inside it, the actor is resolved, input is parsed, and the service runs. A mutating workflow owns its outer transaction; reads do not open one unnecessarily. P6's independent counter writes and P10's subscriber scopes are explicit exceptions. Pages and routes share `Access`/`hasRole`; record-level policies live in services. Event collection and dispatch are added only with P10 and are tied to the actual outer commit, not to the lifetime of the HTTP request.
 
 ### P1 — Actor, route builder, responses (`core/src/http`, `core/src/services/auth`)
 
@@ -102,7 +102,7 @@ Every request and every render opens **one** scope. Inside it, the actor is reso
 // http/access.ts
 export const ROLES = ["mentee", "mentor", "operator"] as const;
 export type Role = (typeof ROLES)[number];
-export interface Actor { readonly userId: string; readonly roles: ReadonlySet<Role> }
+export interface Actor { readonly userId: string; readonly roles: ReadonlySet<Role>; readonly sessionVersion: number }
 export type Access = "public" | "session" | { anyRole: readonly [Role, ...Role[]] };
 export function hasRole(actor: Actor, role: Role): boolean;
 
@@ -128,19 +128,24 @@ export function apiRoute<A extends Access, P, Q, B, T>(config: {
 // http/respond.ts — the only way a route sets cookies or redirects
 export function respond<T>(data: T, init?: { status?: number; cookies?: CookieSpec[] }): HttpResult<T>;
 export function redirectTo(path: SafePath, init?: { cookies?: CookieSpec[] }): HttpResult<never>;
+export function redirectToProvider(url: TrustedProviderUrl, init?: { cookies?: CookieSpec[] }): HttpResult<never>;
 export function safeRedirectPath(input: unknown, fallback: SafePath): SafePath;
-// accepts only "/" + a non-"/" char; rejects backslashes and any control char (browsers strip \t\r\n, so "/\t/evil" would become "//evil")
+// accepts "/" or "/" + a non-"/" char; rejects backslashes and any control char (browsers strip \t\r\n, so "/\t/evil" would become "//evil")
 
 // http/browser-route.ts — for top-level browser navigations (OAuth start/callback, later Stripe return URLs)
 export function browserRoute<A extends Access>(config: Omit<ApiRouteConfig<A>, "status"> & {
-  errorRedirect: SafePath;                          // e.g. "/login"
+  errorRedirect: SafePath | ((error: unknown) => SafePath); // default "/login"; trusted link-flow errors may use "/account"
   errorCode(error: unknown): string;                // AppError → its mapped code; anything else → a generic code (logged)
+  errorCookies?: CookieSpec[];                      // e.g. expire the OAuth flow cookie even when execution fails
 }): RouteHandler;                                   // never answers JSON: every outcome is a 302
 ```
 
-- **Order per request.** CSRF header check for unsafe methods (unchanged), then open one scope, then resolve the actor (when `access !== "public"`; for `"public"` an optional, non-throwing resolve), then the role gate, then parse params/query/body, then `run`, then dispatch pending events after a successful `run`, then dispose the scope.
+- **Order per request.** CSRF header check for unsafe methods (unchanged), then open one scope, then resolve the actor, then the role gate, then parse params/query/body, then `run`, then dispose the scope. Public access maps absent/invalid sessions to `null`; infrastructure and configuration errors still propagate rather than masquerading as anonymous access. PP1 has no event collector, dispatcher or placeholder registrations. P10 later adds commit-bound dispatch inside its workflow execution boundary.
+- **Redirect destinations.** `SafePath` is exclusively for local destinations, including user-supplied `next`. `TrustedProviderUrl` is constructed by the OAuth adapter from its configured authorization endpoint and generated parameters; validation requires that exact origin and pathname, no URL credentials or fragments, and HTTPS except explicitly configured loopback HTTP for local tests. Request parameters never choose the provider origin. `redirectToProvider` serializes that validated destination; it does not accept arbitrary strings. The localhost E2E stub exercises this same validation.
 - **JWT audiences.** Every token signed with `AUTH_SECRET` carries an `aud` claim (`"session"`, `"oauth-state"`, …), and verification requires it, so one kind of token can never be replayed as another.
-- **Builders.** `apiRoute` is built on `apiHandler`. `makeCrudRoute` is rebuilt on `apiRoute`. It keeps its config shape, but `access` widens to `Access`, and `CrudContext.session` is replaced by `actor`. There are no other consumers yet (`/api/users` only), so this is not a breaking change.
+- **Session version.** `Actor.sessionVersion` is the verified JWT `sv`, checked against the loaded user. It is internal authentication context, not part of `Me`. Linking captures it in signed OAuth state and rechecks it under the user-row lock before mutation. Never replace it with a newer database version to make a stale session valid.
+- **Browser errors.** `errorCode` maps only to an allowlist of public codes. Dynamic error destinations may use trusted flow metadata only after OAuth state has been verified; otherwise they fall back to `/login`. For the callback, configure `errorCookies` to expire the OAuth cookie for failures occurring before `run` as well as inside it. Error mapping/serialization must be total, with a fixed safe generic redirect if a mapper itself fails.
+- **Builders.** Refactor `apiHandler` internals to share execution, CSRF, error classification and safe logging with `apiRoute` and `browserRoute`. JSON and browser response adapters select the final representation: JSON routes serialize data/`respond` results and map errors to envelopes; browser routes serialize only redirect results and map every error to a local 302 with an allowlisted error code. Do not wrap a JSON-catching handler inside a browser handler or serialize an `HttpResult` as ordinary data. Cookie clearing on OAuth errors is part of the browser adapter's response contract. `makeCrudRoute` is rebuilt on `apiRoute`; `access` widens to `Access`, and `CrudContext.session` is replaced by `actor`. This is a coordinated breaking internal API change under `BACKWARD_COMPATIBILITY.md`, with all callers migrated in the same PR.
 - **Removed or replaced.** `Session`, `requireSession`, `requireRole` and `createSessionToken` are removed from the public `core` API and replaced by `Actor`, `SessionService` and `Access`. `assertOwnership` moves into P2.
 - **New `AppError`s.**
 
@@ -152,16 +157,18 @@ export function browserRoute<A extends Access>(config: Omit<ApiRouteConfig<A>, "
   | `InvalidTransitionError` | 409 | `invalid_transition` | |
   | `StaleVersionError` | 409 | `stale_version` | |
 
-  All carry Polish messages.
+  All carry Polish messages. PP1 adds only `TooManyRequestsError` and `ServiceUnavailableError`; the other classes ship with their first actual consumers (settings, lifecycle transitions, concurrent editing).
 
 ### P2 — Policies (`core/src/services/<concept>/<concept>.policy.ts`)
 
 - **Form.** Pure functions `can<Action>(actor, record?) => boolean`, with no I/O. A service calls `authorize(canX(actor, record))`, which throws `ForbiddenError` when the check returns `false`. A policy that throws becomes a 500, never an allow.
 - **Where checks live.** Route-level `access` covers role gates. Every record-level decision lives in the service, which receives `actor` as its first argument. A route never decides about a record.
+- **No duplicate role policies.** S01 pages and routes use the same `Access` role gate, and navigation uses `hasRole`; do not add `canListUsers`/`canAccessOperatorArea` wrappers that repeat the same role membership rule. Add concept policies when there is a record-level or genuinely distinct business decision.
 - **Shared predicates** in `services/platform/policy.ts`:
   - `isParty(actor, { menteeId, mentorId })` (bookings, sessions, notes);
   - `isOwner(actor, ownerId)`, replacing `assertOwnership`;
   - `isOperator(actor)`.
+- These predicates are a catalogue, not PP1 deliverables. Preserve/migrate the existing ownership assertion's behavior when replacing its public export; introduce `isParty` and additional wrappers only with a real consumer.
 - **Visibility rules** from the brief glossary, encoded once:
   - session: the parties plus the operator;
   - written answer: mentor and mentee only;
@@ -211,18 +218,15 @@ export async function pageScope<T>(
 
 ### P6 — Rate limiter (`core/src/services/platform/rate-limit.service.ts`, entity `RateLimitBucket`)
 
-- **Contract.** `consume(key, { limit, windowSeconds })` throws `TooManyRequestsError`; `reset(key)` clears it.
+- **Contract.** `consume(key, { limit, windowSeconds })` atomically counts an attempt and throws `TooManyRequestsError` when the returned count exceeds the limit. Login, register and OAuth callback use this one operation. There is no separate `check`/`hit`, reset-on-success or refund protocol.
 - **Storage.** A fixed window held in Postgres. One atomic `INSERT … ON CONFLICT (key, window_start) DO UPDATE SET count = count + 1 RETURNING count`, written with the query builder and bound parameters, never interpolated. This works across instances, with no Redis.
-- **Keys.** Keys are hashed (`sha256`) when they contain an email.
-- **Contract, extended.**
-  - `consume(key, limit)` counts every attempt (register, OAuth callback).
-  - `check(key, limit)` + `hit(key)` count failures only: `check` before verifying, `hit` after a failed attempt. Login uses this, so a correct password is never blocked by someone else's successful logins.
-  - `reset(key)` clears a key.
+- **Keys.** Prefix keys with the route/policy and dimension (IP or email), so limits for different actions cannot collide. Normalize email before hashing (`sha256`); no plaintext email is stored.
+- **Admission order.** Consume the IP (or route-wide fallback) bucket first, then the normalized email bucket where applicable, before hashing passwords or calling a provider. If either rejects, do no credential work. Earlier increments remain consumed if a later bucket rejects; this conservative behavior avoids multi-key reservation/refund machinery. Successful and failed attempts both count until window expiry.
 - **Separate commit.** Bucket writes run on their own forked `em` and commit on their own, outside any service transaction. Otherwise a login that throws would roll back its own increment. An integration test covers this.
 - **Client IP.** `ctx.clientIp` comes from `x-forwarded-for` only when `TRUST_PROXY_HOPS` (an integer, default 0) is greater than 0. In that case it takes the entry at index `length − TRUST_PROXY_HOPS` counted from the **right**, because the leftmost entries are set by the client.
 - **IP unknown.** When `clientIp` is `null`, callers use a route-wide global bucket in place of the per-IP bucket. A route never runs without some limit.
-- **Lockout trade-off.** Failure-counting per email lets someone lock a known victim's *password* sign-in for one window. GitHub sign-in is unaffected. This is accepted for MVP and documented.
-- **Cleanup.** Old windows of the same key are deleted on `consume`/`hit`.
+- **Lockout trade-off.** Counting all attempts can block even a correct password after the limit, including after repeated successful sign-ins. Per-email limits also allow targeted temporary denial; GitHub sign-in uses a separate bucket. This simpler, concurrency-safe policy replaces failure-only counting. The UI reports when the window expires through `Retry-After`.
+- **Cleanup.** Store `expires_at = window_start + windowSeconds` and index it. Each `consume`, including a rejected attempt, deletes at most 100 globally expired rows ordered by expiry; it must not restrict cleanup to the current key. This bounds per-request cleanup work and reclaims abandoned email keys as traffic continues. With no traffic, expired rows can remain until the next request; no worker or scheduler is added. IP-first admission prevents rejected registration floods from creating unlimited new email buckets. Integration tests cover one-use keys, expiry and the deletion bound.
 - **Known limitation.** This is good enough for MVP. The standards ask for a stronger backend before real production traffic.
 
 ### P7 — Money (`core/src/services/platform/money.ts`; display in `ui/src/lib/format.ts`)
@@ -263,24 +267,27 @@ export async function pageScope<T>(
   export function assertTransition<S extends string>(t: Transitions<S>, from: S, to: S): void; // InvalidTransitionError
   ```
 
-- **Locking.** Every entity with a lifecycle has `status` (enum) and `version` (MikroORM `p.integer().version()`, optimistic lock). Services change status only inside `em.transactional`, after `assertTransition`.
+- **Locking.** The consuming story chooses the minimum concurrency control required by its invariant: a conditional update, row lock, unique constraint or optimistic version. Add `version` where stale edits must be detected, rather than to every lifecycle entity by default. Mutating workflows own one outer `em.transactional`; participating operations use its EntityManager and do not independently commit. `assertTransition` checks a status edge, not transaction ownership.
 - **Conflicts.** `OptimisticLockError` and unique violations are mapped to `StaleVersionError` / `ConflictError`.
 - **Shared slots.** The unique constraint on the shared resource (for example one confirmed booking per slot) is the last line of defence (AGENTS.md).
-- **Idempotent repeats.** A webhook or a retried request that finds the target state already reached is a no-op, not an error.
+- **Idempotent repeats.** A retry is a no-op only when the same operation's durable outcome is already recorded. Matching a target status alone does not prove an external charge/payout happened once. Payment/payout specs must define stable operation keys, provider idempotency and recovery after a provider success followed by a local failure; do not execute vendor side effects while holding database locks.
 
 ### P10 — Domain events (`core/src/events/`)
 
 - **Event map.** `event-map.ts` holds the typed `EventMap`, keyed `concept.entity.action` (for example `bookings.booking.confirmed`).
-- **Recording.** Services call `cradle.events.record(name, payload)` inside the `em.transactional` callback that makes the change. `events` is a **scoped** collector. A service that records an event must commit before it returns, and it must not catch a failed transaction and carry on.
-- **Dispatch.** `apiRoute`, `browserRoute`, `webhookRoute` and CLI scripts call `events.dispatch()` only after `run` resolves. Because of the recording rule, that is after the commit. When `run` throws, the pending events are discarded. `pageScope` never dispatches.
+- **Ownership.** Added only in PP6: the first consuming workflow introduces a small transaction execution helper around `em.transactional`, shared with webhook workflows. The application service owns this boundary for ordinary mutations; `webhookRoute` owns it for inbox processing. Operations called within it join the provided transaction context and never open an independently committing boundary. Do not create a generic unit-of-work framework or decorator system.
+- **Recording.** The transaction context holds its EntityManager and its own pending event list. Services record events against that context; no request-wide pending list spans independent commits. Rollback discards only that transaction's list. The bus is the explicit singleton emitter required by the standards; the pending list is transaction-local and never stored on that singleton.
+- **Dispatch.** The execution helper awaits the actual outer commit, then dispatches that transaction's events before resolving. HTTP adapters and CLI callers do not perform a second dispatch. If a route commits workflow A and subsequently fails in independent workflow B, A's events have already been dispatched and B's are discarded. A workflow intended to be atomic must instead use one outer boundary. `pageScope` never mutates or dispatches; lazy write-on-read is excluded.
 - **Subscribers.** Registered explicitly, one line per subscriber in `events/subscribers.ts`. Each subscriber runs with its own new scope.
 - **Failure handling.** A subscriber failure is logged and swallowed, and the committed request still succeeds. Delivery is in-process and at most once. That is acceptable for notifications at MVP scale, because every notified fact is also visible in the app.
+- **Limits and verification.** A process crash between commit and dispatch can lose a notification. Critical booking state, accounting and booking-to-start measurements belong in the transaction, not subscribers. Integration tests cover rollback after recording, outer rollback after a joined operation succeeds, subscriber failure after commit, and a later independent workflow failing after an earlier commit.
 
 ### P11 — Webhooks (`core/src/http/webhook-route.ts`, entity `ProcessedEvent`)
 
-- **Contract.** `webhookRoute({ verify(rawBody, headers): VerifiedEvent, handle(ctx, event) })`. `access` is public by construction, and the code comment names the signature as the reason.
+- **Contract.** `webhookRoute({ verify(rawBody, headers): VerifiedEvent, handle(ctx, event) })`. `ctx` supplies the transaction context and scoped services; `handle` returns an applied or terminally obsolete outcome, or throws a retryable failure. `access` is public by construction, and the code comment names the signature as the reason.
 - **Signature instead of CSRF.** It skips the CSRF header, because a signature replaces it. It reads the raw body text and rejects with 400 when the signature is invalid.
-- **Exactly once.** In one transaction it inserts `ProcessedEvent(provider, externalId)` (unique) and then calls `handle`. If the row already exists, it returns 200 without doing anything.
+- **Atomic local deduplication.** After signature validation, use P10's transaction boundary to insert `ProcessedEvent(provider, externalId)` and apply local effects in the same transaction. `handle` joins that context. A committed existing row returns 200 without reapplying effects; an uncommitted competing insert must resolve before deciding it is a duplicate. Failed processing rolls back the inbox insert and local changes together. This does not promise exactly-once external calls.
+- **Ordering outcomes.** Already-applied duplicates and provably terminally obsolete events return 200. A temporarily missing prerequisite or processing failure rolls back and returns a retryable non-2xx response; do not record it as processed or acknowledge it merely because `assertTransition` failed. Before shipping its first consumer, the payment spec must enumerate event-specific outcomes and define a reconciliation command through its service for events still unresolved after provider retries. Reconciliation fetches authoritative provider state outside the database transaction, then rechecks local state while applying it. Permanent malformed input returns 400; unexpected errors are logged safely. There is no generic “invalid transition → 200” rule.
 - **First consumer.** #22 (Stripe Checkout completed/expired), then #24 (Connect account updated, payout events).
 
 > **P12–P17 are sketches.** Each is binding only once the consumer story's spec ratifies or amends it. They are here so later specs start from one shape, not as commitments.
@@ -325,8 +332,8 @@ export async function pageScope<T>(
 - **The problem.** Payouts become due when a hold window passes (R30, R34), and the project has no workers.
 - **Options for #21 to choose from:**
   - (a) an idempotent `npm run jobs:due` CLI, triggered by the host's cron, that runs `withScope` and releases due payouts in transitions;
-  - (b) lazy release on read, plus an operator "release due payouts" button.
-- **Constraint either way.** The release must be a P9 transition, so running it twice is harmless.
+  - (b) an operator "release due payouts" mutation button, with reads only reporting what is due.
+- **Constraint either way.** Release uses P9's local concurrency controls and a durable payout operation key plus provider idempotency/reconciliation. A status transition alone cannot prevent duplicate transfers. Neither option mutates during a page render or GET.
 - **Status.** Not blocking anything before #21.
 
 ### P18 — Shared validators and forms
@@ -349,19 +356,20 @@ All tables use `baseProperties()` (UUID `id`, `created_at`). They sit under `pac
 
 | Entity | Fields | Constraints | Built by |
 |---|---|---|---|
-| `RateLimitBucket` | `key varchar(200)`, `window_start timestamptz`, `count int` | unique `(key, window_start)` | #11 |
+| `RateLimitBucket` | `key varchar(200)`, `window_start timestamptz`, `expires_at timestamptz`, `count int` | unique `(key, window_start)`; index `expires_at` | #11 |
 | `PlatformSetting` | `key varchar(100)`, `value jsonb`, `updated_at`, `updated_by → User` | unique `key` | #14 |
 | `AuditEntry` | `actor → User (nullable for CLI/system)`, `action varchar(100)`, `subject_type varchar(50)`, `subject_id uuid`, `data jsonb` | index `(subject_type, subject_id)` | #12 |
 | `OneTimeToken` | `purpose enum`, `token_hash char(64)`, `subject_id uuid`, `expires_at`, `consumed_at null` | unique `token_hash` | #12 |
 | `ProcessedEvent` | `provider varchar(30)`, `external_id varchar(255)`, `processed_at` | unique `(provider, external_id)` | #22 |
 
-Lifecycle entities in later stories (Invitation, Booking, Payment, Payout, SessionNote) add `status` + `version` per P9, and money columns as `*_minor` per P7.
+Lifecycle entities in later stories add their required status and concurrency controls per P9; a `version` is required for stale shared-note edits, not universally. Money columns use `*_minor` per P7.
 
 Sensitive data:
 - `token_hash` only, never the token;
 - rate-limit keys that contain an email are hashed;
 - `AuditEntry.data` holds no free text and no email;
 - `pino` redact (`logger.ts`) is extended with `token`, `access_token`, `code_verifier`, `password`, `passwordHash` and `cookie`. `code` is redacted only on the OAuth paths (`query.code`, `body.code`), because a wildcard would also hide Postgres `err.code`.
+- Request error logging records the URL pathname only, never raw `request.url` or query strings. OAuth adapters log allowlisted error metadata, not provider bodies, request objects or exception text that may contain codes/tokens. Redacting object paths cannot sanitize a secret embedded in a URL string. Tests inject distinctive code/state/token values into callback failures and assert none appear in captured logs.
 
 ```mermaid
 flowchart LR
@@ -384,13 +392,13 @@ flowchart LR
 - **`AUTH_SECRET` missing.** Every non-public route answers 500 and every guarded page fails closed. The app still builds and boots, and `/api/health` stays green (unchanged).
 - **Database down during actor resolution.** The route returns 500 and the page shows the error boundary. It never falls back to "anonymous allowed" on non-public pages.
 - **Subscriber throws after commit.** The failure is logged with the event name and the response is unchanged. The fact is visible in the app (P10).
-- **Webhook replay or out-of-order delivery.** The inbox dedupes. Transition no-ops absorb repeats, and an invalid transition is logged and acknowledged with 200, so the vendor stops retrying a state we refuse.
+- **Webhook replay or out-of-order delivery.** Committed duplicates and terminally obsolete events are acknowledged; temporary ordering gaps roll back and return a retryable failure. The consumer supplies reconciliation after exhausted retries, per P11.
 - **Two operators change the same setting.** Last write wins, and both writes are audited. Settings are not versioned, which is acceptable for two founders.
 - **Clock skew between instances.** All time rules use the DB-stored instants and `clock.now()` of the instance handling the request. Within NTP tolerance this is acceptable.
 
 ## 📝 Risks & Impact Review
 
-- **Public `core` API change.** `Session`/`requireSession`/`requireRole`/`createSessionToken` are replaced, and `CrudContext.session` becomes `actor`. The only consumer is `api/users/route.ts`, which is updated in the same PR. No `BACKWARD_COMPATIBILITY.md` exists.
+- **Public `core` API change.** `Session`/`requireSession`/`requireRole`/`createSessionToken` are replaced, and `CrudContext.session` becomes `actor`. Follow `BACKWARD_COMPATIBILITY.md` sections 4–5: enumerate and migrate all callers/tests in the same PR, keep typecheck green, state explicitly that the new `aud`/`sv` claims invalidate existing sessions, apply `risk-high` and obtain a second reviewer. Verify the caller inventory during implementation; having only internal consumers does not make this nonbreaking.
 - **Standards amendment.** The gate approved this. `engineering-standards.md` currently says "no RBAC (explicitly out of scope)". It must say: "fixed roles `mentee` / `mentor` / `operator`, checked by code-level policies; no permission tables or role editor". `AGENTS.md`'s security section adds `access: { anyRole }` and `pageScope`. This is done in S01 Phase 1.
 - **A DB query per request** to read roles and the session version (gate decision). It costs one primary-key lookup, and buys immediate role changes and revocation.
 - **Polling cost** for P15. It is bounded by the number of open session screens, which is small at the 10-sessions-a-week target (D36).
@@ -425,19 +433,24 @@ Each phase ships inside the story named in it, and that story's spec cites the p
 Only PP1 is detailed here, because it is the part #11 implements. Each later phase gets its steps in the consuming story's spec, against the contracts above.
 
 **PP1 (inside #11, before any feature step):**
-1. Add `Role`, `Actor`, `Access`, `hasRole`, the new `AppError` subclasses and `respond`/`redirectTo`/`safeRedirectPath`/`CookieSpec` serialization. Unit tests cover every branch, including open-redirect inputs (`//evil`, `https://…`, `/\evil`, `/\t/evil`).
-2. `apiRoute` and `browserRoute` over `apiHandler`, with a fake `SessionService` injected through a test container. Tests cover:
+1. Add `Role`, `Actor`, `Access`, `hasRole`, only the auth-consumed new errors (`TooManyRequestsError`, `ServiceUnavailableError`), and `respond`/`redirectTo`/`redirectToProvider`/`safeRedirectPath`/`CookieSpec` serialization. Unit tests cover every branch, including open-redirect inputs (`//evil`, `https://…`, `/\evil`, `/\t/evil`), `/` as a valid local path, and trusted-provider endpoint validation. No settings, transition or edit-conflict error classes yet.
+2. Refactor `apiHandler` internals into shared execution/error classification and JSON/browser response adapters for `apiRoute` and `browserRoute`, with a fake `SessionService` injected through a test container. Keep the existing public handler behavior for its callers. Tests cover:
    - the order (CSRF → scope → actor → role → parse → run);
    - `HttpResult` cookies and redirect;
    - 401/403/400/405;
    - `browserRoute` turning AppErrors and unknown errors into 302s;
    - `clientIp` with 0, 1 and 2 hops.
+    - no JSON envelope on browser success or failure, error cookie clearing, and no OAuth secrets in captured logs;
+    - invalid optional sessions becoming anonymous, while infrastructure/configuration failures propagate.
 3. Rebuild `makeCrudRoute` on `apiRoute` (`actor`, `Access`). Its existing tests are kept green and the role gate cases are added.
-4. Add the `clock` registration and the policy helpers (`authorize`, `isOwner`, `isParty`, `isOperator`), with tests.
-5. `RateLimitBucket` entity, its migration and `RateLimitService` (`consume`/`check`/`hit`/`reset`). Unit tests use a mocked `em`. Integration tests cover:
+4. Add the `clock` registration and shared role-gate evaluation using `Access`/`hasRole`, with tests. Migrate the existing ownership assertion export without adding unused `isParty` or role-only wrappers. Record-level helpers are implemented with their first record consumer.
+5. `RateLimitBucket` entity (including expiry index), its migration and `RateLimitService.consume`. Unit tests use a mocked `em`. Integration tests cover:
    - the atomic upsert under concurrent calls;
-   - the window reset;
+   - admission in a fresh window after the old one expires;
    - a bucket write surviving the rollback of a surrounding service transaction.
+    - concurrent login admission respecting the cap before credential verification;
+    - globally expired one-use keys being reclaimed in batches of at most 100;
+    - IP-first rejection creating no new email bucket, and successful attempts remaining counted.
 6. `pageScope` and `navFor` in `app/src/lib/auth`, plus `AccessDenied`, `AppShell` and `NavLinks` in `ui/src/backend`. jsdom tests cover the components. Unit tests of `pageScope` mock `next/headers` and `next/navigation`.
 7. Update the docs:
    - **`engineering-standards.md`:**
