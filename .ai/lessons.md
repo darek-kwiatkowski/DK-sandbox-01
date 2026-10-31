@@ -25,6 +25,7 @@ Szczegółowe wpisy trafiają do `.ai/lessons/YYYY-MM-DD-slug.md`. Tutaj dodaj t
 
 <!-- Dodawaj nowe wpisy poniżej, od najnowszych. -->
 
+- [2026-10-31-rate-limit-keys-lockout](lessons/2026-10-31-rate-limit-keys-lockout.md) — tight rate limits go on (identifier, client); identifier-only buckets are loose ceilings, otherwise anyone can lock an account out.
 - [2026-10-31-review-shared-contracts-across-flows](lessons/2026-10-31-review-shared-contracts-across-flows.md) — review shared primitives through their first consumer and all competing identity/transaction paths; reconcile summaries and tests after changing a contract.
 
 - [2026-10-31-page-guards-not-in-root-layouts](lessons/2026-10-31-page-guards-not-in-root-layouts.md) — role gates go in `page.tsx` via `pageScope`, not in group root layouts (`forbidden()` is experimental there, and layouts need a second scope).

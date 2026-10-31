@@ -108,9 +108,11 @@ export function hasRole(actor: Actor, role: Role): boolean;
 
 // services/auth/session.service.ts (scoped: em, clock)
 class SessionService {
-  issue(user: User): Promise<string>;                 // JWT {sub, sv: user.sessionVersion}, 24 h
-  resolve(token: string | undefined): Promise<Actor>; // verify + load user + compare sv; else UnauthorizedError
+  issue(user: User, authTime?: Date): Promise<string>; // JWT {sub, sv: user.sessionVersion, auth_time: authTime ?? now}, 24 h
+  resolve(token: string | undefined): Promise<ResolvedSession>; // verify + load user + compare sv; else UnauthorizedError
+  renewal(session: ResolvedSession): Promise<CookieSpec | null>; // sliding renewal, see below
 }
+interface ResolvedSession { actor: Actor; expiresAt: Date; authTime: Date }
 
 // http/api-route.ts
 interface RouteCtx<A extends Access> {
@@ -142,6 +144,7 @@ export function browserRoute<A extends Access>(config: Omit<ApiRouteConfig<A>, "
 
 - **Order per request.** CSRF header check for unsafe methods (unchanged), then open one scope, then resolve the actor, then the role gate, then parse params/query/body, then `run`, then dispose the scope. Public access maps absent/invalid sessions to `null`; infrastructure and configuration errors still propagate rather than masquerading as anonymous access. PP1 has no event collector, dispatcher or placeholder registrations. P10 later adds commit-bound dispatch inside its workflow execution boundary.
 - **Redirect destinations.** `SafePath` is exclusively for local destinations, including user-supplied `next`. `TrustedProviderUrl` is constructed by the OAuth adapter from its configured authorization endpoint and generated parameters; validation requires that exact origin and pathname, no URL credentials or fragments, and HTTPS except explicitly configured loopback HTTP for local tests. Request parameters never choose the provider origin. `redirectToProvider` serializes that validated destination; it does not accept arbitrary strings. The localhost E2E stub exercises this same validation.
+- **Session renewal (sliding, capped).** Decided while grilling the spec (2026-10-31). Each token is still valid for 24 h. When `apiRoute` or `browserRoute` resolves a valid session token with less than 12 h left, the response re-issues a fresh 24 h token with the same `sv` and the original `auth_time`. Renewal stops once `auth_time + 7 d` has passed, so a stolen cookie cannot be kept alive indefinitely by polling; logout (`sv` bump) still ends it immediately. A stale `sv` is never renewed, and a route that sets its own session cookie (sign-in, sign-out) takes precedence over renewal. Pages cannot set cookies, so renewal happens on `/api/*` calls; signed-in screens call them anyway (`useApiResource`, P15 polling). Named constants: `SESSION_TTL` 24 h, `SESSION_RENEW_BELOW` 12 h, `SESSION_ABSOLUTE_MAX` 7 d.
 - **JWT audiences.** Every token signed with `AUTH_SECRET` carries an `aud` claim (`"session"`, `"oauth-state"`, …), and verification requires it, so one kind of token can never be replayed as another.
 - **Session version.** `Actor.sessionVersion` is the verified JWT `sv`, checked against the loaded user. It is internal authentication context, not part of `Me`. Linking captures it in signed OAuth state and rechecks it under the user-row lock before mutation. Never replace it with a newer database version to make a stale session valid.
 - **Browser errors.** `errorCode` maps only to an allowlist of public codes. Dynamic error destinations may use trusted flow metadata only after OAuth state has been verified; otherwise they fall back to `/login`. For the callback, configure `errorCookies` to expire the OAuth cookie for failures occurring before `run` as well as inside it. Error mapping/serialization must be total, with a fixed safe generic redirect if a mapper itself fails.
@@ -220,12 +223,12 @@ export async function pageScope<T>(
 
 - **Contract.** `consume(key, { limit, windowSeconds })` atomically counts an attempt and throws `TooManyRequestsError` when the returned count exceeds the limit. Login, register and OAuth callback use this one operation. There is no separate `check`/`hit`, reset-on-success or refund protocol.
 - **Storage.** A fixed window held in Postgres. One atomic `INSERT … ON CONFLICT (key, window_start) DO UPDATE SET count = count + 1 RETURNING count`, written with the query builder and bound parameters, never interpolated. This works across instances, with no Redis.
-- **Keys.** Prefix keys with the route/policy and dimension (IP or email), so limits for different actions cannot collide. Normalize email before hashing (`sha256`); no plaintext email is stored.
-- **Admission order.** Consume the IP (or route-wide fallback) bucket first, then the normalized email bucket where applicable, before hashing passwords or calling a provider. If either rejects, do no credential work. Earlier increments remain consumed if a later bucket rejects; this conservative behavior avoids multi-key reservation/refund machinery. Successful and failed attempts both count until window expiry.
+- **Keys.** Prefix keys with the route/policy and dimension (IP, email, or the (email, IP) pair), so limits for different actions cannot collide. Normalize email before hashing (`sha256`); no plaintext email is stored.
+- **Admission order.** Consume the IP (or route-wide fallback) bucket first, then any (email, IP) pair bucket, then the normalized email bucket where applicable, before hashing passwords or calling a provider. If either rejects, do no credential work. Earlier increments remain consumed if a later bucket rejects; this conservative behavior avoids multi-key reservation/refund machinery. Successful and failed attempts both count until window expiry.
 - **Separate commit.** Bucket writes run on their own forked `em` and commit on their own, outside any service transaction. Otherwise a login that throws would roll back its own increment. An integration test covers this.
 - **Client IP.** `ctx.clientIp` comes from `x-forwarded-for` only when `TRUST_PROXY_HOPS` (an integer, default 0) is greater than 0. In that case it takes the entry at index `length − TRUST_PROXY_HOPS` counted from the **right**, because the leftmost entries are set by the client.
 - **IP unknown.** When `clientIp` is `null`, callers use a route-wide global bucket in place of the per-IP bucket. A route never runs without some limit.
-- **Lockout trade-off.** Counting all attempts can block even a correct password after the limit, including after repeated successful sign-ins. Per-email limits also allow targeted temporary denial; GitHub sign-in uses a separate bucket. This simpler, concurrency-safe policy replaces failure-only counting. The UI reports when the window expires through `Retry-After`.
+- **Lockout trade-off.** Counting all attempts can block even a correct password after the limit, including after repeated successful sign-ins. A tight email-only limit would let a single IP lock an account out indefinitely at a few requests per window, so per-account guessing is limited on the (email, IP) pair, and the email-only bucket is a looser ceiling against distributed guessing (S01 sets the numbers). A targeted lockout from every IP still needs sustained traffic above that ceiling; this residual risk is accepted for MVP. GitHub sign-in uses a separate bucket. This simpler, concurrency-safe policy replaces failure-only counting. The UI reports when the window expires through `Retry-After`.
 - **Cleanup.** Store `expires_at = window_start + windowSeconds` and index it. Each `consume`, including a rejected attempt, deletes at most 100 globally expired rows ordered by expiry; it must not restrict cleanup to the current key. This bounds per-request cleanup work and reclaims abandoned email keys as traffic continues. With no traffic, expired rows can remain until the next request; no worker or scheduler is added. IP-first admission prevents rejected registration floods from creating unlimited new email buckets. Integration tests cover one-use keys, expiry and the deletion bound.
 - **Known limitation.** This is good enough for MVP. The standards ask for a stronger backend before real production traffic.
 
@@ -346,7 +349,7 @@ export async function pageScope<T>(
 - **CLI scripts.** Root `scripts/<name>.ts`, run with `tsx` (added to root devDependencies as a repo-wide tool; already used by `@devmentor/db`).
   - Each script exports `main(argv, { withScope })` so it can be unit-tested, and it calls core services only.
   - `vitest.config.ts` `coverage.include` gains `scripts/**/*.ts`. Today it lists only `scripts/**/*.mjs`. Widening `include` keeps the 100% rule meaningful; it is not an exclusion.
-  - The first script is `npm run operator:grant -- <email>` (#11). It grants only to an account with a linked GitHub identity (`githubId` set and `emailVerifiedAt` set), because a password account can claim any email.
+  - The first script is `npm run operator:grant -- <email>` (#11). It grants only to an account with a linked GitHub identity (`githubId` set and `emailVerifiedAt` set), because a password account can claim any email. An explicit `--allow-unverified` flag overrides the check for local development (no GitHub app there), printing a Polish warning and logging the override; it never depends on `NODE_ENV`.
 - **E2E seeding.** `test/support/seed.ts` seeds through core services (AGENTS.md: never raw SQL), with `signInAs(browser, user)` setting a session cookie issued by `SessionService`.
 - **GitHub stub.** `test/support/github-stub.ts` is a local OAuth server started in `globalSetup` (P4).
 
@@ -400,6 +403,7 @@ flowchart LR
 
 - **Public `core` API change.** `Session`/`requireSession`/`requireRole`/`createSessionToken` are replaced, and `CrudContext.session` becomes `actor`. Follow `BACKWARD_COMPATIBILITY.md` sections 4–5: enumerate and migrate all callers/tests in the same PR, keep typecheck green, state explicitly that the new `aud`/`sv` claims invalidate existing sessions, apply `risk-high` and obtain a second reviewer. Verify the caller inventory during implementation; having only internal consumers does not make this nonbreaking.
 - **Standards amendment.** The gate approved this. `engineering-standards.md` currently says "no RBAC (explicitly out of scope)". It must say: "fixed roles `mentee` / `mentor` / `operator`, checked by code-level policies; no permission tables or role editor". `AGENTS.md`'s security section adds `access: { anyRole }` and `pageScope`. This is done in S01 Phase 1.
+- **Account takeover versus user-owned history.** S01's Q12 takeover moves the whole `users` row to the verified GitHub owner. The first story that attaches user-owned history to a user (bookings, payments, messages, notes, reviews; first #17) must re-decide Q12 for accounts with history before it ships. The default is to refuse the takeover with `github_account_exists` and route the user to the operator (decided while grilling the spec, 2026-10-31).
 - **A DB query per request** to read roles and the session version (gate decision). It costs one primary-key lookup, and buys immediate role changes and revocation.
 - **Polling cost** for P15. It is bounded by the number of open session screens, which is small at the 10-sessions-a-week target (D36).
 - **Hard to reverse.** The money representation (integer grosze, basis points) and the booking-time snapshot of settings. Both are chosen to be the conservative option.
@@ -441,7 +445,8 @@ Only PP1 is detailed here, because it is the part #11 implements. Each later pha
    - `browserRoute` turning AppErrors and unknown errors into 302s;
    - `clientIp` with 0, 1 and 2 hops.
     - no JSON envelope on browser success or failure, error cookie clearing, and no OAuth secrets in captured logs;
-    - invalid optional sessions becoming anonymous, while infrastructure/configuration failures propagate.
+    - invalid optional sessions becoming anonymous, while infrastructure/configuration failures propagate;
+    - session renewal: re-issued below 12 h remaining, not above it, not past `auth_time + 7 d`, `sv` and `auth_time` preserved, never for a stale `sv`, and never overriding a cookie the route sets itself.
 3. Rebuild `makeCrudRoute` on `apiRoute` (`actor`, `Access`). Its existing tests are kept green and the role gate cases are added.
 4. Add the `clock` registration and shared role-gate evaluation using `Access`/`hasRole`, with tests. Migrate the existing ownership assertion export without adding unused `isParty` or role-only wrappers. Record-level helpers are implemented with their first record consumer.
 5. `RateLimitBucket` entity (including expiry index), its migration and `RateLimitService.consume`. Unit tests use a mocked `em`. Integration tests cover:
@@ -450,7 +455,8 @@ Only PP1 is detailed here, because it is the part #11 implements. Each later pha
    - a bucket write surviving the rollback of a surrounding service transaction.
     - concurrent login admission respecting the cap before credential verification;
     - globally expired one-use keys being reclaimed in batches of at most 100;
-    - IP-first rejection creating no new email bucket, and successful attempts remaining counted.
+    - IP-first rejection creating no new email bucket, and successful attempts remaining counted;
+    - an exhausted (email, IP) pair leaving the same email admissible from another IP.
 6. `pageScope` and `navFor` in `app/src/lib/auth`, plus `AccessDenied`, `AppShell` and `NavLinks` in `ui/src/backend`. jsdom tests cover the components. Unit tests of `pageScope` mock `next/headers` and `next/navigation`.
 7. Update the docs:
    - **`engineering-standards.md`:**

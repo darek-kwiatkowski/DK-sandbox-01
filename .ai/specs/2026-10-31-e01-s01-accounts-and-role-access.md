@@ -1,7 +1,7 @@
 # E01-S01 — Sign in with GitHub or email and password; access by role
 
 - **Date:** 2026-10-31
-- **Status:** design complete; review corrections applied (2026-10-31). Ready for implementation as one release after Phase 3.
+- **Status:** design complete; review corrections applied (2026-10-31); grilling decisions applied (2026-10-31). Ready for implementation as three PRs merged to `main` in order, one per phase.
 - **Issue:** #11 (E01-S01), epic #5 (E01). Depends on: none. Unblocks #12.
 - **Builds on:** [platform primitives](2026-10-31-platform-primitives.md), phases PP1 and PP1b, which this story implements.
 - **Design authority:** `.ai/specs/product-brief.md` (R06, R07, R35), `AGENTS.md`, `.ai/docs/engineering-standards.md`
@@ -19,7 +19,7 @@ The plan is for anyone to sign in with GitHub (an account is created on first si
 | Q1 | Primitives are designed in the primitives spec and built with their first consumer. This story builds PP1. |
 | Q2 | Amend the standards: fixed roles `mentee`, `mentor`, `operator` with code-level policies, and no RBAC tables. |
 | Q3 | A user holds a set of roles. `mentee` is always present, and `mentor` and `operator` are added on top. |
-| Q4 | The first operator is granted by CLI: `npm run operator:grant -- <email>`. Review hardening: it grants only to an account with a linked GitHub identity (`githubId` and `emailVerifiedAt` set). An unverified password account could belong to anyone who typed that email. |
+| Q4 | The first operator is granted by CLI: `npm run operator:grant -- <email>`. Review hardening: it grants only to an account with a linked GitHub identity (`githubId` and `emailVerifiedAt` set). An unverified password account could belong to anyone who typed that email. Grilling (2026-10-31): an explicit `--allow-unverified` flag overrides this for local development, with a Polish warning and a log entry; it never depends on `NODE_ENV`. |
 | Q5 | Our own authorization-code flow with `state` and PKCE, behind an `OAuthProvider` port with a GitHub adapter. No new dependency. |
 | Q6 | An existing GitHub identity signs in by `githubId`. Otherwise, if its email matches an account already linked or verified, refuse. Q12 narrows this: an unverified, unlinked account is taken over instead. Explicit linking from the account page preserves the password only when the GitHub primary verified email matches the normalized account email; a different email is refused. |
 | Q7 | No email verification in 1.0. `emailVerifiedAt` is set only from a GitHub-verified email. #12 redeems invitations by single-use link, never by email match. |
@@ -154,22 +154,22 @@ JSON routes return the envelope; OAuth start/callback always return 302, includi
 Rules:
 - **Password length.** Between 12 characters and 72 bytes. bcrypt silently truncates anything past 72 bytes, so the schema rejects longer input instead.
 - **Rate limits.** Named constants, chosen for a small user base:
-  - login: 10 attempts per 15 min per email hash, plus 50 attempts per 15 min per IP (`consume` before password verification);
+  - login: 50 attempts per 15 min per IP, 10 attempts per 15 min per (email hash, IP), and 100 attempts per hour per email hash (`consume` before password verification). The pair bucket stops guessing from one IP; the email-only ceiling bounds distributed guessing without letting one IP lock an account out;
   - register: 5 per hour per IP and 3 per hour per email hash (`consume`);
   - GitHub callback: 30 per 15 min per IP (`consume`);
-  - when the IP is unknown (`TRUST_PROXY_HOPS=0`), each per-IP limit becomes a route-wide bucket ×10;
-  - consume the IP/global bucket first, then the email bucket, so rejected IP traffic cannot create arbitrary email keys;
+  - when the IP is unknown (`TRUST_PROXY_HOPS=0`), each per-IP limit becomes a route-wide bucket ×10, and the login (email hash, IP) bucket becomes an (email hash, route-wide) bucket with the same 10 per 15 min;
+  - consume the IP/global bucket first, then the (email, IP) bucket, then the email-only bucket, so rejected IP traffic cannot create arbitrary email keys;
   - successful attempts count too; no refunds, resets or separate failure counters. If a later bucket refuses, earlier consumption remains;
-  - this simpler atomic cap can temporarily block correct credentials after repeated attempts, including successful ones; the lockout trade-off is documented in P6. GitHub sign-in uses its separate callback limit.
+  - this simpler atomic cap can block correct credentials after repeated attempts, including successful ones. Locking a victim out from one IP blocks only that IP; a lockout from every IP needs 100 attempts per hour, sustained, against the email-only ceiling. The trade-off is documented in P6. GitHub sign-in uses its separate callback limit, but for an unverified, unlinked password account it triggers the Q12 takeover and deletes the password, so it is not a neutral escape from a lockout.
 - **`next` handling.** `next` always goes through `safeRedirectPath`. Default destinations: operator → `/backend`, mentor → `/mentor`, otherwise `/account`. This is a temporary mentee home until the mentor list (#16) exists.
 - **Redirect URI.** Built from `APP_URL`, never from the `Host` header.
 - **GitHub scope.** `read:user user:email`.
-- **Session cookie.** Unchanged: `devmentor_session`, httpOnly, secure in production, lax, 24 h. The JWT is `{ aud: "session", sub, sv }`, signed HS256 with `AUTH_SECRET`.
+- **Session cookie.** Unchanged: `devmentor_session`, httpOnly, secure in production, lax, 24 h. The JWT is `{ aud: "session", sub, sv, auth_time }`, signed HS256 with `AUTH_SECRET`. Sliding renewal per P1: below 12 h remaining, `/api/*` responses re-issue a 24 h token with the same `sv` and `auth_time`, up to `auth_time + 7 d`; after that the user signs in again.
 - **Callback re-check.** The callback runs `next` from the state cookie through `safeRedirectPath` again before redirecting.
 - **Session failures.** Optional session resolution treats absent, expired or invalid credentials as anonymous, but propagates database/configuration failures. Browser routes map those failures to a generic 302; JSON routes return 500. The callback clears the OAuth cookie on success and error.
 
 `signInWithPassword(email, password)`:
-- Consume the IP/global and normalized-email attempt buckets, then read a snapshot of the user's `password_hash` and `session_version`. Perform bcrypt verification outside a database transaction and without holding a row lock; unknown users and GitHub-only accounts use the dummy hash and receive the same generic 401.
+- Consume the IP/global, (normalized email, IP) and normalized-email attempt buckets in that order, then read a snapshot of the user's `password_hash` and `session_version`. Perform bcrypt verification outside a database transaction and without holding a row lock; unknown users and GitHub-only accounts use the dummy hash and receive the same generic 401.
 - After successful verification, lock and reload that user row in a short transaction. Require the hash and session version to equal the verified snapshot. If either changed or the user disappeared, return the generic 401 and let the user start a fresh sign-in; do not issue a session from the old credential.
 - Issue the token for the version whose credential was verified, never a version reloaded after takeover or revocation. A revocation after this check makes that token stale and the next request refuses it. Tests race password login against both takeover and `revokeAll`, ensuring neither can accidentally upgrade an old password proof to a new session version.
 
@@ -179,7 +179,7 @@ Rules:
 3. Otherwise, normalize the verified email and find the matching user. In the same transaction that would change credentials, acquire a write lock on that user row and reload its identity, verification and session-version fields before choosing a branch.
    - No user: go to step 4.
    - If a concurrent operation has already linked the same `githubId`, sign in through step 1 without another takeover.
-   - A user still having neither `githubId` nor `emailVerifiedAt` after the lock: take it over (Q12). Clear `password_hash`, set `githubId`, `githubLogin` and `emailVerifiedAt`, and atomically increment `session_version`. Commit before issuing the new session. Then redirect to `/account?notice=github_linked`.
+   - A user still having neither `githubId` nor `emailVerifiedAt` after the lock: take it over (Q12). Clear `password_hash`, set `githubId`, `githubLogin` and `emailVerifiedAt`, overwrite `name` with `identity.name ?? identity.login` (the unverified claimant's name is not kept; the owner can change it later), and atomically increment `session_version`. Commit before issuing the new session. Then redirect to `/account?notice=github_linked`.
    - Otherwise: refuse with `github_account_exists` (Q6). In 1.0 this means the email belongs to an account linked to a *different* GitHub identity.
 4. Otherwise, create a user with `{ email, name: identity.name ?? identity.login, githubId, githubLogin, emailVerifiedAt: clock.now(), roles: ["mentee"] }`. A unique-constraint violation from a concurrent first sign-in maps to `github_failed`, and signing in again succeeds through step 1.
 
@@ -246,6 +246,7 @@ All copy is in Polish.
 | Linking races takeover or sign-out | The user-row lock and session-version recheck serialize the mutations; an obsolete linking session gets `github_state`, and an existing different identity is never overwritten. |
 | GitHub user changes their login | The identity key is `github_id`, so `github_login` is simply refreshed. |
 | Role granted or revoked while signed in | It applies on the next request (Q8). |
+| Active for more than 24 h (for example in a text session) | Sliding renewal on `/api/*` calls keeps the session alive; it ends 7 days after the original sign-in, or at sign-out. |
 | Signed out on one device | `revokeAll` bumps `sv`, so other devices are signed out too. The account page says so under the button: „Wylogujemy Cię na wszystkich urządzeniach.” |
 | `AUTH_SECRET` missing | JSON sign-in routes return 500 („Coś poszło nie tak…”); OAuth routes return a generic 302 error without issuing a session. Guarded pages fail closed; `/login` can show the generic error without attempting session resolution when the secret is unavailable, avoiding a redirect loop. |
 | Rate limited | JSON routes return 429 with `Retry-After` and „Zbyt wiele prób. Spróbuj ponownie za kilka minut.”; browser callbacks return 302 with `github_failed`, preserving the browser-route contract. |
@@ -259,7 +260,8 @@ All copy is in Polish.
 - **Behaviour change.** `/api/users` and `/backend` are no longer public. The `/backend` demo now needs an operator, which is granted with `npm run operator:grant`. The README setup section gains that step.
 - **Account enumeration** on register is accepted (Q11), bounded by the register rate limits, and recorded in the standards as a known limitation until email verification exists.
 - **Q12 takeover is irreversible.** It deletes a password the squatter or the real owner set. That is intended, because an unverified password account carries no proof of ownership. It is covered by unit and E2E tests and logged.
-- **Operator bootstrap ordering.** `operator:grant` needs a GitHub-linked account, so in a real environment the first operator can be granted only once Phase 3 ships. Tests seed linked accounts directly. #11 is released as a whole, so the user never sees this gap.
+- **Q12 transfers the whole row.** A takeover keeps everything attached to `users.id`. In #11 nothing is attached yet. Once stories attach user-owned history (bookings, payments, messages, notes, reviews; first #17), the verified owner would silently inherit a possible squatter's history. Carry-forward constraint (grilling, 2026-10-31): before the first such story ships, its spec must re-decide Q12 for accounts with history. The default is to refuse with `github_account_exists` and send the user to the operator. Takeover of an account without history stays as specified here.
+- **Operator bootstrap ordering.** `operator:grant` needs a GitHub-linked account, so in a real environment the first operator can be granted only once Phase 3 ships. Tests seed linked accounts directly. Until Phase 3 merges, any environment can bootstrap an operator from a registered password account with `--allow-unverified` (after Phase 2; between Phases 1 and 2, only seeded accounts exist). Local development, which has no GitHub app, uses the explicit `--allow-unverified` override; it is not keyed on `NODE_ENV`, because a `tsx` script run against production usually has no `NODE_ENV` set.
 - **No email verification.** A password account can claim any email. Mitigations:
   - invitations by link (#12);
   - `emailVerifiedAt` stays null;
@@ -276,10 +278,10 @@ All copy is in Polish.
 
 ## 📋 Phasing
 
-These are internal checkpoints, not independent releases. Ship #11 only after Phase 3, when the first real operator can sign in with GitHub and receive the role through the CLI.
+Each phase is its own PR, merged to `main` in order (grilling decision, 2026-10-31). Each PR passes the full gate including E2E, carries `risk-high` and needs a second reviewer, because all three touch authentication or credentials. `--allow-unverified` (Q4) removes the operator-bootstrap reason for a single release. Between PRs 1 and 2, `main` has a placeholder `/login`; this is accepted because there is no production yet. The spec moves to `implemented/` after PR 3 merges.
 
 1. **Phase 1, platform PP1 and the session foundation.** Primitives from the primitives spec, the `User` columns and migration, `SessionService`, the operator CLI, and gating `/api/users` and `/backend` to the operator. User-visible change: `/backend` needs an operator (granted by CLI to a seeded, linked account in tests).
-2. **Phase 2, email and password accounts.** Register/login/logout/me, pages and the mentor gate. An internal checkpoint covering R06's fallback and the role gates; real operator bootstrap still waits for Phase 3.
+2. **Phase 2, email and password accounts.** Register/login/logout/me, pages and the mentor gate. Covers R06's fallback and the role gates, and replaces the Phase 1 `/login` placeholder. From here, an operator can be bootstrapped from a registered account with `--allow-unverified`; verified bootstrap arrives with Phase 3.
 3. **Phase 3, GitHub sign-in and linking.** Port, adapter, start/callback, account linking, GitHub stub for E2E.
 
 ## 📋 Implementation Plan
@@ -297,14 +299,15 @@ Every step keeps `lint`, `typecheck`, unit tests (100%), integration tests and t
    - lower-casing of existing emails;
    - the case-duplicate guard.
 9. `SessionService` and `UserService.grantRole` / `revokeRole` / `findByEmail`.
-   - Unit tests for `issue` claims (`aud`, `sv`), and for `resolve` with a bad signature, a wrong `aud`, an expired token, an unknown user and a stale `sv`.
+   - Unit tests for `issue` claims (`aud`, `sv`, `auth_time`), for `renewal` (threshold, absolute cap, preserved `sv`/`auth_time`), and for `resolve` with a bad signature, a wrong `aud`, an expired token, an unknown user and a stale `sv`.
    - Unit tests that roles come from the DB.
    - Integration tests for the grants.
-10. `scripts/operator-grant.ts`, the `operator:grant` script and the README setup step. Unit tests for `main` cover:
+10. `scripts/operator-grant.ts`, the `operator:grant` script and the README setup step (local development uses `npm run operator:grant -- <email> --allow-unverified` on a registered password account, because dev has no GitHub stub). Unit tests for `main` cover:
     - an unknown email: exit 1, Polish message;
     - an unverified or unlinked account: refused, with the reason;
     - a linked account: role granted and logged;
-    - an already-operator account: no-op.
+    - an already-operator account: no-op;
+    - `--allow-unverified` on a password account: role granted, warning „Konto nie jest zweryfikowane przez GitHub…” printed, override logged without the email.
 11. Apply the shared `Access` role gates; do not add role-only policy wrappers.
     - `/api/users` moves to `{ anyRole: ["operator"] }`; unit tests cover 401 when anonymous and 403 for a mentee.
     - `/backend` uses `pageScope({ access: { anyRole: ["operator"] }, ... })` and renders `AppShell` from its resolved actor.
@@ -317,7 +320,8 @@ Every step keeps `lint`, `typecheck`, unit tests (100%), integration tests and t
     - the timing path for an unknown email;
     - a GitHub-only account;
     - password-hash/session-version snapshot validation after bcrypt, with no row lock held during hashing;
-    - atomic `consume` before verification, IP/global bucket before email, and no reset after success;
+    - atomic `consume` before verification, in the order IP/global → (email, IP) → email, and no reset after success;
+    - 10 attempts from one IP lock that (email, IP) pair only: the same email still signs in from another IP until the email-only ceiling is reached;
     - the duplicate email returning the Q11 409 with `fieldErrors.email`.
     - Integration tests submit simultaneous login attempts and assert no more than the configured allowance reaches password verification. They also cover expired abandoned bucket cleanup, the expiry index, and no email-key creation after the IP/global cap refuses admission.
     - Integration tests interleave successful password verification with takeover and `revokeAll`; a changed hash/version refuses sign-in, and a later revocation invalidates any token issued for the verified snapshot version.
@@ -341,7 +345,7 @@ Every step keeps `lint`, `typecheck`, unit tests (100%), integration tests and t
     - a missing email.
 17. `oauth-state.ts` and `AuthService.signInWithGitHub` / `linkGitHub`.
     - `oauth-state.ts` is a signed cookie with `aud: "oauth-state"` and a 10-minute expiry.
-    - Unit tests cover every branch in API Contracts: Q12 takeover (password cleared, `sv` bumped, old session refused), missing/mismatched verified email on linking, repeated same-identity linking, refusal to replace a different identity, and the `linkUserId`/`linkSessionVersion` checks.
+    - Unit tests cover every branch in API Contracts: Q12 takeover (password cleared, `name` replaced from GitHub, `sv` bumped, old session refused), missing/mismatched verified email on linking, repeated same-identity linking, refusal to replace a different identity, and the `linkUserId`/`linkSessionVersion` checks.
     - Integration tests cover concurrent first sign-ins under the unique `github_id`, both lock acquisition orders for linking versus takeover and revocation, and rollback without partial credential changes.
 18. Routes `github/start` and `github/callback` on `browserRoute`, plus `isGitHubConfigured()`. Unit tests cover:
     - not configured, or `APP_URL` missing;
