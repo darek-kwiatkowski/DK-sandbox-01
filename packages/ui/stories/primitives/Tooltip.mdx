@@ -1,0 +1,123 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as TooltipStories from "./Tooltip.stories";
+
+<Meta of={TooltipStories} />
+
+# Tooltip
+
+## 1. Purpose
+
+Shows the name of an icon-only control to sighted users when they point at it or focus it.
+
+## 2. When to use
+
+| Situation in DevMentor | Source |
+| --- | --- |
+| The icon button that copies a mentor's share link | R13 |
+| Icon-only row actions | R01.1 |
+
+## 3. When not to use
+
+| Instead of a tooltip… | Use | Source |
+| --- | --- | --- |
+| Information needed to act (price, rules, why something is disabled) | Visible text: FieldDescription, Alert | WCAG 1.4.13, 3.3.2 |
+| A label for a field | FieldLabel | WCAG 3.3.2 |
+| Content with links or buttons | Dialog | WCAG 2.1.1 |
+| Touch-only screens | Do not rely on it; the `aria-label` is the real name | — |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Trigger | no | The icon button; carries `aria-label` with the same text |
+| Bubble | no | Ink background, page-coloured text (17 : 1), `rounded-sm`, `text-sm`, no arrow |
+| `TooltipProvider` | no | Wraps the app once; delay 300 ms |
+
+## 5. Variants
+
+None.
+
+<Canvas of={TooltipStories.Shown} />
+
+## 6. States
+
+| State | What changes |
+| --- | --- |
+| Hidden | — |
+| Shown | After 300 ms hover, or immediately on keyboard focus; 150 ms fade |
+| Other states | Belong to the trigger |
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Name | The trigger's `aria-label` is the accessible name; the tooltip repeats it visually | WCAG 4.1.2 |
+| Keyboard | Shows on focus, hides on `Escape` and blur | WCAG 1.4.13 |
+| Hover | Stays while the pointer is over the trigger or the bubble | WCAG 1.4.13 |
+| Role | `role="tooltip"` | WAI-ARIA APG Tooltip |
+| Values | Delay 300 ms and offset 4 px are proposals (no reference) | — |
+
+<Canvas of={TooltipStories.ShowsOnFocusHidesOnEscape} />
+
+## 8. Content
+
+| Rule | Example |
+| --- | --- |
+| Same words as the `aria-label`, verb + object | "Kopiuj link do profilu" |
+| One short line, no punctuation | — |
+| Long text | Wraps within `max-w-xs`; if it needs two lines, it probably belongs on the page |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | Flips to stay in the viewport; on touch it appears on long press only, so the label must not be essential |
+| 768 and 1440 px | Above the trigger by default |
+
+<Canvas of={TooltipStories.LongTextNarrow} />
+
+## 10. API
+
+<ArgTypes of={TooltipStories} />
+
+| Component | Key props |
+| --- | --- |
+| `TooltipProvider` | `delayDuration` (default 300) |
+| `Tooltip` | `open`, `defaultOpen`, `onOpenChange` |
+| `TooltipContent` | `side`, `sideOffset` (default 4) |
+
+## 11. Code
+
+<Source language="tsx" code={`<Tooltip>
+  <TooltipTrigger asChild>
+    <Button variant="outline" size="icon" aria-label="Kopiuj link do profilu" onClick={copy}>
+      <Copy aria-hidden="true" />
+    </Button>
+  </TooltipTrigger>
+  <TooltipContent>Kopiuj link do profilu</TooltipContent>
+</Tooltip>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: <p className="text-sm">Disabled "Zarezerwuj termin" with the visible line "Najpierw wybierz termin i długość sesji."</p>,
+        doWhy: "The reason is visible to everyone, also on touch.",
+        dont: <p className="text-sm">Disabled "Zarezerwuj termin" with the reason only in a tooltip.</p>,
+        dontWhy: "Disabled buttons do not receive focus or hover; the reason is never seen (WCAG 1.4.13).",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| FieldDescription | Visible hint, always there |
+| Dialog | Interactive content |
+
+Appears in: Product/E02 share link, Patterns/Filtered list (row actions).

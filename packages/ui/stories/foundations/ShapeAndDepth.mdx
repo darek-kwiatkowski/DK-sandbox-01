@@ -1,0 +1,56 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+
+import { Surface } from "../../.storybook/blocks/Surface";
+
+<Meta title="Foundations/Shape and depth" />
+
+# Shape and depth
+
+Flat surfaces separated by thin lines. Depth exists only for overlays.
+
+## Radius
+
+Base radius `--radius` is 6 px (shadcn's default is 10 px). Source: A01, P11 ("rounded-2xl everywhere").
+
+<Unstyled>
+  <Surface>
+  <div className="flex flex-wrap gap-between-groups text-sm">
+    {["rounded-sm", "rounded-md", "rounded-lg", "rounded-xl", "rounded-2xl"].map((r) => (
+      <div key={r} className={`${r} border border-input bg-muted px-4 py-3 font-mono`}>{r}</div>
+    ))}
+  </div>
+  </Surface>
+</Unstyled>
+
+| Use | Radius | Source |
+| --- | --- | --- |
+| Buttons, inputs, menus, badges | `rounded-md` (≈ 5 px) or `rounded-lg` (6 px) | A01 |
+| Dialogs | `rounded-lg` | A01 |
+| Never | Pills on everything, `rounded-2xl` on cards and buttons | A01, P11 |
+
+## Borders
+
+| Use | Classes | Source |
+| --- | --- | --- |
+| Between list rows | `divide-y divide-border` | R01.3 |
+| Form fields | `border border-input` (3 : 1 against the page) | WCAG 1.4.11 |
+| Separators | `Separator` (uses `--border`) | R01.3 |
+
+## Shadows
+
+| Use | Classes | Source |
+| --- | --- | --- |
+| Overlays only: dropdown menu, dialog, tooltip | `shadow-overlay` | tokeny.md rule 4, F4 (approved 2026-11-06) |
+| Never | Cards on lists, shadow as the only separation, glow | R01.3, A01 |
+
+<Unstyled>
+  <Surface>
+  <div className="flex gap-between-groups text-sm">
+    <div className="rounded-lg border border-border bg-popover p-panel shadow-overlay">Overlay with shadow-overlay</div>
+    <div className="divide-y divide-border border-y border-border">
+      <div className="px-list-row-x py-list-row-y">List row</div>
+      <div className="px-list-row-x py-list-row-y">List row</div>
+    </div>
+  </div>
+  </Surface>
+</Unstyled>

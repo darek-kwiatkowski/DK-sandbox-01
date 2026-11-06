@@ -1,0 +1,111 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { Separator } from "@devmentor/ui/components/ui/separator";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as SeparatorStories from "./Separator.stories";
+
+<Meta of={SeparatorStories} />
+
+# Separator
+
+## 1. Purpose
+
+Separates two groups with a thin line, so dense screens stay readable without boxes and shadows.
+
+## 2. When to use
+
+| Situation in DevMentor | Source |
+| --- | --- |
+| Between sections inside one card or panel | R01.3 |
+| Between inline facts in a row ("Anna Kowalska │ TypeScript, React") | R01.1, R01.3 |
+| "lub" between GitHub sign-in and the e-mail form: use `FieldSeparator` (Primitives/Field) | E01-S01 spec |
+
+## 3. When not to use
+
+| Instead of a separator… | Use |
+| --- | --- |
+| Between rows of a table or list | `divide-y divide-border` on the list |
+| To create space | Spacing tokens (`gap-between-groups`, `gap-section`) |
+| Around every element | Nothing; lines only between groups |
+
+## 4. Anatomy
+
+One 1 px line in `--border`. Horizontal or vertical.
+
+## 5. Variants
+
+<Canvas of={SeparatorStories.Orientations} />
+
+| Prop | Choose it when |
+| --- | --- |
+| `orientation="horizontal"` (default) | Between stacked groups |
+| `orientation="vertical"` | Between inline items in a row |
+| `decorative={false}` | Only when the separation carries meaning for screen readers (rare) |
+
+## 6. States
+
+None: the separator is static and not focusable.
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Default | Decorative: `role="none"`, ignored by screen readers | WAI-ARIA |
+| Semantic | `decorative={false}` gives `role="separator"` with orientation | WAI-ARIA separator |
+| Contrast | Decorative lines have no threshold (1.21 : 1 light, 1.37 : 1 dark); never the only way to tell groups apart in a form | WCAG 1.4.11 (exempt) |
+
+<Canvas of={SeparatorStories.DecorativeOrSemantic} />
+
+## 8. Content
+
+No text. Use FieldSeparator when a word sits on the line ("lub").
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | Vertical separators in a row turn into wrapping or stacking; prefer horizontal |
+| 768 and 1440 px | Either |
+
+<Canvas of={SeparatorStories.NarrowWidth} />
+
+## 10. API
+
+<ArgTypes of={SeparatorStories} />
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
+| `decorative` | `boolean` | `true` |
+
+## 11. Code
+
+<Source language="tsx" code={`<Separator />`} />
+<Source language="tsx" code={`<div className="flex h-6 items-center gap-in-group">
+  <span>{mentor.name}</span>
+  <Separator orientation="vertical" />
+  <span className="text-muted-foreground">{mentor.stack.join(", ")}</span>
+</div>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: (<div className="flex flex-col gap-in-group text-sm"><span>Profil</span><Separator /><span>Ceny</span></div>),
+        doWhy: "One thin line between groups (R01.3).",
+        dont: (<div className="flex flex-col gap-in-group text-sm"><span className="rounded-lg p-panel shadow-overlay">Profil</span><span className="rounded-lg p-panel shadow-overlay">Ceny</span></div>),
+        dontWhy: "Shadows as the only separation (R01.3; What to avoid).",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| FieldSeparator | Line with text ("lub") in forms |
+| Table row border | Lines between repeated rows |
+
+Appears in: Primitives/Card, Patterns/Detail view.

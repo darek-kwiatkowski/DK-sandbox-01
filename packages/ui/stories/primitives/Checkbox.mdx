@@ -1,0 +1,132 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { Checkbox } from "@devmentor/ui/components/ui/checkbox";
+import { Field, FieldLabel } from "@devmentor/ui/components/ui/field";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as CheckboxStories from "./Checkbox.stories";
+
+<Meta of={CheckboxStories} />
+
+# Checkbox
+
+## 1. Purpose
+
+Lets the user turn an option on or off, or pick several options from a short list.
+
+## 2. When to use
+
+| Situation in DevMentor | Source |
+| --- | --- |
+| A mentor's stack tags: TypeScript, React, Python, AI agents (several at once) | R13, E02-S01 |
+| The stack filter on the mentor list | R13, E03-S01 |
+| A single yes/no setting saved with a form | — |
+
+## 3. When not to use
+
+| Instead of a checkbox… | Use |
+| --- | --- |
+| Exactly one of a few options (25 or 50 minutes) | Radio group |
+| An action that happens immediately | Button |
+| A setting that applies instantly without saving | A switch would fit, but it is not in the system (What is missing); use a checkbox saved with the form |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Box | no | 16 px; the hit area extends 12 px sideways and 8 px up and down |
+| Check mark | when checked | lucide `Check`, `aria-hidden` |
+| Label | no | `FieldLabel` to the right, clickable |
+| Hint | yes | `FieldContent` with `FieldDescription` |
+
+## 5. Variants
+
+None. A group of checkboxes sits in a `FieldSet` with a legend:
+
+<Canvas of={CheckboxStories.StackTags} />
+
+## 6. States
+
+<Canvas of={CheckboxStories.States} />
+
+| State | What changes | Source |
+| --- | --- | --- |
+| Unchecked | `border-input` (3 : 1) | WCAG 1.4.11 |
+| Checked | Ink fill and white check, not the accent | tokeny.md rule 3 |
+| Indeterminate | Supported by Radix (`checked="indeterminate"`); not used by any screen yet | — |
+| Hover | Border becomes ink | — |
+| Focus | Ink ring with offset | WCAG 2.4.7 |
+| Disabled | 50% opacity; the label or hint says why | WCAG 3.3.2 |
+| Error | `aria-invalid` red border plus a FieldError for the group | WCAG 3.3.1 |
+| Pressed, loading | Do not apply | — |
+
+<Canvas of={CheckboxStories.RequiredSelection} />
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Role | `role="checkbox"` with `aria-checked` (Radix) | WAI-ARIA APG Checkbox |
+| Keyboard | `Tab` focuses, `Space` toggles | WAI-ARIA APG Checkbox |
+| Label | Clicking the label toggles; the label is part of the target | WCAG 2.5.8 |
+| Group | `FieldSet` + `FieldLegend` name the question ("Stack") | WCAG 1.3.1 |
+| Screen reader | "TypeScript, checkbox, checked" | — |
+
+<Canvas of={CheckboxStories.ToggleWithKeyboardAndLabel} />
+
+## 8. Content
+
+| Rule | Example |
+| --- | --- |
+| Label is the option, not a sentence | "TypeScript", "React" |
+| Positive wording | "Pokazuj tylko mentorów z terminem w tym tygodniu", not "Nie ukrywaj…" |
+| Long labels | Wrap next to the box |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | One option per line |
+| 768 and 1440 px | Filters may sit in a row (Patterns/Filtered list) |
+
+<Canvas of={CheckboxStories.LongLabelNarrow} />
+
+## 10. API
+
+<ArgTypes of={CheckboxStories} />
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `checked` | `boolean \| "indeterminate"` | — | Controlled state |
+| `defaultChecked` | `boolean` | — | Uncontrolled start |
+| `onCheckedChange` | `(checked) => void` | — | Called on toggle |
+| `disabled`, `required`, `name`, `value` | Radix Checkbox props | — | Form integration |
+
+## 11. Code
+
+<Source language="tsx" code={`<Field orientation="horizontal">
+  <Checkbox id="tag-react" />
+  <FieldLabel htmlFor="tag-react">React</FieldLabel>
+</Field>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: (<Field orientation="horizontal"><Checkbox id="dd-c1" /><FieldLabel htmlFor="dd-c1">Python</FieldLabel></Field>),
+        doWhy: "Label next to the box and clickable.",
+        dont: (<Checkbox aria-label="Python" />),
+        dontWhy: "No visible label: sighted users cannot tell what it is.",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Radio group | One choice only |
+| Badge | Shows a tag, cannot be toggled |
+
+Appears in: Patterns/Filtered list, Patterns/Form (profile stack tags).

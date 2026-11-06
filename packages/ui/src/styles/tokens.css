@@ -1,0 +1,237 @@
+/*
+ * DevMentor design tokens: the only file with literal colour and scale values.
+ * Decisions: lekcja-06/tokeny.md and lekcja-06/referencje.md (approved by Oliwia, 2026-11-06).
+ *
+ * Layer 1, raw: palettes and scales. Used only inside this file; never in components.
+ * Layer 2, semantic: named by purpose. Existing shadcn names are kept as the semantic
+ *          layer (tokeny.md); new names exist only where no shadcn name fits.
+ * Layer 3, component: only where one component needs its own value.
+ *
+ * "proposal" marks a value the owner approved without a reference behind it.
+ */
+
+/* ---------------------------------------------------------------- Layer 1: raw */
+:root {
+  /* Warm greys, hue 65–80, chroma 0.003–0.015 (R01.4, P01). */
+  --sand-0: oklch(0.995 0.003 80);
+  --sand-50: oklch(0.982 0.006 80);
+  --sand-100: oklch(0.96 0.008 80);
+  --sand-200: oklch(0.918 0.01 78);
+  --sand-300: oklch(0.86 0.012 75);
+  --sand-400: oklch(0.7 0.014 72);
+  --sand-500: oklch(0.6 0.015 70);
+  --sand-600: oklch(0.5 0.015 68);
+  --sand-700: oklch(0.4 0.013 65);
+  --sand-800: oklch(0.29 0.011 65);
+  --sand-850: oklch(0.245 0.01 65);
+  --sand-900: oklch(0.205 0.009 65);
+  --sand-950: oklch(0.16 0.008 65);
+
+  /* Warm accent (R01.4); the ochre hue itself is a proposal, approved 2026-11-06. */
+  --ochre-100: oklch(0.95 0.03 75);
+  --ochre-300: oklch(0.82 0.09 70);
+  --ochre-400: oklch(0.74 0.12 68);
+  --ochre-500: oklch(0.64 0.13 62);
+  --ochre-600: oklch(0.54 0.12 58);
+  --ochre-700: oklch(0.46 0.1 55);
+
+  /* Errors; in sRGB gamut, replaces the out-of-gamut shadcn red (tokeny.md). */
+  --red-700: oklch(0.53 0.19 27);
+  --red-300: oklch(0.7 0.16 25);
+
+  /* Spacing scale: the only allowed steps, 4–48 px (tokeny.md, one scale). */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  /* Shape: 6 px base radius instead of shadcn's 10 px (A01, P11: no rounded-2xl everywhere). */
+  --radius: 0.375rem;
+}
+
+/* ------------------------------------------------- Layer 2: semantic, light theme */
+/* `.light` lets documentation show the light theme inside a dark page. */
+:root,
+.light {
+  color-scheme: light;
+
+  --background: var(--sand-50); /* page, list and session surface. R01.4, P01 */
+  --foreground: var(--sand-900); /* body text, mentor name. R01.4 */
+  --card: var(--background); /* no card surface: lines instead of cards. R01.3 */
+  --card-foreground: var(--foreground); /* R01.3 */
+  --popover: var(--sand-0); /* overlays (menu, dialog) stand apart from the page. tokeny.md */
+  --popover-foreground: var(--foreground); /* tokeny.md */
+  --primary: var(--ochre-600); /* the one main action on a screen. R01.4, R01.5, K3 */
+  --primary-foreground: var(--sand-0); /* text on primary. contrast, WCAG 1.4.3 */
+  --primary-hover: var(--ochre-700); /* hovered or pressed main action; primary/80 would drop text to 3.59 : 1. WCAG 1.4.3, approved 2026-11-06 */
+  --highlight-foreground: var(--ochre-700); /* the one highlighted element when highlighted by colour (time left in a session). R01.5, K3, P02 */
+  --secondary: var(--sand-100); /* secondary actions. R01.6 */
+  --secondary-foreground: var(--sand-900); /* R01.6 */
+  --secondary-hover: var(--sand-200); /* hovered or pressed secondary action, replaces an arbitrary color-mix. tokeny.md, approved 2026-11-06 */
+  --muted: var(--sand-100); /* quiet surfaces. R02.3, R01.1 */
+  --muted-foreground: var(--sand-600); /* metadata: time, stack, hints. R02.3, R01.1 */
+  --accent: var(--sand-100); /* shadcn name: hovered row or menu item, not the brand colour. R01.1 */
+  --accent-foreground: var(--sand-900); /* R01.1 */
+  --destructive: var(--red-700); /* errors and cancellations; always with text or an icon. WCAG 1.4.1 */
+  --border: var(--sand-200); /* thin lines between rows, separators. R01.3 */
+  --input: var(--sand-500); /* form field outlines, 3:1. WCAG 1.4.11 */
+  --ring: var(--sand-900); /* focus outline in ink. WCAG 2.4.7, 1.4.11 */
+  --code: var(--sand-100); /* inline code and code blocks. R01.2 */
+  --code-foreground: var(--sand-900); /* R01.2 */
+
+  /* Charts: no decision yet; values unchanged from the previous theme (tokeny.md). */
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+
+  /* Sidebar mirrors the page (A01: no violet; P07). */
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+
+  --overlay: oklch(0.16 0.008 65 / 0.4); /* scrim behind dialogs: warm ink, no blur (A01: no glass). Proposal, stage 2 batch 3 */
+
+  /* Overlay shadow, warm-tinted ink. Shadows only on overlays (tokeny.md rule 4; value F4, approved 2026-11-06). */
+  --shadow-overlay-color: oklch(0.16 0.008 65 / 0.14);
+}
+
+/* -------------------------------------------------- Layer 2: semantic, dark theme */
+.dark {
+  color-scheme: dark;
+
+  --background: var(--sand-950); /* R01.4, P01 */
+  --foreground: var(--sand-50); /* R01.4 */
+  --card: var(--background); /* R01.3 */
+  --card-foreground: var(--foreground); /* R01.3 */
+  --popover: var(--sand-900); /* tokeny.md */
+  --popover-foreground: var(--foreground); /* tokeny.md */
+  --primary: var(--ochre-400); /* R01.4, R01.5, K3 */
+  --primary-foreground: var(--sand-950); /* WCAG 1.4.3 */
+  --primary-hover: var(--ochre-300); /* WCAG 1.4.3 */
+  --highlight-foreground: var(--ochre-300); /* R01.5, K3, P02 */
+  --secondary: var(--sand-800); /* R01.6 */
+  --secondary-foreground: var(--sand-50); /* R01.6 */
+  --secondary-hover: var(--sand-700); /* tokeny.md */
+  --muted: var(--sand-850); /* R02.3, R01.1 */
+  --muted-foreground: var(--sand-400); /* R02.3, R01.1 */
+  --accent: var(--sand-800); /* R01.1 */
+  --accent-foreground: var(--sand-50); /* R01.1 */
+  --destructive: var(--red-300); /* WCAG 1.4.1 */
+  --border: var(--sand-800); /* R01.3 */
+  --input: var(--sand-600); /* WCAG 1.4.11 */
+  --ring: var(--sand-50); /* WCAG 2.4.7, 1.4.11 */
+  --code: var(--sand-850); /* R01.2 */
+  --code-foreground: var(--sand-50); /* R01.2 */
+
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+
+  --shadow-overlay-color: oklch(0 0 0 / 0.5);
+  --overlay: oklch(0 0 0 / 0.6); /* A01. Proposal */
+}
+
+/* ------------------------------------------------------- Layer 3: component tokens */
+:root {
+  --list-row-padding-y: var(--space-2); /* table, DataTable rows ≈ 36 px with text-sm. R01.1, K1 */
+  --list-row-padding-x: var(--space-3); /* R01.1, K1 */
+  --session-padding: var(--space-6); /* session screen and note. K1, R02.1 */
+}
+
+/* ----------------------------------------- Tailwind wiring (utilities read the tokens) */
+@theme inline {
+  --font-sans: ui-sans-serif, system-ui, sans-serif; /* system font, no download. tokeny.md (proposal) */
+  --font-heading: var(--font-sans);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; /* code, file names, branches, versions. R01.2 */
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-code: var(--code);
+  --color-code-foreground: var(--code-foreground);
+  --color-overlay: var(--overlay);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Spacing by relation (tokeny.md): gap-in-group, gap-between-groups, p-panel, gap-section … */
+  --spacing-in-group: var(--space-2); /* author and time, icon and text, label and value. R02.3 */
+  --spacing-between-groups: var(--space-4); /* between messages, between form fields. K1 */
+  --spacing-panel: var(--space-4); /* padding of list panels and operator screens. K1 */
+  --spacing-section: var(--space-8); /* between page sections */
+  --spacing-list-row-y: var(--list-row-padding-y); /* R01.1, K1 */
+  --spacing-list-row-x: var(--list-row-padding-x); /* R01.1, K1 */
+  --spacing-session: var(--session-padding); /* K1, R02.1 */
+
+  /* Widths: max-w-reading for session and note text, ≈ 61–69 characters per line (K1, R02.1; F1 approved 2026-11-06,
+     replaces 70ch which measured 80–87); max-w-page for page content (F3, approved 2026-11-06). */
+  --container-reading: 56ch;
+  --container-page: 64rem;
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --shadow-overlay: 0 4px 16px var(--shadow-overlay-color); /* overlays only. tokeny.md rule 4, F4 */
+
+  /* Component layouts (layer 3), so components need no arbitrary grid values (tokeny.md). */
+  --grid-template-columns-content-action: 1fr auto; /* Card header with an action on the right */
+  --grid-template-rows-title-description: auto auto; /* Card header title over description */
+  --grid-template-columns-icon-content: auto 1fr; /* Alert with a leading icon */
+
+  /* Motion: state feedback only, 150 ms (P18). */
+  --default-transition-duration: 150ms;
+}

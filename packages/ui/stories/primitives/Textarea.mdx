@@ -1,0 +1,122 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { Textarea } from "@devmentor/ui/components/ui/textarea";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as TextareaStories from "./Textarea.stories";
+
+<Meta of={TextareaStories} />
+
+# Textarea
+
+## 1. Purpose
+
+Lets the user write more than one line: a profile description, a session message, a note.
+
+## 2. When to use
+
+| Situation in DevMentor | Source |
+| --- | --- |
+| Mentor profile "Opis": a plain description of what they have done | R04, E02-S01, P18 |
+| Writing a message in the session (inside the Composer) | R02.2, R20, E04-S01 |
+| Editing the shared session note | R26, E04-S02 |
+
+## 3. When not to use
+
+| Instead of a textarea… | Use |
+| --- | --- |
+| One short value | Input |
+| Pasting code to be read as code | Still Textarea in the composer; the message renders it with CodeBlock (Product/E04) |
+| Rich formatting toolbar | Not planned; listed on "What is missing" |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Label | no | `FieldLabel`, or a visually hidden label in the Composer |
+| Textarea | no | Grows with content (`field-sizing-content`), minimum 64 px |
+| Hint | yes | What a good answer contains |
+| Error | when invalid | FieldError |
+
+## 5. Variants
+
+No visual variants. Height grows with the text; set `rows` for a taller start.
+
+<Canvas of={TextareaStories.ProfileDescription} />
+
+## 6. States
+
+<Canvas of={TextareaStories.States} />
+
+| State | What changes | Source |
+| --- | --- | --- |
+| Focus | Ink ring with offset | WCAG 2.4.7 |
+| Disabled | Muted, 50% opacity; the hint says why (e.g. "Sesja się zakończyła.") | WCAG 3.3.2 |
+| Error | `aria-invalid`, red outline and FieldError text | WCAG 1.4.1, 3.3.1 |
+| Hover, pressed, selected, loading | Do not apply | — |
+
+<Canvas of={TextareaStories.ErrorWithMessage} />
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Keyboard | `Enter` is a new line here. In the session Composer `Enter` sends and `Shift+Enter` adds a line (Composer handles it, not Textarea) | R02.2 |
+| Label and hint | As Input: `htmlFor`, `aria-describedby` | WCAG 1.3.1 |
+| Screen reader | "Opis, edit text, multi-line" | — |
+| Resize | Grows automatically; no manual resize handle needed | — |
+
+<Canvas of={TextareaStories.TypingMultiline} />
+
+## 8. Content
+
+| Rule | Example | Source |
+| --- | --- | --- |
+| The hint asks for concrete work, not years | "Napisz, co robiłaś lub robiłeś, np. „upgrade ingress-nginx do 1.28”" | Interviews (W, F), R04 |
+| Placeholder is an example | "Np. robię upgrade'y ingress-nginx…" | WCAG 3.3.2 |
+| Long text | Wraps; code lines wrap in the textarea and keep their spaces | — |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | Full width |
+| 768 and 1440 px | Capped by `max-w-reading` in reading contexts (profile, note, composer) |
+
+<Canvas of={TextareaStories.LongTextNarrow} />
+
+## 10. API
+
+<ArgTypes of={TextareaStories} />
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `rows` | `number` | — | Starting height |
+| `aria-invalid` | `boolean` | — | Error state |
+| …`textarea` props | `ComponentProps<"textarea">` | — | `id`, `required`, `disabled`, `maxLength` |
+
+## 11. Code
+
+<Source language="tsx" code={`<Textarea id="opis" rows={4} aria-describedby="opis-hint" />`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: (<Textarea aria-label="Opis" defaultValue="Robię upgrade'y ingress-nginx i migracje Helm 3 na produkcji." />),
+        doWhy: "Concrete work the mentee can check (R04).",
+        dont: (<Textarea aria-label="Opis" defaultValue="Senior engineer z 10-letnim doświadczeniem." />),
+        dontWhy: "Years say nothing: \"nie 10 lat reacta, bo to każdy ma\" (freelancer interview).",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Input | One line |
+| Composer (Product/E04) | Textarea plus send behaviour for the session |
+
+Appears in: Patterns/Form, Patterns/Text session, Patterns/Co-edited note.

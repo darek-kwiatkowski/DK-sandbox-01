@@ -1,0 +1,135 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { RadioGroup, RadioGroupItem } from "@devmentor/ui/components/ui/radio-group";
+import { Field, FieldLabel } from "@devmentor/ui/components/ui/field";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as RadioStories from "./RadioGroup.stories";
+
+<Meta of={RadioStories} />
+
+# Radio group
+
+## 1. Purpose
+
+Lets the user pick exactly one option when all options fit on screen, such as the length of a session.
+
+## 2. When to use
+
+| Situation in DevMentor | Source |
+| --- | --- |
+| Session length when booking: 25 or 50 minutes, each with its price | R01, R08, E03-S02 |
+| Slot length when a mentor publishes availability | R01, E02-S03 |
+
+## 3. When not to use
+
+| Instead of a radio group… | Use |
+| --- | --- |
+| More than about 5 options, or long option names | Select |
+| Several options at once | Checkboxes |
+| An action | Button |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Group | no | `RadioGroup`, named by a `FieldLegend` or `aria-label` |
+| Item | no | 16 px circle; hit area extends around it |
+| Label | no | `FieldLabel`; may carry secondary text (price) in `text-muted-foreground` |
+| Hint, error | yes | For the whole group |
+
+## 5. Variants
+
+`orientation` vertical (default) or horizontal (side by side when options are short).
+
+<Canvas of={RadioStories.WithLegend} />
+
+## 6. States
+
+<Canvas of={RadioStories.States} />
+
+| State | What changes | Source |
+| --- | --- | --- |
+| Selected | Ink fill with a page-coloured dot, not the accent | tokeny.md rule 3 |
+| Hover | Border becomes ink | — |
+| Focus | Ink ring with offset; only the selected item is in the tab order | WAI-ARIA APG Radio Group |
+| Disabled option | 50% opacity; the hint says why ("Ten mentor nie ma wolnych 50 minut…") | WCAG 3.3.2 |
+| Error | Red borders plus a group FieldError ("Wybierz długość sesji.") | WCAG 3.3.1 |
+| Pressed, loading | Do not apply | — |
+
+<Canvas of={RadioStories.DisabledOption} />
+<Canvas of={RadioStories.NothingChosen} />
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Keyboard | `Tab` enters the group on the selected item; arrow keys move and select | WAI-ARIA APG Radio Group |
+| Roles | `radiogroup` with `radio` items and `aria-checked` (Radix) | WAI-ARIA |
+| Label | Clicking a label selects its item | WCAG 2.5.8 |
+| Screen reader | "Długość sesji, radio group; 25 minut · 180,00 zł, radio button, checked, 1 of 2" | — |
+
+<Canvas of={RadioStories.ArrowKeys} />
+
+## 8. Content
+
+| Rule | Example | Source |
+| --- | --- | --- |
+| Option names are short and parallel | "25 minut", "50 minut" | R01 |
+| The price sits with the option, before payment | "25 minut · 180,00 zł" | R08, P17 |
+| Preselect only when there is a sensible default | 25 minutes preselected; no default when the price differs a lot is also acceptable | — (proposal) |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | Vertical; horizontal only for two short options |
+| 768 and 1440 px | Either orientation |
+
+<Canvas of={RadioStories.HorizontalNarrow} />
+
+## 10. API
+
+<ArgTypes of={RadioStories} />
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value`, `defaultValue` | `string` | — | Selected item |
+| `onValueChange` | `(value: string) => void` | — | Called on selection |
+| `orientation` | `"vertical" \| "horizontal"` | — | Arrow-key axis and layout |
+| `RadioGroupItem value` | `string` | — | Required per item |
+
+## 11. Code
+
+<Source language="tsx" code={`<RadioGroup defaultValue="25" aria-label="Długość sesji">
+  <Field orientation="horizontal">
+    <RadioGroupItem value="25" id="d25" />
+    <FieldLabel htmlFor="d25">25 minut</FieldLabel>
+  </Field>
+  <Field orientation="horizontal">
+    <RadioGroupItem value="50" id="d50" />
+    <FieldLabel htmlFor="d50">50 minut</FieldLabel>
+  </Field>
+</RadioGroup>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: (<RadioGroup defaultValue="25" aria-label="Długość sesji"><Field orientation="horizontal"><RadioGroupItem value="25" id="dd-r1" /><FieldLabel htmlFor="dd-r1">25 minut · 180,00 zł</FieldLabel></Field><Field orientation="horizontal"><RadioGroupItem value="50" id="dd-r2" /><FieldLabel htmlFor="dd-r2">50 minut · 320,00 zł</FieldLabel></Field></RadioGroup>),
+        doWhy: "Both options and prices visible before choosing.",
+        dont: (<p className="text-sm">A Select with two options hides the price until it is opened.</p>),
+        dontWhy: "Hiding two options behind a menu adds a step (use Select from about 5 options).",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Select | Many options, one visible at a time |
+| Checkbox | Several choices |
+
+Appears in: Patterns/Booking checkout, Patterns/Form (slot editor).

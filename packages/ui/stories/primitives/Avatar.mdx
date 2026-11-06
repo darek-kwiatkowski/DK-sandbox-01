@@ -1,0 +1,128 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { Avatar, AvatarFallback } from "@devmentor/ui/components/ui/avatar";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as AvatarStories from "./Avatar.stories";
+
+<Meta of={AvatarStories} />
+
+# Avatar
+
+## 1. Purpose
+
+Helps the user recognise who wrote a message or who a mentor is, next to their name.
+
+## 2. When to use
+
+| Situation in DevMentor | Size | Source |
+| --- | --- | --- |
+| Author of a message in the session | `sm` (24 px) | R02.3, stage 0 Q5 |
+| A mentor row in the list | `default` (32 px) | stage 0 Q5 |
+| The signed-in person in the app shell | `sm` | stage 0 Q5 (proposal for AppShell) |
+
+## 3. When not to use
+
+| Instead of an avatar… | Use |
+| --- | --- |
+| Identifying a person without their name | Always show the name; the avatar only supports it (R02.3) |
+| Showing presence ("online") | Nothing: no presence signals (R02.7, K2) |
+| A large profile photo as decoration | Not in the system (proposal, no reference) |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Circle | no | 32 px or 24 px, thin `--border` edge |
+| Picture | yes | GitHub avatar (sign-in with GitHub, R06) |
+| Initials | no | Shown while the picture loads or when it fails; 2 letters |
+
+Removed from the base: `AvatarBadge` (a status dot, against R02.7), `AvatarGroup`, `AvatarGroupCount` and the
+`lg` size; no screen needs them.
+
+## 5. Variants
+
+<Canvas of={AvatarStories.Sizes} />
+
+| Size | Choose it when |
+| --- | --- |
+| `default` 32 px | List rows, headers |
+| `sm` 24 px | Message author, compact rows |
+
+## 6. States
+
+<Canvas of={AvatarStories.States} />
+
+| State | What changes |
+| --- | --- |
+| Picture | GitHub image |
+| No picture or failed | Initials on `--muted` |
+| Hover, focus, pressed, disabled, loading, selected, error | Do not apply; the avatar is not interactive |
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Alt text | `alt=""` when the name is next to it (it always is) | WCAG 1.1.1 |
+| Initials | Hidden from nobody, but redundant with the name; keep them short | — |
+| Not interactive | Wrap the name, not the avatar, in a link when it leads to a profile | WCAG 2.4.4 |
+| Contrast | Initials `--muted-foreground` on `--muted`: 5.35 : 1 light, 6.07 : 1 dark | WCAG 1.4.3 |
+
+<Canvas of={AvatarStories.FallbackWhenImageFails} />
+
+## 8. Content
+
+| Rule | Example |
+| --- | --- |
+| Initials: first letters of first and last name | "AK" for Anna Kowalska |
+| Long names wrap beside the avatar, never truncate silently | "Katarzyna Wiśniewska-Grabowska…" |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | Same size; the name wraps |
+| 768 and 1440 px | Same |
+
+<Canvas of={AvatarStories.LongNameNarrow} />
+
+## 10. API
+
+<ArgTypes of={AvatarStories} />
+
+| Component | Key props |
+| --- | --- |
+| `Avatar` | `size?: "default" \| "sm"` |
+| `AvatarImage` | `src`, `alt` |
+| `AvatarFallback` | children (initials), `delayMs` |
+
+## 11. Code
+
+<Source language="tsx" code={`<div className="flex items-center gap-in-group">
+  <Avatar size="sm">
+    <AvatarImage src={author.avatarUrl} alt="" />
+    <AvatarFallback>{initials(author.name)}</AvatarFallback>
+  </Avatar>
+  <span className="font-medium">{author.name}</span>
+</div>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: (<div className="flex items-center gap-in-group text-sm"><Avatar size="sm"><AvatarFallback>AK</AvatarFallback></Avatar><span className="font-medium">Anna Kowalska</span></div>),
+        doWhy: "Name next to the avatar.",
+        dont: (<Avatar size="sm"><AvatarFallback>AK</AvatarFallback></Avatar>),
+        dontWhy: "Initials alone do not say who wrote it (R02.3).",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Badge | Labels a thing, not a person |
+
+Appears in: Product/E03 MentorListRow, Product/E04 Message, Product/E01 AppShell.

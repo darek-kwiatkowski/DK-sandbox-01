@@ -1,0 +1,126 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { EmptyState, ErrorMessage, LoadingMessage } from "@devmentor/ui/backend/feedback";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as FeedbackStories from "./Feedback.stories";
+
+<Meta of={FeedbackStories} />
+
+# Feedback: LoadingMessage, ErrorMessage, EmptyState
+
+These are the existing blocks in `@devmentor/ui/backend/feedback`, unchanged in this stage (rule 12). They are the
+only sanctioned loading, error and empty renderers (engineering standards).
+
+## 1. Purpose
+
+Tell the user what is happening to the data on the screen: it is loading, it failed, or there is none yet, and what to do next.
+
+## 2. When to use
+
+| Component | Situation in DevMentor | Source |
+| --- | --- | --- |
+| `LoadingMessage` | Any API-backed region whose layout is not known yet | Engineering standards, E01-S01 spec |
+| `ErrorMessage` | Loading failed; offer `onRetry` | Engineering standards |
+| `EmptyState` | No data yet, with the next step: "Dodaj termin" | Engineering standards, Content page |
+
+## 3. When not to use
+
+| Instead of… | Use |
+| --- | --- |
+| ErrorMessage for a failed form submit | FieldError and an Alert in the form (Patterns/Form) |
+| EmptyState for "no results for these filters" | EmptyState with "Wyczyść filtry" (a separate state, Patterns/Filtered list) |
+| LoadingMessage for known layouts | Skeleton plus one status |
+
+## 4. Anatomy
+
+| Component | Parts |
+| --- | --- |
+| `LoadingMessage` | One line, `role="status"`, polite |
+| `ErrorMessage` | Message (`role="alert"`, red) and optional "Spróbuj ponownie" button |
+| `EmptyState` | Title, optional description, optional action |
+
+## 5. Variants
+
+<Canvas of={FeedbackStories.Loading} />
+<Canvas of={FeedbackStories.Error} />
+<Canvas of={FeedbackStories.Empty} />
+<Canvas of={FeedbackStories.EmptyTitleOnly} />
+
+## 6. States
+
+| Component | States |
+| --- | --- |
+| `ErrorMessage` | With retry; without retry (`onRetry` absent) |
+| `EmptyState` | Title only; with description; with action |
+| Others | Hover, focus and disabled belong to the retry or action button |
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Loading | `role="status"`, `aria-live="polite"`: announced without interrupting | WCAG 4.1.3 |
+| Error | `role="alert"`: announced immediately | WCAG 4.1.3 |
+| Retry | A real button; focus stays where it was | WCAG 2.4.3 |
+| Colour | Error text is red **and** says what failed | WCAG 1.4.1 |
+
+<Canvas of={FeedbackStories.RetryRunsAgain} />
+<Canvas of={FeedbackStories.LoadingIsAnnounced} />
+
+## 8. Content
+
+| Component | Rule | Example |
+| --- | --- | --- |
+| Loading | "Wczytywanie" + what | "Wczytywanie terminów…" |
+| Error | What failed; the retry button says "Spróbuj ponownie" | "Nie udało się wczytać terminów." |
+| Empty | Why it is empty and the next step | "Nie masz jeszcze opublikowanych terminów." + "Dodaj termin" |
+
+## 9. Responsive
+
+All three are centred blocks that wrap their text at any width. Note: centring is the current layout of the
+existing blocks; "What to avoid" warns against centring everything in content areas (proposal to review).
+
+<Canvas of={FeedbackStories.LongTextNarrow} />
+
+## 10. API
+
+| Component | Prop | Type | Default |
+| --- | --- | --- | --- |
+| `LoadingMessage` | `label` | `string` | `"Ładowanie…"` |
+| `ErrorMessage` | `message` | `string` | `"Nie udało się wczytać danych."` |
+| `ErrorMessage` | `onRetry` | `() => void` | — (no button) |
+| `EmptyState` | `title` | `string` | required |
+| `EmptyState` | `description` | `string` | — |
+| `EmptyState` | `action` | `ReactNode` | — |
+
+<ArgTypes of={FeedbackStories} />
+
+## 11. Code
+
+<Source language="tsx" code={`import { EmptyState, ErrorMessage, LoadingMessage } from "@devmentor/ui/backend/feedback";
+
+if (state.status === "loading") return <LoadingMessage label="Wczytywanie terminów…" />;
+if (state.status === "error") return <ErrorMessage message="Nie udało się wczytać terminów." onRetry={reload} />;
+if (state.data.length === 0) return <EmptyState title="Nie masz jeszcze opublikowanych terminów." action={<Button>Dodaj termin</Button>} />;`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: <EmptyState title="Nie masz jeszcze opublikowanych terminów." description="Mentee zobaczą Cię na liście, gdy opublikujesz termin." />,
+        doWhy: "Why it is empty and what happens next.",
+        dont: <EmptyState title="Brak danych." />,
+        dontWhy: "Says nothing about the reason or the next step.",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Skeleton | Shape of known content while loading |
+| Alert | Page or form messages |
+
+Appears in: Patterns/Filtered list, Patterns/Detail view, every API-backed screen.

@@ -1,0 +1,41 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import { CalendarClock, Check, ChevronDown, CircleAlert, Clock, Copy, LogOut, X } from "lucide-react";
+
+import { Surface } from "../../.storybook/blocks/Surface";
+
+<Meta title="Foundations/Icons" />
+
+# Icons
+
+Library: **lucide-react** (`components.json`, `iconLibrary: "lucide"`). No other icon set and no emoji.
+
+<Unstyled>
+  <Surface>
+  <div className="flex flex-wrap gap-between-groups text-sm text-foreground">
+    {[[CalendarClock, "CalendarClock"], [Clock, "Clock"], [Copy, "Copy"], [LogOut, "LogOut"], [CircleAlert, "CircleAlert"], [Check, "Check"], [X, "X"], [ChevronDown, "ChevronDown"]].map(([Icon, name]) => (
+      <span key={name} className="flex items-center gap-in-group">
+        <Icon aria-hidden="true" className="size-4" />
+        <span className="font-mono">{name}</span>
+      </span>
+    ))}
+  </div>
+  </Surface>
+</Unstyled>
+
+## Sizes
+
+| Size | Classes | Use | Source |
+| --- | --- | --- | --- |
+| 16 px | `size-4` | Inside buttons, inputs, menus and text | F5, approved 2026-11-06 |
+| 20 px | `size-5` | Standalone status icons, e.g. in an alert | F5, approved 2026-11-06 |
+
+## Rules
+
+| Rule | Source |
+| --- | --- |
+| An icon next to text is decorative: `aria-hidden="true"`. | WCAG 1.1.1 |
+| An icon-only control has an accessible name (`aria-label`) and a `Tooltip` with the same text. | WCAG 1.1.1, 4.1.2 |
+| Its target is at least 24 × 24 px. | WCAG 2.5.8 |
+| No emoji instead of icons; no emoji reactions in a session. | R02.5, P06 |
+| No `Sparkles` or other "AI" symbols; no camera or microphone icons. | A01, A05 |
+| lucide 1.x has no brand icons: the GitHub mark on "Zaloguj się przez GitHub" is a local SVG in `currentColor` (Product/E01, stage 3). | F6, 2026-11-06 |

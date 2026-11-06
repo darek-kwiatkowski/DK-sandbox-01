@@ -1,0 +1,142 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as DialogStories from "./Dialog.stories";
+
+<Meta of={DialogStories} />
+
+# Dialog
+
+## 1. Purpose
+
+Lets the user finish a short task without leaving the page, for example editing one slot, while the page waits behind it.
+
+## 2. When to use
+
+| Situation in DevMentor | Source |
+| --- | --- |
+| Edit one published slot: date, time, length | E02-S03, R14 (proposal: the slot editor waits for its spec) |
+| Show and copy the mentor's share link | R13 |
+| A short form that belongs to one row of a list | R01.1 |
+
+## 3. When not to use
+
+| Instead of a dialog… | Use | Source |
+| --- | --- | --- |
+| Confirming a loss of money or data | Alert dialog | R27, WCAG 3.3.4 |
+| A long or multi-step task (booking and payment, profile) | A separate page | Patterns/Booking checkout |
+| Information the user may want next to the page | Inline content or a Card | — |
+| A message that needs no decision | Alert | — |
+| A side panel | Not in the system (What is missing) | — |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Scrim (`DialogOverlay`) | no | `--overlay`, warm ink, no blur (A01) |
+| Panel (`DialogContent`) | no | `bg-popover`, `rounded-lg`, `shadow-overlay`, 16 px margins on phones, max 24 rem |
+| `DialogTitle` | no | Required for the accessible name |
+| `DialogDescription` | recommended | Becomes the accessible description; pass `aria-describedby={undefined}` when there is none |
+| Close button | yes (`showCloseButton`) | Ghost icon button, label "Zamknij" |
+| `DialogFooter` | yes | Divided by a line; actions end-aligned, the main one last on wide screens and first on phones |
+
+## 5. Variants
+
+None. Width can be widened with `className="max-w-md"` for a form with two columns.
+
+<Canvas of={DialogStories.Open} />
+<Canvas of={DialogStories.WithoutFooter} />
+
+## 6. States
+
+| State | What changes | Source |
+| --- | --- | --- |
+| Closed | Only the trigger is visible | — |
+| Opening, closing | 150 ms fade; instant with reduced motion | P18, WCAG 2.3.3 |
+| Open | Scrim covers the page; page is inert | WAI-ARIA APG Dialog (modal) |
+| Busy | The footer's main button shows loading ("Zapisywanie…"); the dialog stays open until the server confirms | Patterns/Form |
+| Error | FieldError in the form, or an Alert at the top of the dialog | WCAG 3.3.1 |
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Role | `role="dialog"`, `aria-modal`, named by the title, described by the description | WAI-ARIA APG Dialog |
+| Focus | Moves into the dialog on open, stays trapped, returns to the trigger on close | WCAG 2.4.3 |
+| Keyboard | `Escape` closes; `Tab` cycles inside | WAI-ARIA APG |
+| Pointer | Clicking the scrim closes | — |
+| Theme | Renders in a portal and gets the theme from `<html>` | Design system rule 9 |
+| Screen reader | "Edytuj termin, dialog. Termin można zarezerwować najpóźniej 2 godziny przed rozpoczęciem." | — |
+
+<Canvas of={DialogStories.OpenTrapAndReturnFocus} />
+
+## 8. Content
+
+| Rule | Example | Source |
+| --- | --- | --- |
+| Title = the task, verb first | "Edytuj termin" | P17 |
+| Description = the rule that matters for the task | "Termin można zarezerwować najpóźniej 2 godziny przed rozpoczęciem." | R14 |
+| Buttons = verb + object; cancel says what stays | "Zapisz termin", "Anuluj" | Content page |
+| Long text | Wraps; the panel scrolls with the page on small screens | WCAG 1.4.10 |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | 16 px from both edges; footer buttons stack full width, main action on top |
+| 768 and 1440 px | Centred, max 24 rem; footer in a row, end-aligned |
+
+<Canvas of={DialogStories.LongContentNarrow} />
+
+## 10. API
+
+<ArgTypes of={DialogStories} />
+
+| Component | Key props |
+| --- | --- |
+| `Dialog` | `open`, `defaultOpen`, `onOpenChange` |
+| `DialogTrigger`, `DialogClose` | `asChild` |
+| `DialogContent` | `showCloseButton?: boolean` (default `true`), `className` |
+| `DialogFooter` | `showCloseButton?: boolean` (default `false`) adds an outline "Zamknij" |
+| `DialogTitle`, `DialogDescription`, `DialogHeader` | — |
+
+## 11. Code
+
+<Source language="tsx" code={`<Dialog>
+  <DialogTrigger asChild><Button variant="outline">Edytuj termin</Button></DialogTrigger>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Edytuj termin</DialogTitle>
+      <DialogDescription>Termin można zarezerwować najpóźniej 2 godziny przed rozpoczęciem.</DialogDescription>
+    </DialogHeader>
+    {/* fields */}
+    <DialogFooter>
+      <DialogClose asChild><Button variant="outline">Anuluj</Button></DialogClose>
+      <Button type="submit">Zapisz termin</Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: <p className="text-sm">Booking and payment on their own page, with the price and the no-refund rule before paying.</p>,
+        doWhy: "A long task with money needs room and a URL (R08, R27).",
+        dont: <p className="text-sm">Booking, payment and terms squeezed into a dialog over the mentor list.</p>,
+        dontWhy: "Too much for a dialog; the user loses the context and cannot come back to it.",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Alert dialog | Confirms a destructive action; the scrim does not close it |
+| Dropdown menu | A list of actions, not a task |
+| Tooltip | A label, not content |
+
+Appears in: Patterns/Form (slot editor), Product/E02.

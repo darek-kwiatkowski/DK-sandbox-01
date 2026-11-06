@@ -1,0 +1,138 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { Info, CircleAlert } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@devmentor/ui/components/ui/alert";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as AlertStories from "./Alert.stories";
+
+<Meta of={AlertStories} />
+
+# Alert
+
+## 1. Purpose
+
+Tells the user something about the whole page or form that they must know: a rule before they pay, a result, or a problem and what to do.
+
+## 2. When to use
+
+| Situation in DevMentor | Role | Source |
+| --- | --- | --- |
+| The no-refund rule before payment | `note` (static) | R27, P17 |
+| "Sesja jest tekstowa…" on session screens | `note` | R03 |
+| The result after a redirect: "Połączyliśmy konto z GitHub…" | `status` | E01-S01 spec |
+| A sign-in or server error from `?error=` codes | `alert` (default) | E01-S01 spec |
+| A stale note with a reload action | `alert` with `AlertAction` | Platform primitives P15 |
+
+## 3. When not to use
+
+| Instead of an alert… | Use | Source |
+| --- | --- | --- |
+| An error of one field | FieldError under the field | WCAG 3.3.1 |
+| Loading data failed with a retry | ErrorMessage (batch 3) | Engineering standards |
+| A message that disappears by itself | Not in the system: errors that need action are never temporary | Toast omitted, Q5 |
+| Promotion or urgency ("Ostatnie terminy!") | Nothing | A06, R14 |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Icon | yes | lucide 20 px, `aria-hidden`; `Info` for notes, `CircleAlert` for problems |
+| `AlertTitle` | yes | What happened, one line |
+| `AlertDescription` | no | What to do or what it means |
+| `AlertAction` | yes | Buttons below the text (not overlaid, so long labels fit) |
+
+## 5. Variants
+
+<Canvas of={AlertStories.Variants} />
+
+| Variant | Choose it when |
+| --- | --- |
+| `default` | Rules, notes and results |
+| `destructive` | Something failed or is blocked; red text plus `CircleAlert` |
+
+## 6. States
+
+| State | What changes |
+| --- | --- |
+| Shown | Appears in place; a new `alert` is announced immediately, `status` politely, `note` not at all |
+| With action | The action follows its own button states |
+| Hover, focus, disabled, loading, selected | Do not apply to the alert itself |
+
+<Canvas of={AlertStories.WithAction} />
+<Canvas of={AlertStories.WithoutIcon} />
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Role | Default `role="alert"`. Pass `role="status"` for results and `role="note"` for static rules, so screen readers are not interrupted | WCAG 4.1.3, WAI-ARIA |
+| Meaning | Icon and text, never colour alone | WCAG 1.4.1 |
+| Focus | Do not move focus to an alert, except after a failed form submit (Patterns/Form) | WCAG 3.2.2 |
+| Contrast | Destructive text 5.52 : 1 light, 6.77 : 1 dark | WCAG 1.4.3 |
+
+<Canvas of={AlertStories.AnnouncedAndActionable} />
+
+## 8. Content
+
+| Rule | Example | Source |
+| --- | --- | --- |
+| Problem: what happened, then what to do | "Nie udało się zalogować przez GitHub. Spróbuj ponownie." | E01-S01 spec |
+| Rule: state it plainly before the decision | "Po opłaceniu sesji nie zwracamy pieniędzy, także gdy anulujesz rezerwację." | R27, P17 |
+| No exclamation marks, no blame | Not "Błąd!" | P17, A06 |
+| Long text | Wraps; keep to two sentences | — |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | Full width; the action wraps below the text |
+| 768 and 1440 px | Capped by `max-w-reading` |
+
+<Canvas of={AlertStories.LongTextNarrow} />
+
+## 10. API
+
+<ArgTypes of={AlertStories} />
+
+| Component | Key props |
+| --- | --- |
+| `Alert` | `variant?: "default" \| "destructive"`, `role` (default `"alert"`) |
+| `AlertTitle`, `AlertDescription`, `AlertAction` | `div` props |
+
+## 11. Code
+
+<Source language="tsx" code={`<Alert role="note">
+  <Info aria-hidden="true" />
+  <AlertTitle>Płatność jest ostateczna</AlertTitle>
+  <AlertDescription>Po opłaceniu sesji nie zwracamy pieniędzy, także gdy anulujesz rezerwację.</AlertDescription>
+</Alert>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: (<Alert variant="destructive"><CircleAlert aria-hidden="true" /><AlertDescription>Nie udało się zalogować przez GitHub. Spróbuj ponownie.</AlertDescription></Alert>),
+        doWhy: "What happened and what to do.",
+        dont: (<Alert variant="destructive"><AlertDescription>Błąd!</AlertDescription></Alert>),
+        dontWhy: "No cause, no next step, alarm tone (P17).",
+      },
+      {
+        do: (<Alert role="note"><Info aria-hidden="true" /><AlertDescription>Sesja jest tekstowa i odbywa się w DevMentor.</AlertDescription></Alert>),
+        doWhy: "A static rule as a note: not announced as an emergency.",
+        dont: (<Alert><Info aria-hidden="true" /><AlertDescription>Sesja jest tekstowa i odbywa się w DevMentor.</AlertDescription></Alert>),
+        dontWhy: "role=alert on static text interrupts screen-reader users on every page load.",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| FieldError | One field |
+| ErrorMessage | Failed data loading, with retry |
+| Dialog | Blocks the page and waits for a decision |
+
+Appears in: Patterns/Sign-in, Patterns/Booking checkout, Patterns/Co-edited note, Patterns/Text session.

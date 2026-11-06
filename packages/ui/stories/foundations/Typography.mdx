@@ -1,0 +1,48 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import { LineLength, TypeRoles } from "../../.storybook/blocks/TypeRoles";
+
+import { Surface } from "../../.storybook/blocks/Surface";
+
+<Meta title="Foundations/Typography" />
+
+# Typography
+
+Two families, both system fonts with no download: `font-sans` for the interface and `font-mono` for code.
+Choose a **role**, not a size.
+
+| Token | Value | Source |
+| --- | --- | --- |
+| `--font-sans` | `ui-sans-serif, system-ui, sans-serif` | tokeny.md (approved 2026-11-06) |
+| `--font-mono` | `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace` | R01.2 |
+
+## Roles
+
+<Unstyled>
+  <Surface>
+  <TypeRoles />
+  </Surface>
+</Unstyled>
+
+Rows marked "F2" had no reference and were approved as proposals on 2026-11-06 (`packages/ui/POSTEP.md`).
+
+## Rules
+
+| Rule | Source |
+| --- | --- |
+| Monospace for code, file names, branches and versions; never for prose, names or prices. | R01.2 |
+| Lists use `text-sm`; session messages, the written answer and the note use `text-base leading-relaxed`. | K1, R02.1 |
+| Reading text is capped by `max-w-reading`. | K1, R02.1 |
+| Use `tabular-nums` for prices, times and counts so digits align. | F2, approved 2026-11-06 |
+| One `h1` per page; headings follow document order. | WCAG 1.3.1, 2.4.6 |
+| Text resizes to 200% without loss: sizes are in `rem`. | WCAG 1.4.4 |
+
+## Line length
+
+Continuous text stays near 65 characters per line. `--container-reading` is `56ch` (F1, approved 2026-11-06):
+the earlier `70ch` measured 80–87 characters. The measurement below runs live in your browser.
+
+<Unstyled>
+  <Surface>
+  <LineLength />
+  </Surface>
+</Unstyled>

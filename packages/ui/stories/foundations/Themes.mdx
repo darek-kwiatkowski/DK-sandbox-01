@@ -1,0 +1,17 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Foundations/Themes" />
+
+# Themes
+
+DevMentor has a light and a dark theme. Both are required (tokeny.md rule 12).
+
+| How | Detail | Source |
+| --- | --- | --- |
+| Switch | The `dark` class on `<html>`. Without it the light theme applies (`:root`). | tokeny.md |
+| Overlays | Dialogs, menus and popovers render in a portal under `<body>`; because the class sits on `<html>`, they get the theme too. | Design system rule 9 |
+| Utilities | `dark:` variants match any element inside `.dark`. Prefer semantic tokens, which switch by themselves, over `dark:` variants. | tokeny.md |
+| In Storybook | The **Theme** toolbar button sets the class on the preview's `<html>`. Story tests run once per theme: `npm run test:storybook`. | — |
+| Documentation | `.light` and `.dark` on a wrapper show a theme locally, e.g. the side-by-side swatches on Color. Do not use this in the product. | — |
+
+Every semantic token has a value in both themes; `Foundations/Color` measures contrast in both.

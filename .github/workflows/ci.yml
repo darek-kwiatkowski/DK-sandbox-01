@@ -104,3 +104,27 @@ jobs:
       # Boots the app ephemerally against a Testcontainers PostgreSQL.
       - name: E2E tests
         run: npm run test:e2e
+
+  storybook:
+    name: Design system (tokens, Storybook build, a11y and interaction tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # Fails on colours, palette classes and arbitrary values outside tokens.css.
+      - name: Design tokens
+        run: npm run check:tokens
+      - name: Build Storybook
+        run: npm run build-storybook
+        env:
+          NODE_ENV: production
+      - name: Install Chromium for story tests
+        run: npx playwright install --with-deps chromium
+      # Every story renders, runs its play function and passes axe, in the light and the dark theme.
+      - name: Story tests (both themes)
+        run: npm run test:storybook

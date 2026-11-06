@@ -1,0 +1,141 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { Badge } from "@devmentor/ui/components/ui/badge";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as BadgeStories from "./Badge.stories";
+
+<Meta of={BadgeStories} />
+
+# Badge
+
+## 1. Purpose
+
+Shows a short label next to an object: its role, its stack tag or its status, so the user reads it at a glance.
+
+## 2. When to use
+
+| Situation in DevMentor | Variant | Source |
+| --- | --- | --- |
+| A person's roles on /account | `secondary` | E01-S01 spec ("roles shown as badges") |
+| A mentor's stack tags in the list and on the profile | `outline` | R13 |
+| A booking or payout status in a row | `secondary`, `outline` or `destructive` (status names are a proposal until E03/E05 specs) | R27, R35 |
+| A filter tag that links to the filtered list | `outline` with `asChild` around `<a>` | R13 |
+
+## 3. When not to use
+
+| Instead of a badge… | Use |
+| --- | --- |
+| Something the user toggles (stack filter) | Checkbox |
+| An error that needs action | Alert or FieldError |
+| A count of unread items | Nothing: no unread counters (P05) |
+| Ratings, "Top mentor" or similar scores | Nothing: no scores (N02, R04, A03) |
+| A presence dot ("online") | Nothing (R02.7, K2) |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Container | no | 24 px, `rounded-sm`, no pill shape |
+| Text | no | 1–3 words, `text-sm` |
+| Icon | yes | 12 px, `aria-hidden`; never instead of text |
+
+## 5. Variants
+
+<Canvas of={BadgeStories.Variants} />
+
+| Variant | Choose it when | Source |
+| --- | --- | --- |
+| `secondary` (default) | Roles and neutral or positive statuses | tokeny.md rule 3 (no accent fill) |
+| `outline` | Stack tags and completed or passive states | R13, R01.3 |
+| `destructive` | A problem the user should notice: cancelled, payout held | WCAG 1.4.1 (with text) |
+
+Removed from the base (approved 2026-11-06): `default` (ochre fill would compete with the one accent element),
+`ghost` and `link`.
+
+<Canvas of={BadgeStories.InProduct} />
+
+## 6. States
+
+<Canvas of={BadgeStories.States} />
+
+| State | What changes |
+| --- | --- |
+| Default | A badge is static |
+| Hover, focus | Only when it is a link (`asChild`): accent fill, ink ring |
+| Pressed, disabled, loading, selected, error | Do not apply |
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Meaning | The text carries the meaning; colour only supports it | WCAG 1.4.1 |
+| Focus | Static badges are not focusable; link badges are | WCAG 2.1.1 |
+| Context | Put a visible or hidden label before groups ("Stack:", "Status:") so it is read in context | WCAG 1.3.1 |
+| Screen reader | Read as plain text | — |
+
+<Canvas of={BadgeStories.NotFocusableUnlessLink} />
+
+## 8. Content
+
+| Rule | Example |
+| --- | --- |
+| 1–3 words, Polish, sentence case | "Mentor", "Opłacona", "Wypłata wstrzymana" |
+| Stack tags keep their own spelling | "TypeScript", "AI agents" |
+| Long status | Rephrase shorter; if it must be long, allow wrapping (`h-auto whitespace-normal`) |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | Badges wrap to the next line (`flex-wrap`) |
+| 768 and 1440 px | One line next to the object |
+
+<Canvas of={BadgeStories.LongTextNarrow} />
+
+## 10. API
+
+<ArgTypes of={BadgeStories} />
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `variant` | `"secondary" \| "outline" \| "destructive"` | `"secondary"` | See Variants |
+| `asChild` | `boolean` | `false` | Render the child (e.g. `<a>`) with badge styles |
+
+## 11. Code
+
+<Source language="tsx" code={`<Badge>Mentor</Badge>`} />
+<Source language="tsx" code={`<ul className="flex flex-wrap gap-in-group" aria-label="Stack">
+  {mentor.stack.map((tag) => (
+    <li key={tag}><Badge variant="outline">{tag}</Badge></li>
+  ))}
+</ul>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: <Badge variant="outline">TypeScript</Badge>,
+        doWhy: "A plain tag; public work proves skill (N02).",
+        dont: <Badge>★ 4,9 · Top mentor</Badge>,
+        dontWhy: "Scores and rankings are out (N02, A03): \"każdy ma 4.9\".",
+      },
+      {
+        do: <Badge variant="destructive">Anulowana</Badge>,
+        doWhy: "The word says the status.",
+        dont: <Badge variant="destructive">{" "}</Badge>,
+        dontWhy: "A coloured square without text: colour is the only signal.",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Button | A badge is not an action |
+| Checkbox | A badge cannot be toggled |
+| Alert | Alerts explain and may ask for action |
+
+Appears in: Product/E01 RoleBadges, Product/E03 MentorListRow and BookingStatusBadge, Product/E05 PayoutStatusBadge.

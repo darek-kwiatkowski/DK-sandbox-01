@@ -1,0 +1,21 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Foundations/Motion" />
+
+# Motion
+
+Motion only confirms that a state changed. Source: P18.
+
+| Token | Value | Use | Source |
+| --- | --- | --- | --- |
+| `--default-transition-duration` | 150 ms | Hover, focus, sent, saved: colour and opacity transitions (`transition-colors`) | P18 |
+
+## Rules
+
+| Rule | Source |
+| --- | --- |
+| Animate only state changes: hover, focus, open and close of overlays, "sent", "saved". | P18 |
+| No decorative motion: no entrance animations of sections, no sparkle, no pulsing "online" dots. | P18, A01, R02.7 |
+| With `prefers-reduced-motion: reduce` every transition and animation is instant (set globally in `globals.css`). | WCAG 2.3.3 |
+| Nothing flashes more than three times per second. | WCAG 2.3.1 |
+| A loading state never relies on motion alone: it has text (`LoadingMessage`) or an accessible name. | WCAG 1.1.1 |

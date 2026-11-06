@@ -1,0 +1,143 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { Button } from "@devmentor/ui/components/ui/button";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as LinkStories from "./Link.stories";
+
+<Meta of={LinkStories} />
+
+# Link
+
+## 1. Purpose
+
+Takes the user to another page or site, for example from sign-in to registration or to a mentor's public work.
+
+## 2. When to use
+
+| Situation in DevMentor | Source |
+| --- | --- |
+| "Nie masz konta? Załóż konto" under the sign-in form | E01-S01 spec |
+| The mentor's public work on their page: repository, post or talk | R04, N02 |
+| Links inside hints and the terms ("warunki rezerwacji") | R27, P17 |
+| A mentor's share link shown as text | R13 |
+
+## 3. When not to use
+
+| Instead of a link… | Use | Why |
+| --- | --- | --- |
+| Running an action (save, book, cancel) | Button | A link navigates, a button acts (WCAG 4.1.2) |
+| A page's main call to action | Button `default` with `asChild` around the `<a>` | The main action is the one accented element (R01.5) |
+| Navigation in the app shell | `NavLinks` (Product/E01) | It marks the current page |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| `<a href>` | no | Real anchor, always with `href` |
+| Text | no | Underlined, ink colour |
+| Trailing icon | yes | `ExternalLink` for links that leave DevMentor, `aria-hidden="true"` |
+| Hidden hint | for new tabs | `<span className="sr-only"> (otwiera się w nowej karcie)</span>` |
+
+## 5. Variants
+
+There is one variant: `<Button asChild variant="link"><a href>…</a></Button>`. It has no height or padding, so it
+sits inside sentences. Links are ink, not ochre: the accent marks one element per screen (tokeny.md rule 3).
+
+<Canvas of={LinkStories.InText} />
+<Canvas of={LinkStories.External} />
+
+## 6. States
+
+<Canvas of={LinkStories.States} />
+
+| State | What changes | Source |
+| --- | --- | --- |
+| Default | Underline 1 px; the underline, not the colour, marks it as a link | WCAG 1.4.1 |
+| Hover, pressed | Underline 2 px | P18 |
+| Focus | Ink ring with offset | WCAG 2.4.7 |
+| Visited | Not styled: links lead to known places in the product | — (proposal) |
+| Disabled, loading, selected, error | Do not apply. Remove a link that cannot be followed; do not disable it | WCAG 4.1.2 |
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Keyboard | `Tab` focuses, `Enter` follows | WAI-ARIA APG Link |
+| Name | The link text says where it goes, not "tutaj" | WCAG 2.4.4 |
+| New tab | Only for links leaving DevMentor; say so in hidden text and show `ExternalLink` | WCAG 3.2.5 |
+| Screen reader | "Załóż konto, link" | — |
+| Target size | Inline links are exempt; standalone links keep 24 px line height | WCAG 2.5.8 (inline exception) |
+
+<Canvas of={LinkStories.KeyboardFocus} />
+
+## 8. Content
+
+| Rule | Example |
+| --- | --- |
+| Name the destination | "Publiczna praca: ingress-upgrade-notes", not "Kliknij tutaj" |
+| Short | Up to about 6 words inside sentences |
+| Long text | Wraps with the sentence (`whitespace-normal`); never truncated |
+| URLs | Show a name, not the raw URL, except where the URL is the content (share link) |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | Wraps with the sentence |
+| 768 and 1440 px | Same; reading text stays within `max-w-reading` |
+
+<Canvas of={LinkStories.LongTextNarrow} />
+
+## 10. API
+
+Link uses Button's API with `variant="link"` and `asChild`.
+
+<ArgTypes of={LinkStories} />
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `variant` | `"link"` | — | Required for links |
+| `asChild` | `true` | — | Renders the child `<a>` |
+| child `<a>` | `href`, `target`, `rel` | — | Use `rel="noreferrer"` with `target="_blank"` |
+
+## 11. Code
+
+<Source language="tsx" code={`<Button asChild variant="link">
+  <a href="/register">Załóż konto</a>
+</Button>`} />
+
+<Source language="tsx" code={`<p className="text-sm">
+  Nie masz konta?{" "}
+  <Button asChild variant="link">
+    <a href="/register">Załóż konto</a>
+  </Button>
+</p>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: (<Button asChild variant="link"><a href="/terms">Warunki rezerwacji</a></Button>),
+        doWhy: "The text says where it goes.",
+        dont: (<Button asChild variant="link"><a href="/terms">Kliknij tutaj</a></Button>),
+        dontWhy: "Out of context the link means nothing (WCAG 2.4.4).",
+      },
+      {
+        do: (<Button asChild variant="link"><a href="/register">Załóż konto</a></Button>),
+        doWhy: "Navigation is an anchor.",
+        dont: (<Button variant="link">Załóż konto</Button>),
+        dontWhy: "A button styled as a link cannot open in a new tab and is announced as a button.",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Button `link` variant without `asChild` | That is a button that looks like a link; use it only for an in-page action that reads as text |
+| NavLinks | App-shell navigation with a current-page state |
+
+Appears in: Patterns/Sign-in, Patterns/Detail view (public work), Patterns/Booking checkout (terms).

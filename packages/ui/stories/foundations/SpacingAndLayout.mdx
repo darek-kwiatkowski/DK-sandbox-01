@@ -1,0 +1,49 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import { RelationTable, SpacingScale } from "../../.storybook/blocks/SpacingScale";
+
+import { Surface } from "../../.storybook/blocks/Surface";
+
+<Meta title="Foundations/Spacing and layout" />
+
+# Spacing and layout
+
+One scale, and a token per **relation**. Pick the relation first, then the token.
+
+## Scale
+
+Allowed steps: 4, 8, 12, 16, 24, 32 and 48 px (`--space-1` … `--space-12`; Tailwind steps 1, 2, 3, 4, 6, 8, 12).
+Anything else (`p-5`, `gap-1.5`, `p-[13px]`) fails `npm run check:tokens`. Source: tokeny.md.
+
+<Unstyled>
+  <Surface>
+  <SpacingScale />
+  </Surface>
+</Unstyled>
+
+## Relations
+
+<Unstyled>
+  <Surface>
+  <RelationTable />
+  </Surface>
+</Unstyled>
+
+## Density
+
+| Screen type | Density | Source |
+| --- | --- | --- |
+| Lists: mentors, sessions, operator tables | Dense. One row per object, `text-sm`, row padding `py-list-row-y px-list-row-x`, rows divided by thin lines. | R01.1, R01.3, K1 |
+| Session and note | Calm. Text capped by `max-w-reading`, `text-base leading-relaxed`, padding `p-session`, `gap-between-groups` between messages. | R02.1, K1 |
+
+## Layout widths
+
+| Width | What changes | Source |
+| --- | --- | --- |
+| 320 px | One column. Nothing scrolls horizontally except code blocks. | WCAG 1.4.10 |
+| 768 px (`md:`) | Session side panel may sit beside the conversation; tables show all columns. | F3, approved 2026-11-06 |
+| 1440 px | Content is capped by `max-w-page` (64 rem) and centred; reading text stays within `max-w-reading`. | F3, approved 2026-11-06 |
+
+| Token | Utility | Value | Use |
+| --- | --- | --- | --- |
+| `--container-page` | `max-w-page` | 64 rem | Page content |
+| `--container-reading` | `max-w-reading` | 56ch (≈ 61–69 characters) | Session messages, written answer, note |

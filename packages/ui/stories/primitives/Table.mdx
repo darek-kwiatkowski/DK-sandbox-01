@@ -1,0 +1,141 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@devmentor/ui/components/ui/table";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as TableStories from "./Table.stories";
+
+<Meta of={TableStories} />
+
+# Table
+
+## 1. Purpose
+
+Lets the user scan and compare many objects of the same kind, one row per object.
+
+## 2. When to use
+
+| Situation in DevMentor | Source |
+| --- | --- |
+| Operator lists: invitations, payouts, users | R35, E01-S02, E05-S01 |
+| A mentor's or mentee's sessions | E03, E04 |
+| The mentor list on wide screens | R13, R01.1 |
+
+For API-backed lists use DataTable (Patterns/Filtered list), which builds on this table and adds pagination and states.
+
+## 3. When not to use
+
+| Instead of a table… | Use | Source |
+| --- | --- | --- |
+| One object's details | Detail view with a Card | Patterns/Detail view |
+| Fewer than about 3 rows with few attributes | A simple list divided by lines | R01.3 |
+| Cards per row | Never for lists | R01.1, R01.3 |
+| Layout | CSS grid or flex; tables are for data | WCAG 1.3.1 |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Container | no | Scrolls horizontally when needed |
+| `TableCaption` | recommended | Names the table; may be `sr-only` |
+| `TableHeader` / `TableHead` | no | `text-sm font-medium`, 36 px |
+| `TableRow` | no | Thin line below; hover and selected use `--accent` |
+| `TableCell` | no | `py-list-row-y px-list-row-x` (8 / 12 px), `text-sm`, rows ≈ 36 px |
+| `TableFooter` | yes | Totals; `bg-muted` |
+
+## 5. Variants
+
+None. Density is fixed for lists (K1). The one highlighted element in a row is the next slot or the session date,
+in `font-semibold tabular-nums` (R01.5, P02).
+
+<Canvas of={TableStories.Playground} />
+
+## 6. States
+
+<Canvas of={TableStories.RowStates} />
+
+| State | What changes | Source |
+| --- | --- | --- |
+| Row hover | `--accent` fill | R01.1 |
+| Row selected | `data-state="selected"`, `--accent` fill; pair it with a visible checkbox or text, not colour alone | WCAG 1.4.1 |
+| Loading, empty, error | Handled by DataTable with Skeleton, EmptyState, ErrorMessage | Engineering standards |
+| Many rows | Paginated by DataTable (20 per page) | Platform primitives P14 |
+
+<Canvas of={TableStories.ManyRows} />
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Semantics | Real `<table>`, `<th>` for headers; name it with a caption or `aria-label` | WCAG 1.3.1 |
+| Interactive cells | Links and buttons inside cells keep their own focus; rows are not clickable as a whole | WCAG 2.1.1 |
+| Icon-only actions | Name them with the row object | WCAG 2.4.6 |
+| Horizontal scroll | Allowed for tables at 320 px (two-dimensional content) | WCAG 1.4.10 exception |
+
+<Canvas of={TableStories.HeadersNameTheCells} />
+
+## 8. Content
+
+| Rule | Example | Source |
+| --- | --- | --- |
+| Headers are nouns | "Mentor", "Najbliższy termin", "25 minut" | — |
+| Dates with the zone label | "pt., 13 lis, 18:00 CET" | Platform primitives P16 |
+| Prices right-aligned, `tabular-nums`, PLN format | "180,00 zł" | P7, F2 |
+| Long text | Cells do not wrap by default; long names may wrap with `whitespace-normal` | — |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | The table scrolls sideways inside its container; the first column stays readable |
+| 768 px | All columns visible |
+| 1440 px | Within `max-w-page` |
+
+<Canvas of={TableStories.LongTextNarrow} />
+
+## 10. API
+
+<ArgTypes of={TableStories} />
+
+| Component | Element | Notes |
+| --- | --- | --- |
+| `Table` | `table` in a scroll container | `aria-label` or `TableCaption` |
+| `TableHeader`, `TableBody`, `TableFooter` | `thead`, `tbody`, `tfoot` | — |
+| `TableRow` | `tr` | `data-state="selected"` |
+| `TableHead`, `TableCell` | `th`, `td` | `className` for alignment |
+| `TableCaption` | `caption` | — |
+
+## 11. Code
+
+<Source language="tsx" code={`<Table aria-label="Zaproszenia">
+  <TableHeader>
+    <TableRow><TableHead>E-mail</TableHead><TableHead>Status</TableHead></TableRow>
+  </TableHeader>
+  <TableBody>
+    {invitations.map((i) => (
+      <TableRow key={i.id}><TableCell>{i.email}</TableCell><TableCell><Badge>{i.status}</Badge></TableCell></TableRow>
+    ))}
+  </TableBody>
+</Table>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: <p className="text-sm">The next slot in each row in <span className="font-semibold">semibold</span>, everything else regular.</p>,
+        doWhy: "One highlighted element per row, by weight (R01.5, P02).",
+        dont: <p className="text-sm">The next slot in ochre in every row.</p>,
+        dontWhy: "The accent repeated twenty times stops meaning anything (tokeny.md rule 3).",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| DataTable | Table + API states + pagination |
+| Card | One topic, not repeated rows |
+
+Appears in: Patterns/Filtered list, Product/E03 MentorListRow, Product/E05 payouts.

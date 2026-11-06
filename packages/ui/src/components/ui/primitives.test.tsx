@@ -14,37 +14,37 @@ afterEach(cleanup);
 const slot = (name: string) => document.querySelector(`[data-slot="${name}"]`);
 
 describe("Badge", () => {
-  it("renders a span with the default variant", () => {
-    render(<Badge>Nowy</Badge>);
-    const badge = screen.getByText("Nowy");
+  it("renders a span with the secondary variant by default", () => {
+    render(<Badge>Mentor</Badge>);
+    const badge = screen.getByText("Mentor");
     expect(badge.tagName).toBe("SPAN");
     expect(badge.dataset.slot).toBe("badge");
-    expect(badge.dataset.variant).toBe("default");
-    expect(badge.className).toContain("bg-primary");
+    expect(badge.dataset.variant).toBe("secondary");
+    expect(badge.className).toContain("bg-secondary");
   });
 
   it("applies the chosen variant and merges custom classes", () => {
     render(
       <Badge variant="destructive" className="ml-2">
-        Błąd
+        Anulowana
       </Badge>,
     );
-    const badge = screen.getByText("Błąd");
+    const badge = screen.getByText("Anulowana");
     expect(badge.dataset.variant).toBe("destructive");
     expect(badge.className).toContain("text-destructive");
     expect(badge.className).toContain("ml-2");
-    expect(badgeVariants({ variant: "outline" })).toContain("border-border");
+    expect(badgeVariants({ variant: "outline" })).toContain("border-input");
   });
 
   it("renders its child element when asChild is set", () => {
     render(
-      <Badge asChild variant="link">
-        <a href="/mentors">Mentorzy</a>
+      <Badge asChild variant="outline">
+        <a href="/mentors?stack=react">React</a>
       </Badge>,
     );
-    const link = screen.getByRole("link", { name: "Mentorzy" });
+    const link = screen.getByRole("link", { name: "React" });
     expect(link.dataset.slot).toBe("badge");
-    expect(link.className).toContain("underline-offset-4");
+    expect(link.dataset.variant).toBe("outline");
   });
 });
 

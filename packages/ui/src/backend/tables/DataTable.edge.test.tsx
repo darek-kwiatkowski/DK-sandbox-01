@@ -67,3 +67,12 @@ describe("DataTable edge cases", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 });
+
+describe("DataTable empty action", () => {
+  it("offers the next step in the empty state", async () => {
+    const { render: r, screen: s, cleanup: c } = await import("@testing-library/react");
+    r(<DataTable label="Terminy" columns={[]} getRowId={() => "x"} emptyTitle="Brak terminów." emptyAction={<button type="button">Dodaj termin</button>} />);
+    expect(s.getByRole("button", { name: "Dodaj termin" })).toBeDefined();
+    c();
+  });
+});

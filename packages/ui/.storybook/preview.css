@@ -1,0 +1,42 @@
+/* Storybook-only stylesheet: the product styles plus the stories folder as a Tailwind source. */
+@import "../src/styles/globals.css";
+@source "../stories";
+@source "./blocks";
+
+/* Story previews on docs pages use the product surface, so the dark theme is readable there too. */
+.docs-story {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/*
+ * Frozen state previews, documentation only. The built-in hover, focus-visible and active
+ * variants also match [data-preview-state], so a state matrix renders the component's own
+ * declarations (no copies). Only Storybook compiles these; the app keeps the defaults.
+ */
+@custom-variant hover {
+  @media (hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+  &[data-preview-state~="hover"] {
+    @slot;
+  }
+}
+@custom-variant focus-visible {
+  &:focus-visible {
+    @slot;
+  }
+  &[data-preview-state~="focus-visible"] {
+    @slot;
+  }
+}
+@custom-variant active {
+  &:active {
+    @slot;
+  }
+  &[data-preview-state~="active"] {
+    @slot;
+  }
+}

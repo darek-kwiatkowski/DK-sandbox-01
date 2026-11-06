@@ -1,0 +1,133 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as AlertDialogStories from "./AlertDialog.stories";
+
+<Meta of={AlertDialogStories} />
+
+# Alert dialog
+
+## 1. Purpose
+
+Stops the user before an action that loses money or data and asks for an explicit choice.
+
+## 2. When to use
+
+| Situation in DevMentor | Source |
+| --- | --- |
+| A mentee cancels a paid booking: no refund | R27, D39 |
+| A mentor cancels a booked session: no payout | R32 |
+| The operator revokes an invitation or holds a payout | R35, E01-S02 |
+
+## 3. When not to use
+
+| Instead of an alert dialog… | Use |
+| --- | --- |
+| A reversible action (save a draft) | Just do it; show the result |
+| A short task with fields | Dialog |
+| Information without a decision | Alert |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Scrim | no | Does not close on click |
+| `AlertDialogTitle` | no | The question, with the object's name |
+| `AlertDialogDescription` | no | The consequence, with the amount when money is involved |
+| `AlertDialogCancel` | no | Outline; says what stays ("Zostaw rezerwację"); receives focus first |
+| `AlertDialogAction` | no | `variant="destructive"`; verb + object ("Anuluj rezerwację") |
+
+## 5. Variants
+
+None. The action uses `variant="destructive"` for losses and `default` for important but safe confirmations.
+
+<Canvas of={AlertDialogStories.CancelBookingOpen} />
+<Canvas of={AlertDialogStories.RevokeInvitation} />
+
+## 6. States
+
+| State | What changes | Source |
+| --- | --- | --- |
+| Open | Focus on the cancel button | WAI-ARIA APG Alert dialog |
+| Busy | The action shows loading; both buttons disabled until the server answers | Patterns/Delete confirmation |
+| Failed | An Alert inside the dialog says what happened; the dialog stays open | WCAG 3.3.1 |
+| Done | Dialog closes; the page shows the new state (e.g. status "Anulowana") | — |
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Role | `role="alertdialog"`, named by the title, described by the description | WAI-ARIA APG |
+| Focus | Starts on the safe choice; returns to the trigger on close | WAI-ARIA APG |
+| Keyboard | `Escape` cancels; the scrim does not | WAI-ARIA APG |
+| Error prevention | The user confirms a financial commitment or deletion explicitly | WCAG 3.3.4 |
+
+<Canvas of={AlertDialogStories.CancelIsTheSafeDefault} />
+<Canvas of={AlertDialogStories.ConfirmRunsTheAction} />
+
+## 8. Content
+
+| Rule | Example | Source |
+| --- | --- | --- |
+| Question with the object | "Anulować sesję z Anną Kowalską, pt., 13 lis, 18:00 CET?" | Patterns/Delete confirmation |
+| Consequence with the amount | "Płatność 180,00 zł nie zostanie zwrócona." | R27, P17 |
+| Action: verb + object, never "OK" or "Tak" | "Anuluj rezerwację" | Content page |
+| Cancel: what stays | "Zostaw rezerwację" | — |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | Buttons stack; the safe choice is below the action in the stack, but first in focus order |
+| 768 and 1440 px | Buttons in a row, the action last |
+
+<Canvas of={AlertDialogStories.LongTitleNarrow} />
+
+## 10. API
+
+<ArgTypes of={AlertDialogStories} />
+
+| Component | Key props |
+| --- | --- |
+| `AlertDialog` | `open`, `defaultOpen`, `onOpenChange` |
+| `AlertDialogAction` | `variant` (default `"default"`), `size`, `onClick` |
+| `AlertDialogCancel` | `variant` (default `"outline"`), `size` |
+
+## 11. Code
+
+<Source language="tsx" code={`<AlertDialog>
+  <AlertDialogTrigger asChild><Button variant="destructive">Anuluj rezerwację</Button></AlertDialogTrigger>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>Anulować sesję z {mentor.name}, {formatDateTime(slot.start)}?</AlertDialogTitle>
+      <AlertDialogDescription>Płatność {formatPln(booking.price)} nie zostanie zwrócona.</AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel>Zostaw rezerwację</AlertDialogCancel>
+      <AlertDialogAction variant="destructive" onClick={cancel}>Anuluj rezerwację</AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: <p className="text-sm">"Anulować sesję z Anną Kowalską?" · "Zostaw rezerwację" · "Anuluj rezerwację"</p>,
+        doWhy: "Object in the question, both answers say what happens.",
+        dont: <p className="text-sm">"Czy na pewno?" · "Nie" · "Tak"</p>,
+        dontWhy: "The user cannot tell what \"Tak\" does.",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Dialog | A task with fields; closes on the scrim |
+| Button `destructive` | Opens this dialog |
+
+Appears in: Patterns/Delete confirmation, Product/E03 CancelBookingDialog.

@@ -1,0 +1,137 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as MenuStories from "./DropdownMenu.stories";
+
+<Meta of={MenuStories} />
+
+# Dropdown menu
+
+## 1. Purpose
+
+Keeps several actions on one object behind one button, so dense rows stay readable.
+
+## 2. When to use
+
+| Situation in DevMentor | Source |
+| --- | --- |
+| Row actions in operator tables: copy invitation link, resend, revoke | E01-S02, R35, R01.1 (actions: proposal) |
+| The account menu in the app shell: Konto, panels, Wyloguj się | E01-S01 spec (navigation) |
+
+## 3. When not to use
+
+| Instead of a menu… | Use | Source |
+| --- | --- | --- |
+| One or two actions | Visible buttons | R01.5 |
+| The main action of a screen | A `default` Button | R01.5, K3 |
+| Choosing a value | Select or Radio group | — |
+| Navigation between app sections | NavLinks (Product/E01) | — |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Trigger | no | Ghost icon button (`MoreHorizontal`) with `aria-label` naming the object, or a text button |
+| Content | no | Overlay, `shadow-overlay`, min 8 rem |
+| `DropdownMenuLabel` | yes | Context, e.g. the signed-in e-mail |
+| `DropdownMenuItem` | no | Icon (16 px, `aria-hidden`) + label; `variant="destructive"` for losses |
+| `DropdownMenuSeparator` | yes | Before destructive items |
+
+Removed from the base: checkbox and radio items, shortcuts and submenus (no screen needs them).
+
+## 5. Variants
+
+Items: `default` and `destructive`. A destructive item ends with "…" and opens an Alert dialog.
+
+<Canvas of={MenuStories.RowActionsOpen} />
+<Canvas of={MenuStories.AccountMenuOpen} />
+
+## 6. States
+
+| State | What changes | Source |
+| --- | --- | --- |
+| Closed / open | Trigger shows `aria-expanded`; ghost trigger gets `--accent` while open | WAI-ARIA APG Menu button |
+| Highlighted item | `--accent` fill (keyboard or pointer) | — |
+| Disabled item | 50% opacity, skipped by arrow keys; say elsewhere why it is unavailable or remove it | WCAG 3.3.2 |
+| Destructive item | Red text; red tint when highlighted (4.72 : 1 / 5.12 : 1) | WCAG 1.4.3 |
+| Loading, error | Do not apply; the action that follows shows them | — |
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Roles | Trigger `button` with `aria-haspopup="menu"`, list `menu`, items `menuitem` | WAI-ARIA APG Menu button |
+| Keyboard | `Enter`, `Space` or `ArrowDown` open and focus the first item; arrows move; `Enter` selects; `Escape` closes | WAI-ARIA APG |
+| Focus | Returns to the trigger after closing | WCAG 2.4.3 |
+| Trigger name | Names the object: "Akcje: marek.zielinski@example.com", not just "Więcej" | WCAG 2.4.6 |
+| Target size | Items ≥ 28 px; icon trigger 24 px | WCAG 2.5.8 |
+| a11y exception | Stories that render the menu already open disable `aria-hidden-focus`: Radix hides the page and traps focus in the menu, so the trigger is not reachable although axe flags it | Documented exception |
+
+<Canvas of={MenuStories.KeyboardNavigation} />
+
+## 8. Content
+
+| Rule | Example |
+| --- | --- |
+| Items: verb + object | "Kopiuj link zaproszenia", "Wyślij ponownie" |
+| "…" when another step follows | "Cofnij zaproszenie…" |
+| Order: frequent first, destructive last after a separator | — |
+| Long items | Wrap (`whitespace-normal`) within `max-w-72` |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | The menu flips and shifts to stay in the viewport |
+| 768 and 1440 px | Aligned to the trigger (`align="end"` in rows) |
+
+<Canvas of={MenuStories.LongItemsNarrow} />
+
+## 10. API
+
+<ArgTypes of={MenuStories} />
+
+| Component | Key props |
+| --- | --- |
+| `DropdownMenu` | `open`, `defaultOpen`, `onOpenChange`, `modal` |
+| `DropdownMenuContent` | `align` (default `"start"`), `sideOffset` (default 4) |
+| `DropdownMenuItem` | `onSelect`, `disabled`, `variant?: "default" \| "destructive"`, `inset` |
+| `DropdownMenuLabel` | `inset` |
+
+## 11. Code
+
+<Source language="tsx" code={`<DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button variant="ghost" size="icon-sm" aria-label={\`Akcje: \${invitation.email}\`}>
+      <MoreHorizontal aria-hidden="true" />
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent align="end">
+    <DropdownMenuItem onSelect={copyLink}><Copy aria-hidden="true" />Kopiuj link zaproszenia</DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem variant="destructive" onSelect={askToRevoke}><Trash2 aria-hidden="true" />Cofnij zaproszenie…</DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: <p className="text-sm">Trigger "Akcje: marek.zielinski@example.com" with three actions.</p>,
+        doWhy: "The name says which row the actions belong to.",
+        dont: <p className="text-sm">A menu with one item "Edytuj" behind "⋯".</p>,
+        dontWhy: "One action hidden behind a click; show the button instead.",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Select | Picks a value |
+| Dialog | A task with content |
+
+Appears in: Patterns/Filtered list (operator), Product/E01 AppShell.

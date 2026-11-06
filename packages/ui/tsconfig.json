@@ -3,7 +3,8 @@
   "compilerOptions": {
     "paths": {
       "@devmentor/ui/*": ["./src/*"]
-    }
+    },
+    "types": ["vite/client"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "stories/**/*.ts", "stories/**/*.tsx", ".storybook/**/*.ts", ".storybook/**/*.tsx", "vitest.storybook.config.ts"]
 }

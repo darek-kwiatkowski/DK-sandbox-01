@@ -1,0 +1,202 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { Button } from "@devmentor/ui/components/ui/button";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as ButtonStories from "./Button.stories";
+
+<Meta of={ButtonStories} />
+
+# Button
+
+## 1. Purpose
+
+Lets a user start one action now: book, save, cancel, sign out.
+
+## 2. When to use
+
+| Situation in DevMentor | Variant | Source |
+| --- | --- | --- |
+| The one main action of a screen: "Zarezerwuj termin", "Zapisz profil", "Opublikuj terminy" | `default` | R01.5, K3 |
+| A second action next to the main one: "Anuluj" in a form | `outline` | R01.6 |
+| A quiet action that does not compete: "Zapisz szkic" | `secondary` | R01.6 |
+| Actions repeated in list rows or toolbars: "Pokaż wszystkie terminy", icon-only "Kopiuj link" | `ghost` | R01.1, R01.6 |
+| An action that loses money or data and is confirmed in a dialog: "Anuluj rezerwację" | `destructive` | R27, WCAG 3.3.4 |
+| Navigation that reads as text: "Załóż konto" under the sign-in form | `link` (see Primitives/Link) | WCAG 1.4.1 |
+
+## 3. When not to use
+
+| Instead of a button… | Use | Why |
+| --- | --- | --- |
+| Going to another page | Link (`<a href>`, `variant="link"` with `asChild`) | Navigation is a link for screen readers and new tabs (WCAG 4.1.2) |
+| Choosing one of a few options (25 or 50 minutes) | Radio group | A choice is state, not an action |
+| Turning something on or off | Checkbox | Same |
+| A second `default` button on the same screen | `outline` or `secondary` | The accent marks one element per screen (tokeny.md rule 3) |
+| Showing a status | Badge | A status is not clickable |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Container | no | 32 px (`default`) or 24 px (`sm`) high, `rounded-md` |
+| Label | no for text buttons | Verb + object, Polish, sentence case |
+| Leading or trailing icon | yes | lucide, 16 px, `aria-hidden="true"`, `data-icon="inline-start"` or `"inline-end"` |
+| Icon only | yes (`icon`, `icon-sm`) | Needs `aria-label` and a Tooltip with the same text |
+
+## 5. Variants
+
+<Canvas of={ButtonStories.Variants} />
+
+| Variant | Choose it when | Source |
+| --- | --- | --- |
+| `default` | It is the single main action of the screen. Never twice on one screen. | R01.5, K3 |
+| `outline` | A secondary action next to the main one; also the default for "Anuluj". | R01.6 |
+| `secondary` | A quiet action that must not compete with the main one. | R01.6 |
+| `ghost` | Repeated actions in rows and toolbars, where a border would add noise. | R01.1, R01.3 |
+| `destructive` | Cancelling a booking or removing data; always confirmed in an Alert dialog. | R27, WCAG 3.3.4 |
+| `link` | Inline navigation in text. Underlined, ink colour. | WCAG 1.4.1, tokeny.md rule 3 |
+
+Sizes: `default` (32 px) for forms and pages, `sm` (24 px) for actions inside dense list rows and pagination,
+`icon` and `icon-sm` for icon-only actions. The 24 px sizes still meet the 24 × 24 px target (WCAG 2.5.8).
+
+<Canvas of={ButtonStories.Sizes} />
+
+## 6. States
+
+<Canvas of={ButtonStories.States} />
+
+| State | What changes | Source |
+| --- | --- | --- |
+| Default | — | |
+| Hover | `default`: `--primary-hover` (text stays ≥ 7 : 1); `outline`, `ghost`: `--accent`; `secondary`: `--secondary-hover`; `destructive`: red edge, tint unchanged; `link`: thicker underline | WCAG 1.4.3 |
+| Focus | 2 px ink ring with a 2 px offset, the same on every control | WCAG 2.4.7, 1.4.11, tokeny.md rule 21 |
+| Pressed | Same colour as hover; no movement | P18 |
+| Disabled | 50% opacity, not clickable, not focusable. **Always** with a visible reason next to it, linked by `aria-describedby` | WCAG 3.3.2 |
+| Loading | Disabled, `aria-busy="true"`, label in progressive form: "Zapisywanie…", "Rezerwowanie…" | WCAG 4.1.3 |
+| Selected | Not a button state: use Radio group or Checkbox | — |
+| Error | Not a button state: the error belongs to the field or the form (Field, Alert) | WCAG 3.3.1 |
+
+The red edge on hover is a rule from contrast: a darker red tint would drop the label below 4.5 : 1
+(4.0 : 1 at 20% in the light theme). Source: WCAG 1.4.3, measured by the story tests.
+
+How the user learns why an action is unavailable:
+
+<Canvas of={ButtonStories.DisabledWithReason} />
+
+Prefer an enabled button that validates on click and moves focus to the first error when the reason is a form
+error (see Patterns/Form). Disable only when the action cannot happen yet and say why.
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Element | A real `<button>`; `type="button"` unless it submits a form | WCAG 4.1.2 |
+| Keyboard | `Tab` focuses, `Enter` and `Space` activate | WAI-ARIA APG Button |
+| Focus order | Follows reading order; the main action comes after the fields it submits | WCAG 2.4.3 |
+| Name | The visible label; icon-only buttons need `aria-label` | WCAG 4.1.2, 2.5.3 |
+| Screen reader | Announces "Zarezerwuj termin, button"; when loading, "busy"; disabled buttons are "dimmed/unavailable" and their reason is read through `aria-describedby` | WAI-ARIA |
+| Target size | ≥ 24 × 24 px (`sm` and `icon-sm` are exactly 24 px) | WCAG 2.5.8 |
+| Double submit | While a request runs the button is disabled (CrudForm does this) | Patterns/Form |
+
+<Canvas of={ButtonStories.ClickAndKeyboard} />
+
+## 8. Content
+
+| Rule | Example | Source |
+| --- | --- | --- |
+| Verb + object, sentence case, Polish | "Zarezerwuj termin", "Anuluj rezerwację", "Zapisz profil" | AGENTS.md (Polish UI), P17 |
+| No "OK", "Tak", "Wyślij" alone | "Usuń profil", not "OK" | Patterns/Delete confirmation |
+| No speed promises | Not "Zarezerwuj teraz – odpowiedź w 5 min" | R14, A06 |
+| No exclamation marks or sales tone | Not "Zacznij już dziś!" | A06, P17 |
+| Length | Aim for 1–3 words, at most about 30 characters; the label never truncates | — (proposal) |
+| Long text and translation | The button grows; in narrow containers use `w-full whitespace-normal` so the label wraps | WCAG 1.4.10 |
+| Numbers | Only when they are the decision: "Zapłać 180,00 zł" | P17 (price before payment) |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | Main and secondary actions stack full width, main action first in the DOM and on top |
+| 768 px | Buttons sit in a row, aligned to the end of a form |
+| 1440 px | Same as 768 px; buttons never stretch across the page |
+
+<Canvas of={ButtonStories.LongLabelNarrow} />
+
+## 10. API
+
+<ArgTypes of={ButtonStories} />
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `variant` | `"default" \| "outline" \| "secondary" \| "ghost" \| "destructive" \| "link"` | `"default"` | Visual role, see Variants |
+| `size` | `"default" \| "sm" \| "icon" \| "icon-sm"` | `"default"` | 32 px, 24 px, 32 px square, 24 px square |
+| `asChild` | `boolean` | `false` | Renders the child element (e.g. `<a>`) with button styles |
+| …`button` props | `ComponentProps<"button">` | — | `type`, `disabled`, `onClick`, `aria-*` |
+
+## 11. Code
+
+<Source
+  language="tsx"
+  code={`import { Button } from "@devmentor/ui/components/ui/button";
+
+<Button>Zapisz profil</Button>`}
+/>
+
+Typical: the booking summary, main action plus a way back.
+
+<Source
+  language="tsx"
+  code={`<div className="flex flex-col gap-in-group md:flex-row md:justify-end">
+  <Button type="submit" disabled={isSubmitting} aria-busy={isSubmitting || undefined}>
+    {isSubmitting ? "Rezerwowanie…" : "Zapłać 180,00 zł"}
+  </Button>
+  <Button type="button" variant="outline" onClick={onBack}>
+    Zmień termin
+  </Button>
+</div>`}
+/>
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: (
+          <div className="flex gap-in-group">
+            <Button>Zarezerwuj termin</Button>
+            <Button variant="outline">Anuluj</Button>
+          </div>
+        ),
+        doWhy: "One main action; the other is outline.",
+        dont: (
+          <div className="flex gap-in-group">
+            <Button>Zarezerwuj termin</Button>
+            <Button>Anuluj</Button>
+          </div>
+        ),
+        dontWhy: "Two accent buttons: nothing is the most important thing (R01.5).",
+      },
+      {
+        do: <Button variant="destructive">Anuluj rezerwację</Button>,
+        doWhy: "The label says what happens.",
+        dont: <Button variant="destructive">OK</Button>,
+        dontWhy: "\"OK\" does not say what will be lost.",
+      },
+      {
+        do: <Button>Zapisz profil</Button>,
+        doWhy: "Calm, factual label.",
+        dont: <Button>Zacznij już teraz!</Button>,
+        dontWhy: "Sales tone and urgency (A06, R14).",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Link | A link goes somewhere; a button does something |
+| Checkbox, Radio group | They hold a choice; a button runs an action |
+| Dropdown menu | Several actions on one object behind one icon button |
+
+Appears in: Patterns/Form, Patterns/Delete confirmation, Patterns/Booking checkout, Patterns/Sign-in.

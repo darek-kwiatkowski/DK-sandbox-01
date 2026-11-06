@@ -25,6 +25,8 @@ export interface DataTableProps<T> {
   onRetry?: () => void;
   emptyTitle?: string;
   emptyDescription?: string;
+  /** Next step in the empty state, e.g. „Dodaj termin” or „Wyczyść filtry”. */
+  emptyAction?: ReactNode;
   /** Actions rendered in the last column of every row. */
   rowActions?: (row: T) => ReactNode;
   pageSize?: number;
@@ -42,6 +44,7 @@ export function DataTable<T>({
   onRetry,
   emptyTitle = "Brak danych.",
   emptyDescription,
+  emptyAction,
   rowActions,
   pageSize = DEFAULT_PAGE_SIZE,
   label,
@@ -55,7 +58,7 @@ export function DataTable<T>({
     return <ErrorMessage message={error} onRetry={onRetry} />;
   }
   if (rows.length === 0) {
-    return <EmptyState title={emptyTitle} description={emptyDescription} />;
+    return <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} />;
   }
 
   const pageCount = Math.ceil(rows.length / pageSize);

@@ -1,0 +1,144 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { Field, FieldLabel, FieldError, FieldDescription } from "@devmentor/ui/components/ui/field";
+import { Input } from "@devmentor/ui/components/ui/input";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as FieldStories from "./Field.stories";
+
+<Meta of={FieldStories} />
+
+# Field and Label
+
+## 1. Purpose
+
+Ties one control to its visible label, its hint and its error, so the user always knows what to type and what went wrong.
+
+## 2. When to use
+
+| Situation in DevMentor | Parts | Source |
+| --- | --- | --- |
+| Every form field: sign-in, registration, profile, prices, invitations | `Field`, `FieldLabel`, `FieldDescription`, `FieldError` | E01-S01 spec ("Every input has a label") |
+| A group of checkboxes or radios with one question ("Stack", "Długość sesji") | `FieldSet` + `FieldLegend` | WCAG 1.3.1 |
+| "lub" between GitHub sign-in and the e-mail form | `FieldSeparator` | E01-S01 spec |
+| A label without the Field wrapper (rare) | `Label` | — |
+
+## 3. When not to use
+
+| Instead of Field… | Use |
+| --- | --- |
+| A whole API-backed form | CrudForm (it renders Fields for you; Patterns/Form) |
+| Grouping unrelated fields visually | `FieldGroup` spacing, not extra boxes |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| `Field` | no | `role="group"`; `data-invalid` turns the label red too; `orientation` vertical, horizontal or responsive |
+| `FieldLabel` | no | Always visible above (or beside) the control |
+| Control | no | Input, Textarea, Select, Checkbox, Radio group |
+| `FieldDescription` | yes | Hint; linked by `aria-describedby` |
+| `FieldError` | when invalid | `role="alert"`; one message or a list (`errors`) |
+| `FieldSet`, `FieldLegend` | for groups | The legend names the question |
+| `FieldContent`, `FieldTitle`, `FieldSeparator`, `FieldGroup` | yes | Layout helpers |
+
+## 5. Variants
+
+| Orientation | Choose it when |
+| --- | --- |
+| `vertical` (default) | Text inputs and textareas |
+| `horizontal` | A checkbox or radio with its label to the right |
+| `responsive` | Label beside the control from the field group's medium width, stacked below it |
+
+<Canvas of={FieldStories.HorizontalWithCheckbox} />
+<Canvas of={FieldStories.FieldSetWithLegend} />
+
+## 6. States
+
+| State | What changes | Source |
+| --- | --- | --- |
+| Default | — | |
+| Required | Nothing extra: most fields are required, so optional ones say "(opcjonalnie)" in the label | WCAG 3.3.2 |
+| Disabled | `data-disabled` dims the label; the hint says why | WCAG 3.3.2 |
+| Error | `data-invalid` + control `aria-invalid` + FieldError text in red with `role="alert"` | WCAG 1.4.1, 3.3.1 |
+| Hover, focus, pressed, selected, loading | Belong to the control | — |
+
+<Canvas of={FieldStories.RequiredAndOptional} />
+<Canvas of={FieldStories.WithError} />
+<Canvas of={FieldStories.MultipleErrors} />
+<Canvas of={FieldStories.Disabled} />
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Label | `FieldLabel htmlFor` equals the control `id`; clicking it focuses or toggles the control | WCAG 1.3.1, 2.5.8 |
+| Description | Hint and error ids in the control's `aria-describedby` | WCAG 3.3.1 |
+| Errors | Shown after the user leaves the field and on submit; after a failed submit focus moves to the first error (CrudForm) | Patterns/Form, WCAG 3.3.1 |
+| Groups | Checkbox and radio groups use `FieldSet` + `FieldLegend`, so the question is read with each option | WCAG 1.3.1 |
+| Screen reader | "Hasło, edit text, Co najmniej 12 znaków." | — |
+
+<Canvas of={FieldStories.LabelFocusesControl} />
+<Canvas of={FieldStories.ErrorIsAnnounced} />
+
+## 8. Content
+
+| Rule | Example | Source |
+| --- | --- | --- |
+| Label: noun, Polish, no colon | "E-mail", "Imię i nazwisko" | E01-S01 spec |
+| Hint: the rule, before the error happens | "Co najmniej 12 znaków." | E01-S01 spec |
+| Error: what happened and what to do | "Konto z tym adresem już istnieje. Zaloguj się." | E01-S01 spec, Content page |
+| Optional: in the label | "Dodatkowy link (opcjonalnie)" | WCAG 3.3.2 |
+| Long labels | Wrap; never truncate | WCAG 1.4.10 |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | Label above the control, full width |
+| 768 and 1440 px | Same; forms are capped at about 24 rem; `responsive` orientation may put labels beside controls |
+
+<Canvas of={FieldStories.LongLabelNarrow} />
+
+## 10. API
+
+<ArgTypes of={FieldStories} />
+
+| Component | Key props |
+| --- | --- |
+| `Field` | `orientation?: "vertical" \| "horizontal" \| "responsive"`, `data-invalid`, `data-disabled` |
+| `FieldLabel` | Label props (`htmlFor`) |
+| `FieldDescription` | `p` props (`id`) |
+| `FieldError` | `errors?: { message?: string }[]` or children; renders nothing when empty |
+| `FieldSet`, `FieldLegend` | `variant?: "legend" \| "label"` on the legend |
+| `Label` | Radix Label props |
+
+## 11. Code
+
+<Source language="tsx" code={`<Field>
+  <FieldLabel htmlFor="password">Hasło</FieldLabel>
+  <Input id="password" type="password" aria-describedby="password-hint" />
+  <FieldDescription id="password-hint">Co najmniej 12 znaków.</FieldDescription>
+</Field>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: (<Field data-invalid><FieldLabel htmlFor="dd-f1">E-mail</FieldLabel><Input id="dd-f1" aria-invalid aria-describedby="dd-f1-e" /><FieldError id="dd-f1-e">Podaj adres e-mail.</FieldError></Field>),
+        doWhy: "Red outline plus text that says what to do.",
+        dont: (<Field><FieldLabel htmlFor="dd-f2">E-mail</FieldLabel><Input id="dd-f2" aria-invalid /></Field>),
+        dontWhy: "Colour alone; a screen reader hears nothing useful (WCAG 1.4.1).",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Alert | Errors of the whole form or the server, not of one field |
+| CrudForm | Builds Fields from a config and talks to the API |
+
+Appears in: Patterns/Form, Patterns/Sign-in, Patterns/Booking checkout.

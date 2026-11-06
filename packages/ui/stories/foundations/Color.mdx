@@ -1,0 +1,48 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import { ColorRoles } from "../../.storybook/blocks/ColorRoles";
+import { ContrastTable } from "../../.storybook/blocks/ContrastTable";
+
+import { Surface } from "../../.storybook/blocks/Surface";
+
+<Meta title="Foundations/Color" />
+
+# Color
+
+Warm greys carry the interface and one warm ochre accent marks the single most important thing on a screen.
+Every value lives in `packages/ui/src/styles/tokens.css`; components use only the semantic roles below.
+
+## Rules
+
+| Rule | Source |
+| --- | --- |
+| Use semantic roles (`bg-background`, `text-muted-foreground`, …). Raw palettes (`--sand-*`, `--ochre-*`, `--red-*`) exist only inside `tokens.css`. | tokeny.md |
+| Greys are warm, never hue-less grey. | R01.4, P01 |
+| The accent colour (`primary` or `highlight-foreground`) is on exactly one element per screen. | R01.5, K3, tokeny.md rule 3 |
+| Highlight by colour **or** by weight, never both. In lists the highlighted slot is `font-semibold`; in a running session the time left is `text-highlight-foreground`. | R01.5, K3, P02 |
+| Colour is never the only carrier of meaning: an error has text or an icon, a status has a label. `primary` and `destructive` differ in luminance by only 1.11 : 1. | WCAG 1.4.1 |
+| `accent` is the shadcn name for a hovered row or menu item, not the brand colour. The brand accent is `primary`. | tokeny.md |
+| No gradients, glass or glow, and no violet. | A01, P11 |
+| Every role has a light and a dark value; check both. | tokeny.md rule 12 |
+
+## Roles
+
+<Unstyled>
+  <Surface>
+  <ColorRoles />
+  </Surface>
+</Unstyled>
+
+## Contrast, measured
+
+Ratios below are computed in your browser from the resolved CSS variables of both themes (WCAG 2.x formula).
+Thresholds: 4.5 : 1 for text (WCAG 1.4.3), 3 : 1 for interface elements (WCAG 1.4.11).
+
+<Unstyled>
+  <Surface>
+  <ContrastTable />
+  </Surface>
+</Unstyled>
+
+One pair is below the threshold by design: the dark-theme focus outline against the primary button fill.
+The fix is part of the button, not the token: a focused primary button uses `ring-offset-2`, so the outline
+sits on the page background (tokeny.md rule 21, approved 2026-11-06).

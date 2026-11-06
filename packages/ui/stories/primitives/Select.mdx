@@ -1,0 +1,150 @@
+import { ArgTypes, Canvas, Meta, Source, Unstyled } from "@storybook/addon-docs/blocks";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@devmentor/ui/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@devmentor/ui/components/ui/radio-group";
+import { Field, FieldLabel } from "@devmentor/ui/components/ui/field";
+import { DoDont } from "../../.storybook/blocks/DoDont";
+import * as SelectStories from "./Select.stories";
+
+<Meta of={SelectStories} />
+
+# Select
+
+## 1. Purpose
+
+Lets the user pick one value from a known list that is too long to show at once.
+
+## 2. When to use
+
+| Situation in DevMentor | Source |
+| --- | --- |
+| A slot's start time when a mentor publishes availability (every 30 minutes) | E02-S03, R14 |
+| A time zone, where one has to be chosen | Platform primitives P16 (decided in E02-S03) |
+| Operator settings with a fixed list of values | R35 |
+
+## 3. When not to use
+
+| Instead of a select… | Use | Why |
+| --- | --- | --- |
+| Up to about 5 short options (25 or 50 minutes) | Radio group | All options and prices visible at once (R08, P17) |
+| Several values (stack tags) | Checkboxes | Select picks one value |
+| A free value (price in PLN) | Input (CrudForm `money` field) | The value is not from a list |
+| Searching among many names | Not in the system; there is no search in 1.0 (R13) | — |
+
+## 4. Anatomy
+
+| Part | Optional | Notes |
+| --- | --- | --- |
+| Label | no | `FieldLabel htmlFor` = trigger `id` |
+| Trigger | no | 32 px (`default`) or 24 px (`sm`), shows the value or the placeholder, chevron icon |
+| List (`SelectContent`) | no | Overlay in a portal, `shadow-overlay`, scrolls when long |
+| Groups and group labels | yes | `SelectGroup`, `SelectLabel` |
+| Separator | yes | `SelectSeparator` between groups |
+| Check mark | — | Marks the selected item |
+
+## 5. Variants
+
+Sizes only: `default` for forms, `sm` inside dense list rows.
+
+<Canvas of={SelectStories.GroupsAndSizes} />
+
+## 6. States
+
+<Canvas of={SelectStories.States} />
+
+| State | What changes | Source |
+| --- | --- | --- |
+| Placeholder | Muted text "Wybierz godzinę" until something is chosen | — |
+| Hover | `--accent` fill | — |
+| Focus | Ink ring with offset | WCAG 2.4.7 |
+| Open | List overlay; the highlighted item has `--accent` | — |
+| Selected | Check mark on the item, value in the trigger | WCAG 1.4.1 (not colour only) |
+| Disabled | 50% opacity; the hint says why ("Najpierw wybierz dzień.") | WCAG 3.3.2 |
+| Error | Red outline plus FieldError | WCAG 3.3.1 |
+| Loading | Not built in; load options before rendering, show Skeleton meanwhile | Patterns/Form |
+
+<Canvas of={SelectStories.ErrorWithMessage} />
+<Canvas of={SelectStories.DisabledWithReason} />
+
+## 7. Behaviour and accessibility
+
+| Topic | Rule | Source |
+| --- | --- | --- |
+| Roles | Trigger `combobox`, list `listbox`, items `option` (Radix) | WAI-ARIA APG Select-only combobox |
+| Keyboard | `Enter`, `Space` or arrows open; arrows move; `Enter` chooses; `Escape` closes without change; typing a character jumps to it | WAI-ARIA APG |
+| Focus | Returns to the trigger after closing | WCAG 2.4.3 |
+| While open | The rest of the page is hidden from assistive technology | WAI-ARIA (modal list) |
+| Target size | Trigger 24–32 px; items ≥ 28 px high | WCAG 2.5.8 |
+| Theme | The list renders in a portal and still gets the theme from `<html>` | Design system rule 9 |
+
+<Canvas of={SelectStories.ChooseWithKeyboard} />
+<Canvas of={SelectStories.EscapeCloses} />
+
+## 8. Content
+
+| Rule | Example |
+| --- | --- |
+| Label names the value | "Godzina rozpoczęcia" |
+| Placeholder is an instruction, not a value | "Wybierz godzinę" |
+| Items are short, sorted in their natural order | Times in order, not alphabetically |
+| Long items | Wrap in the list; the trigger shows one line (`line-clamp-1`) |
+| Times and zones | 24-hour clock; zone label always shown (P16) |
+
+## 9. Responsive
+
+| Width | Behaviour |
+| --- | --- |
+| 320 px | Trigger full width (`w-full`); the list fits the viewport and scrolls |
+| 768 and 1440 px | Trigger as wide as its longest value |
+
+<Canvas of={SelectStories.LongOptionsNarrow} />
+
+## 10. API
+
+<ArgTypes of={SelectStories} />
+
+| Component | Key props |
+| --- | --- |
+| `Select` | `value`, `defaultValue`, `onValueChange`, `disabled`, `name`, `required` |
+| `SelectTrigger` | `size?: "default" \| "sm"`, `id`, `aria-invalid`, `aria-describedby` |
+| `SelectValue` | `placeholder` |
+| `SelectContent` | `position?: "item-aligned" \| "popper"` (default item-aligned) |
+| `SelectItem` | `value` (required), `disabled` |
+| `SelectGroup`, `SelectLabel`, `SelectSeparator` | grouping |
+
+## 11. Code
+
+<Source language="tsx" code={`<Field>
+  <FieldLabel htmlFor="start">Godzina rozpoczęcia</FieldLabel>
+  <Select value={start} onValueChange={setStart}>
+    <SelectTrigger id="start" className="w-40">
+      <SelectValue placeholder="Wybierz godzinę" />
+    </SelectTrigger>
+    <SelectContent>
+      {times.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+    </SelectContent>
+  </Select>
+</Field>`} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    pairs={[
+      {
+        do: (<RadioGroup defaultValue="25" aria-label="Długość sesji"><Field orientation="horizontal"><RadioGroupItem value="25" id="sel-dd-1" /><FieldLabel htmlFor="sel-dd-1">25 minut</FieldLabel></Field><Field orientation="horizontal"><RadioGroupItem value="50" id="sel-dd-2" /><FieldLabel htmlFor="sel-dd-2">50 minut</FieldLabel></Field></RadioGroup>),
+        doWhy: "Two options: a radio group shows both.",
+        dont: (<Select defaultValue="25"><SelectTrigger aria-label="Długość sesji" className="w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="25">25 minut</SelectItem><SelectItem value="50">50 minut</SelectItem></SelectContent></Select>),
+        dontWhy: "A select hides the second option behind a click.",
+      },
+    ]}
+  />
+</Unstyled>
+
+## 13. Related
+
+| Often confused with | Difference |
+| --- | --- |
+| Radio group | Few options, all visible |
+| Dropdown menu | Actions, not a value |
+
+Appears in: Patterns/Form (slot editor).
