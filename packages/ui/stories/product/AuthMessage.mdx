@@ -1,0 +1,82 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import { AuthMessage } from "@devmentor/ui/components/auth/AuthMessage";
+
+<Meta title="Product/E01 Accounts and access/Auth message" />
+
+# Auth message
+
+## 1. Purpose
+
+Explains an authentication redirect outcome with actionable, centralized copy. (E01-S01 UI/UX and API contracts.)
+
+## 2. When to use
+
+Render on login or account pages after reading the supported `error` and `notice` query values. (E01-S01 API contracts.)
+
+## 3. When not to use
+
+Use Field errors for invalid form values and ErrorMessage for resource-loading failures. This component maps authentication codes, not arbitrary server messages. (E01-S01; platform primitives P18.)
+
+## 4. Anatomy
+
+An Alert contains a decorative icon and description. Errors use destructive styling; notices use a status announcement. There is no title, close control or embedded retry button. (Implemented API; WCAG 1.1.1, 4.1.3.)
+
+## 5. Variants
+
+Supply `error` for a failure or `notice` for information. Error takes precedence when both are supplied. Unknown errors receive the generic message; unknown notices render nothing. (Implemented mapping; E01-S01 generic-error rule.)
+
+<Unstyled><AuthMessage error="github_email_mismatch" /><AuthMessage notice="github_linked" /></Unstyled>
+
+## 6. States
+
+| State | Result | Source |
+| --- | --- | --- |
+| No code or unknown notice | Nothing rendered | Implemented mapping |
+| Known error | Code-specific alert | E01-S01 copy; approved H5 |
+| Unknown error | Generic retry message | E01-S01 generic-error rule |
+| Known notice | Polite status | E01-S01 Q12; WCAG 4.1.3 |
+| Hover, focus, pressed, disabled, loading, selected | Not applicable: noninteractive text | WAI-ARIA Alert pattern |
+
+## 7. Behaviour and accessibility
+
+Errors are announced with `role="alert"`, notices with `role="status"`; neither moves focus nor adds a Tab stop. Meaning is written in text rather than communicated by color alone. Target size is not applicable because the message is not interactive. (WCAG 1.4.1, 2.4.3, 4.1.3.)
+
+## 8. Content
+
+Supported errors are `github_account_exists`, `github_failed`, `github_denied`, `github_state`, `github_email_mismatch`, `github_no_verified_email`, `github_already_linked`, `github_unavailable`. The supported notice is `github_linked`. Reuse the exported mapping rather than duplicating copy. There is no truncation or imposed character limit. (E01-S01; approved H5; implemented mapping.)
+
+## 9. Responsive
+
+Allow the message to wrap at 320, 768 and 1440 px; its parent owns reading width. Never hide the recovery instruction at narrow widths. (Approved F1; WCAG 1.4.10.)
+
+## 10. API
+
+Import from `@devmentor/ui/components/auth/AuthMessage`. (Implemented public API.)
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| error | `string \| null` | absent | Error code; takes precedence |
+| notice | `string \| null` | absent | Informational code |
+
+## 11. Code
+
+```tsx
+import { AuthMessage } from "@devmentor/ui/components/auth/AuthMessage";
+
+<AuthMessage error="github_failed" />
+<AuthMessage notice="github_linked" />
+```
+
+Read query values in application wiring; this component performs no navigation or session checks. (E01-S01 architecture.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Keep recovery instructions visible | Replace an actionable failure with a disappearing toast | WCAG 3.3.1; approved no-toast plan |
+| Pass an error code | Pass raw exception details | E01-S01 generic-error and security rules |
+| Show the takeover notice | Claim the previous password still works | E01-S01 Q12 clears the old password |
+
+## 13. Related
+
+GitHubButton starts the flow; Alert supplies presentation; CrudForm owns field validation. Product/E01 `LoginError` shows the composed failure state. (E01-S01; platform primitives P18.)

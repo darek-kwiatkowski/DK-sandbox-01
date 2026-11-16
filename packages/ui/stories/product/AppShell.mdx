@@ -1,0 +1,83 @@
+import { Meta, Canvas, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Account from "./AccountAccess.stories";
+
+<Meta title="Product/E01 Accounts and access/App shell" />
+
+# App shell
+
+## 1. Purpose
+
+Provides consistent navigation and a reachable content region in signed-in areas. (Platform primitives P3.)
+
+## 2. When to use
+
+Use on account, mentor and operator pages after the application has resolved the actor and enforced access. (E01-S01 Q9; platform primitives P3.)
+
+## 3. When not to use
+
+Do not use for public marketing layouts or as an authorization boundary. Page wiring performs role checks; hiding links is not access control. (E01-S01 Q9; engineering standards authorization.)
+
+## 4. Anatomy
+
+Skip link, product home link, NavLinks, optional header actions, and a main region containing `children`. (Platform primitives P3; WCAG 2.4.1.)
+
+## 5. Variants
+
+One shell composition; `items` and `actions` configure page context rather than creating role-themed visual variants. (Platform primitives P3.)
+
+## 6. States
+
+The shell itself has no loading, disabled, error, pressed or selected state. NavLinks marks the current page; child resources render their own loading/error/empty states. Header controls inherit primitive hover and focus styles. (Platform primitives P3/P18; Primitives/Button.)
+
+<Unstyled><Canvas of={Account.AccountAndRoleNavigation} /><Canvas of={Account.SkipLinkAndAccountAction} /></Unstyled>
+
+## 7. Behaviour and accessibility
+
+The first Tab reveals “Przejdź do treści”, linking to `#main-content`; navigation and header actions follow in DOM order. Native links support Enter. Keep one shell per document because `main-content` is a fixed ID. Do not nest another main landmark inside children. Navigation links have 32 px targets; the product link is ordinary inline navigation. (WCAG 2.1.1, 2.4.1, 2.4.3, 2.5.8; implemented landmark/ID constraint.)
+
+## 8. Content
+
+The product name remains DevMentor. Page authors supply meaningful navigation labels and a page heading in children; there is no generated heading or label-length limit. Preserve full labels through wrapping. (Platform primitives P3; WCAG 2.4.6, 1.4.10.)
+
+## 9. Responsive
+
+Header content wraps and main content uses `max-w-page`, `px-panel`, `py-section` at 320, 768 and 1440 px. No collapsed-menu interaction exists. Verify long labels and actions at 320 px. (Approved F3; platform primitives P3; WCAG 1.4.10.)
+
+## 10. API
+
+Import from `@devmentor/ui/backend/layout`. (Implemented public API.)
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| items | `readonly NavItem[]` | required | Application-authorized navigation |
+| currentPath | `string` | required | Exact current-page path |
+| actions | `ReactNode` | absent | Header actions |
+| children | `ReactNode` | required | Main content |
+
+## 11. Code
+
+```tsx
+import { AppShell } from "@devmentor/ui/backend/layout";
+import { SignOutButton } from "@devmentor/ui/components/auth/SignOutButton";
+
+<AppShell items={[]} currentPath="/account"><h1>Konto</h1></AppShell>
+<AppShell
+  items={[{ href: "/account", label: "Konto" }, { href: "/mentor", label: "Panel mentora" }]}
+  currentPath="/mentor"
+  actions={<SignOutButton />}
+><h1>Panel mentora</h1></AppShell>
+```
+
+The second composition assumes an actor permitted to enter the mentor area; derive items in application wiring. (E01-S01 R07; platform primitives P3.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Enforce roles in the page | Treat missing navigation as authorization | Engineering standards: fail closed |
+| Put one shell around the page | Nest shells and duplicate main IDs | WCAG 4.1.2; implemented ID constraint |
+| Supply a page heading | Rely on the product logo as the page title | WCAG 2.4.6 |
+
+## 13. Related
+
+NavLinks owns current-page indication; SignOutButton is a header action; AccessDenied handles refused access. See Product/E01 and Screens/Epics. (E01-S01; platform primitives P3.)

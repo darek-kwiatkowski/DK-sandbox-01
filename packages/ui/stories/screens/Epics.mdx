@@ -1,0 +1,99 @@
+import { Meta, Canvas } from "@storybook/addon-docs/blocks";
+import * as Screens from "./KeyScreens.stories";
+
+<Meta title="Screens/Epics" />
+
+# Backlog screen map
+
+E02–E05 screens are proposals because the backlog has no detailed screen specifications for them. The screen compositions use real `@devmentor/ui` exports and should be treated as design inputs pending product review. E06 is Later and has no 1.0 screen. (Design system spec decision, 2026-11-06; backlog E01–E06; product brief D34, D48.)
+
+## E01 · Accounts and access
+
+**Flow:** sign in or register → account → role-gated mentor or operator area. (E01-S01 UI/UX; R06, R07, R35.)
+
+| Screen state | Story |
+| --- | --- |
+| Account with linked roles and GitHub action | `E01AccountAndAccess` |
+| Anonymous sign-in, form validation, OAuth failure | `Product/E01 Accounts and access` stories `LoginChoices`, `LoginError` and `AccessDeniedMentee` |
+| Global sign-out | `Product/E01 Accounts and access` story `AccountAndRoleNavigation` |
+| Sign-in error, provider messages and sign-out ready/pending/server/network/confirmed | Product/E01 Auth states → `MessageAccountExists`, `MessageProviderFailure`, `MessageDenied`, `MessageExpiredState`, `MessageEmailMismatch`, `MessageNoVerifiedEmail`, `MessageAlreadyLinked`, `MessageUnavailable`, `MessageUnknownCode`, `MessageTakeoverNotice`, `SignOutReady`, `SignOutPending`, `SignOutServerError`, `SignOutNetworkError`, `SignOutConfirmed` |
+| Registration empty/validation/pending/duplicate/server/network/confirmed, GitHub unavailable | Screens/E01 Account flows → `RegistrationEmpty`, `RegistrationValidation`, `RegistrationWaiting`, `RegistrationDuplicateEmail`, `RegistrationServerError`, `RegistrationNetworkError`, `RegistrationConfirmed`, `RegistrationWithoutGithub` |
+| Linked GitHub, takeover notice and linking failures | Same group → `AccountGithubLinked`, `AccountGithubTakeoverNotice`, `AccountGithubEmailMismatch`, `AccountGithubAlreadyLinked`, `AccountGithubMissingVerifiedEmail`, `AccountGithubExpiredState`, `AccountGithubProviderFailure`, `AccountGithubDenied` |
+| Mentor/operator panels, denied mentor access and skip link | Same group → `MentorRolePanel`, `OperatorRolePanel`, `MentorAccessDenied`; Product/E01 Accounts and access → `SkipLinkAndAccountAction` |
+| Invitation list/loading/error/empty/create/redeem | Same group → InvitationsReady, InvitationsLoading, InvitationsError, InvitationsEmpty, InvitationCreate, InvitationRedeemSignIn, InvitationRedeemUnavailable, InvitationRedeemConfirmed |
+
+<Canvas of={Screens.E01AccountAndAccess} />
+
+## E02 · Mentor offer
+
+**Flow:** invitation → profile and public work → operator-defined price bounds → 25/50-minute prices → publish slots. (R04, R07, R08, R14, R29.) Details below are proposals pending E02 screen specifications.
+
+| Screen state | Story |
+| --- | --- |
+| Public profile, stack, work link, prices | `E02MentorOffer` |
+| Profile editing, loading/error/partial/long data, validation/network/server response and publish waiting/confirmation | Screens/E02 Offer management proposals → `ProfileEditAndPublish`, `ProfilePublishing`, `ProfilePublishError`, `ProfileDataLoading`, `ProfileDataError`, `ProfilePartialData`, `ProfileLongDescriptionAndLink`, `ProfileFieldRejected`, `ProfileNetworkFailure`, `ProfileServerConfirmed` |
+| Stack checkbox keyboard selection and server field error | Same group → `ProfileStackKeyboardSelection`, `ProfileStackServerError` (H1 approved 2026-11-16; does not define a minimum selection count) |
+| Mentor prices: loading/error/unset, saving, field rejection, network failure and server confirmation | Same group → `MentorPriceForm`, `PriceDataLoading`, `PriceDataError`, `PricesNotSet`, `PriceSaving`, `PriceFieldRejected`, `PriceNetworkFailure`, `PriceServerConfirmed`, `PricesAwaitOperatorBounds`, `MentorPriceLimitsChanged` |
+| Operator price bounds: loading/error, saving, field/server/network failure and confirmation | Same group → `OperatorPriceBounds`, `BoundsDataLoading`, `BoundsDataError`, `BoundsSaving`, `BoundsFieldRejected`, `BoundsServerFailure`, `BoundsNetworkFailure`, `BoundsServerConfirmed` |
+| Operator fee has no configured value | Same group → `OperatorFeeNotConfigured`; unit and validation remain unspecified by the settlement contract |
+| Availability: loading/error/partial data, publishing, field/network failure, server confirmation and empty list | Same group → `AvailabilityPublish`, `AvailabilityDataLoading`, `AvailabilityDataError`, `AvailabilityPartialData`, `AvailabilityPublishing`, `AvailabilityFieldRejected`, `AvailabilityNetworkFailure`, `AvailabilityServerConfirmed`, `AvailabilityPublishError`, `AvailabilityEmpty` |
+
+<Canvas of={Screens.E02MentorOffer} />
+
+## E03 · Finding and booking
+
+**Flow:** filter mentors by stack → inspect a profile and available prices → choose a slot at least two hours ahead → see price and no-refund terms → pay → confirmation. (R13, R14, R27, R29.) Checkout presentations are proposals; they do not establish the missing screen/API contract.
+
+| Screen state | Story |
+| --- | --- |
+| Ordered mentor results | `E03FindMentor` and `Product/E02 Mentor offer and E03 Finding a mentor` → `MentorListReady` |
+| Loading, request failure, no mentors, filter with no matches | Same product story group → `MentorListLoading`, `MentorListError`, `MentorListEmpty`, `MentorListNoFilterMatches` |
+| Slot/duration choice and price | Screens/E03 Booking proposals → SlotSelectionAndCheckout |
+| Pending, failed, unknown network outcome, confirmed | Same group → PaymentAwaitingServer, PaymentFailed, PaymentNetworkUnknown, PaymentServerConfirmed |
+| Lost slot, missing payment configuration | Same group → SlotBecameUnavailable, PaymentConfigurationMissing |
+| Booking list ready/loading/error/empty | Same group → BookingsReady, BookingsLoading, BookingsError, BookingsEmpty |
+| Detail ready/loading/error/denied/cancelled | Same group → BookingDetailReady, BookingDetailLoading, BookingDetailError, BookingDetailNotFoundOrDenied, BookingDetailCancelled |
+| Mentee cancellation: confirmation, waiting, error, server-confirmed | Same group → MenteeCancelsPaidBooking, MenteeCancellationDemoConfirmation, MenteeCancellationWaiting, MenteeCancellationError, MenteeCancellationConfirmed; Patterns/Delete confirmation shows the reusable alert-dialog boundary | E03-S03; R27/R34; D39/D47. Eligibility, API and unknown-result recovery remain open; see “What is missing”. |
+
+<Canvas of={Screens.E03FindMentor} />
+
+## E04 · Session and note
+
+**Flow:** hold a text session inside DevMentor → mentor delivers a written answer → co-edit one private note → mentee approves the final note. (R03, R20, R26, R31.) The layout and sample messages below are proposals; no E04 screen or realtime/API contract is specified.
+
+| Screen state | Story |
+| --- | --- |
+| Active text session with private note | `E04TextSessionAndNote` |
+| Fullscreen loading, request errors and empty data | `E04Loading`, `E04Error`, `E04Empty` |
+| Fullscreen partial conversation with a note conflict | `E04PartialAndConflict` |
+| Fullscreen server-confirmed final note | `E04ApprovedNote` |
+| Transcript loading, empty, error, partial, long and many | Product/E04 → TranscriptLoading, TranscriptEmpty, TranscriptError, TranscriptPartial, TranscriptLongAndMany |
+| Confirmed send, waiting, failure preserving draft, unavailable | Product/E04 → ComposerSend, ComposerWaiting, ComposerFailure, ComposerUnavailable |
+| Note loading, empty, saving, approving, error, conflict, approved, mentor role, long text | Product/E04 → NoteLoading, NoteEmpty, NoteSaving, NoteApproving, NoteError, NoteConflict, NoteApproved, NoteMentor, NoteLong |
+| Reconnect transport, revision comparison and persisted approval | Missing E04 API/realtime specification; presentation proposals do not implement persistence |
+
+<Canvas of={Screens.E04TextSessionAndNote} />
+
+The fullscreen state stories use static application-state fixtures and no-op retry/note callbacks. They show layout and feedback, not working persistence or reconnect recovery. The composer simulates a successful response only. (Approved Q2/H4; E04-S01/S02 presentation boundary.)
+
+## E05 · Payouts
+
+**Flow:** mentor completes Connect onboarding → delivered session becomes payable after the platform fee → operator can hold a payout. (R05, R28, R35.) G5 approved displayed status labels; the composition remains a proposal and provider status mapping and the Connect UI contract are unspecified.
+
+| Screen state | Story |
+| --- | --- |
+| Connect onboarding entry and one payout row | `E05PayoutSetup` |
+| Fullscreen loading, request errors and no settlements | `E05Loading`, `E05Error`, `E05Empty` |
+| Fullscreen missing fee/net amounts and confirmed hold | `E05PartialAmounts`, `E05HeldPayout` |
+| Connect incomplete, starting, start failure, loading, error, ready | Product/E05 → ConnectIncomplete, ConnectStarting, ConnectStartFailure, ConnectLoading, ConnectError, ConnectReady |
+| Payout loading, empty, error, approved product status labels, partial amounts, long and many | Product/E05 → PayoutsLoading, PayoutsEmpty, PayoutsError, PayoutsStatusesAndPartial, PayoutsLongAndMany |
+| Operator hold request, waiting and failed request | Product/E05 → OperatorHold, OperatorHoldPending, OperatorHoldError |
+| Provider status mapping, fee calculation, redirect and payout transitions | Missing E05/payment adapter specification; no default fee or deadline is assumed |
+
+<Canvas of={Screens.E05PayoutSetup} />
+
+The fullscreen state stories use static server-state fixtures and no-op setup/retry callbacks. They do not redirect to Connect, calculate fees or change payout state. (Approved Q2/H4; E05-S01 presentation boundary.)
+
+## E06 · Later
+
+No 1.0 screen. The brief places vault, subscriptions, MCP, team plans, async Q&A, transcription and AI note drafting in Later. (D34.)

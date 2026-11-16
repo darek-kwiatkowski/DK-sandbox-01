@@ -1,0 +1,39 @@
+import { Meta, Canvas } from "@storybook/addon-docs/blocks";
+import * as Accounts from "../product/AccountAccess.stories";
+
+<Meta title="Patterns/Product flows" />
+
+# Product flow recipes
+
+These recipes point to existing compositions rather than introducing parallel components. Polish UI copy and English instructions follow the accepted stage-0 language decision. E04 presentation is a proposal, not a realtime contract. (Design-system spec Q1/Q2; approved H4.)
+
+## Sign-in
+
+Compose `GitHubButton` as the primary navigation action and `CrudForm` as the outline email fallback. Keep the registration link visible and render OAuth redirects through `AuthMessage`. Password failures remain generic; registration can identify an existing email. Do not request a mentor role during registration. (E01-S01 UI/UX, Q3, Q11; brief R06/R07.)
+
+<Canvas of={Accounts.LoginChoices} />
+<Canvas of={Accounts.LoginError} />
+
+## Access gate
+
+Resolve access before rendering protected data. Supply role-filtered navigation to `AppShell`; hiding a link is never authorization. Render `AccessDenied` for a signed-in person without the required role; anonymous navigation belongs to the application's sign-in redirect. (Platform primitives P3; E01-S01 Q8 and role gates.)
+
+<Canvas of={Accounts.AccessDeniedMentee} />
+
+## Text session
+
+Use `SessionTranscript` for confirmed messages and `MessageComposer` for drafts. Keep author and time on each message. Enter sends and Shift+Enter adds a line. A failed send preserves the draft; a successful callback still needs application reconciliation with the confirmed transcript. No transport or reconnect policy is inferred. (References R02.2/R02.3; E04-S01; approved Q2 proposal boundary.)
+
+See the [message composer manual](?path=/docs/product-e04-session-and-note-proposals-message-composer--docs), [transcript manual](?path=/docs/product-e04-session-and-note-proposals-session-transcript--docs), [confirmed-send story](?path=/story/product-e04-session-and-note-proposals--composer-send) and [epic state map](?path=/docs/screens-epics--docs). The manuals contain exact APIs and remaining transport work. (E04-S01; approved H4.)
+
+## Co-edited note
+
+Use `PrivateNote` beside the transcript, with mentor and mentee roles supplied explicitly. Only the mentee approves the final note. Loading, saving, conflict, error and approved fixtures demonstrate presentation; revision comparison and persisted approval require the E04 specification. Do not make a successful local interaction claim durable approval. (Brief R26/R31; E04-S02; approved Q2.)
+
+See the [private note manual](?path=/docs/product-e04-session-and-note-proposals-private-note--docs) and [epic state map](?path=/docs/screens-epics--docs). At 320 px the note follows the conversation; from 768 px the approved composition can place it alongside. (Approved F3; WCAG 1.4.10.)
+
+## Booking checkout
+
+Show the chosen mentor, slot, duration, exact PLN price and no-refund terms before payment. Slots must be at least two hours ahead; durations are 25 or 50 minutes. Payment confirmation must come from the server, not the return navigation alone. The presentation proposal cannot define reservation locks, payment retries or provider status mapping. (Brief R01/R08/R14/R27/R29; E03-S02 and payment-port task.)
+
+See [form-response stories](?path=/story/patterns-form--server-field-error), the [cancellation pattern](?path=/docs/patterns-delete-confirmation--docs), the [slot-selection and checkout presentation](?path=/story/screens-e03-booking-proposals--slot-selection-and-checkout) and the [epic state map](?path=/docs/screens-epics--docs). These show checkout coverage and unresolved contracts. (Approved stage-3 plan; E03-S02/S03.)

@@ -1,0 +1,100 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Session from "./Session.stories";
+
+<Meta title="Product/E04 Session and note (proposals)/Private note" />
+
+# Private note
+
+**Proposal:** presentation for the private co-edited note. Persistence, revision comparison and approval endpoints need the E04-S02 specification. A story callback is not evidence of a saved or approved note. (Approved Q2; brief R26.)
+
+## 1. Purpose
+
+Lets mentor and mentee record one shared private note whose final version is approved by the mentee. (Brief R26/D42; backlog E04-S02.)
+
+## 2. When to use
+
+Place beside the text session to collect conclusions and next steps; supply the same note to both authorized participants. (R26; approved F3; E04-S02.)
+
+## 3. When not to use
+
+Use `MessageComposer` for conversation and `CrudForm` for independent profile fields. Do not use this as a public review, published case study or AI-generated summary: those behaviours are outside this component and the approved 1.0 scope. (R26; D34; E04-S02.)
+
+## 4. Anatomy
+
+Privacy explanation, optional loading/error/conflict/empty feedback, labelled textarea, save action, conditional mentee approval action and final-status confirmation. The application owns the value and status. (R26; implemented API; WCAG 3.3.2, 4.1.3.)
+
+## 5. Variants
+
+`canApprove` controls the approval action. It is true only for an eligible mentee viewing the latest persisted revision; it is not inferred from a local role label. There are no visual variants. (R26; engineering standards, record authorization; component API.)
+
+## 6. States
+
+| State | Story | Behaviour and source |
+| --- | --- | --- |
+| Ready | NoteReady | Editable controlled value; E04-S02 |
+| Empty | NoteEmpty | Empty explanation, save/approve unavailable; proposal |
+| Loading | NoteLoading | Shared loading status; WCAG 4.1.3 |
+| Saving | NoteSaving | Readonly text, disabled actions, busy section; proposal |
+| Approving | NoteApproving | As saving, distinct action label; R26 proposal |
+| Error | NoteError | Retained text with retry; WCAG 3.3.1 |
+| Conflict | NoteConflict | Retained local text, save/approve blocked; proposal |
+| Approved | NoteApproved | Readonly final value, status, no save/approve actions; R26 |
+| Mentor | NoteMentor | Save without approval action; R26 |
+| Long | NoteLong | Preserved complete text; WCAG 1.4.10 |
+
+Hover/focus/pressed inherit Textarea and Button; selected is not a note state. Disabled actions are explained by the empty-note hint, pending action label or conflict message. The hint explicitly says an empty note cannot be saved or approved. (WCAG 3.3.2; task stage 2 disabled-state rule; proposed copy.)
+
+<Unstyled><Canvas of={Session.NoteReady} /><Canvas of={Session.NoteEmpty} /><Canvas of={Session.NoteSaving} /><Canvas of={Session.NoteConflict} /><Canvas of={Session.NoteApproved} /></Unstyled>
+
+## 7. Behaviour and accessibility
+
+Tab follows the textarea, save and eligible approval action. The textarea keeps a visible label and linked hint; pending states are `aria-busy`, approved text remains selectable and readable. Errors are shared alerts with retry; final approval has `role="status"`. Actions inherit native button keyboard support and ≥24 px targets. (WCAG 2.1.1, 2.4.3, 2.5.8, 3.3.2, 4.1.3.)
+
+The component calls callbacks only. The page must update `value`, supply status after server responses, preserve local text on failure and implement comparison/recovery before leaving conflict. The retry button does not itself fetch or merge revisions. (R26; engineering standards; missing E04 revision contract.)
+
+## 8. Content
+
+Use concrete conclusions such as “Sprawdzić opcje module i moduleResolution w tsconfig.” Keep the privacy and mentee-approval explanation visible. Preserve line breaks and full text. No maximum length or note-publication flow is specified; do not add one implicitly. (R26; reference R02.3; missing length/publication contracts.)
+
+## 9. Responsive
+
+The note uses a single column within `max-w-reading` at 320, 768 and 1440 px; action buttons wrap. The parent places it beside the conversation from 768 px and below it on a narrow screen. (Approved F1/F3; WCAG 1.4.10.)
+
+## 10. API
+
+Import `PrivateNote` and `PrivateNoteProps` from `@devmentor/ui/components/notes/PrivateNote`.
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| value | `string` | required | Controlled draft or confirmed final note |
+| status | `"loading"`, `"ready"`, `"saving"`, `"approving"`, `"error"`, `"conflict"`, `"approved"` | required | Application-owned presentation state |
+| canApprove | `boolean` | required | Current revision and actor are eligible for approval |
+| onChange | `(value: string) => void` | required | Update local controlled draft |
+| onSave | `() => void` | required | Request persistence |
+| onApprove | `() => void` | required | Request final approval |
+| onRetry | `() => void` | required | Recovery from error or conflict |
+
+The type exposes no permission or persistence implementation. Server authorization remains mandatory. (Implemented API; engineering standards, fail-closed authorization.)
+
+## 11. Code
+
+```tsx
+import { PrivateNote } from "@devmentor/ui/components/notes/PrivateNote";
+
+<PrivateNote value={draft} status={noteStatus} canApprove={canApproveCurrentRevision}
+  onChange={setDraft} onSave={saveNote} onApprove={approveNote} onRetry={recoverNote} />
+```
+
+The page supplies these callbacks and confirmed revision state. `onApprove` must not immediately change status to approved before the server confirms. (R26; proposal integration boundary.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Approve the persisted current revision | Approve unsaved text optimistically | Mentee approves the final version (R26) |
+| Preserve local text during conflict recovery | Replace it silently with another participant's text | Avoid losing input (WCAG 3.3.1; proposal) |
+| Keep the note private between participants | Add public publishing by default | Privacy is explicit (R26) |
+
+## 13. Related
+
+`SessionTranscript` and `MessageComposer` cover the conversation; `Screens/Epics` maps E04 data states. Textarea, Field and Button provide the primitive interaction states. (E04-S01/S02; approved component plan.)

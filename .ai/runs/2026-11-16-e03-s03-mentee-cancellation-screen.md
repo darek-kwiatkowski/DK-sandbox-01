@@ -1,0 +1,9 @@
+# E03-S03 — ekran anulowania płatnej rezerwacji przez mentee
+
+- **Cel:** Zbudować ekranowy przykład mentee anulującego opłaconą rezerwację na podstawie istniejącego Storybooka i źródeł wskazanych w `packages/ui/POSTEP.md`.
+- **Specyfikacja:** `.ai/specs/backlog.md` — E03-S03; reguły produktu R27/R34 i D39/D47. E03-S03 nie jest adoptowane; praca dotyczy prezentacji, nie implementacji API.
+- **Decyzje:** Użyć istniejących `AppShell`, alertu, przycisku, `AlertDialog` i `ErrorMessage`. Wprost pokazać brak zwrotu oraz skutek dla wypłaty mentee anulującego (mentor otrzymuje płatność po odjęciu prowizji, po okresie wstrzymania). Nie wyliczać kwot ani czasu. Nie wykonywać żądania ani transakcji płatniczej.
+- **Kroki:** przeczytano AGENTS.md, POSTEP.md, design-system, backlog, reguły R27/R34 oraz decyzje D39/D45/D47, istniejący ekran rezerwacji i wzorzec potwierdzenia; dodać kompozycję ekranową i aktualizować „What is missing”.
+- **Weryfikacja:** `npm.cmd run typecheck` w `packages/ui` — zakończony bez błędów; `npx.cmd eslint packages/ui/stories/screens/BookingFlows.stories.tsx` z roota — OK; `npm.cmd run build-storybook` — OK; `npm.cmd run test:storybook` — oba motywy po 344/344 stories; `npm.cmd run check:tokens` — zero znalezisk; `git diff --check` — OK. Budowa Storybooka wypisała ostrzeżenie o braku uprawnień do zapisu globalnych ustawień w `C:\Users\dkwiatkowski\.storybook`, ale build się powiódł.
+- **Problemy/luki:** endpoint i schemat anulowania, kwalifikujące statusy, idempotencja/duplikaty, obsługa nieznanego wyniku i bezpieczne ponowienie, dodatkowe potwierdzenie/powód, dokładne warunki wstrzymania wypłaty i powiadomienia, nawigacja oraz dostęp do sesji po anulowaniu — nieokreślone. Wymieniono je w Storybook `What is missing`; nie zaimplementowano API ani integracji płatności.
+- **Stan końcowy:** ekranowy przykład i dokumentacja luk gotowe; wymaga specyfikacji produktowej/API przed podłączeniem do aplikacji.

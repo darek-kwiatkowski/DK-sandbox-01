@@ -1,0 +1,130 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Form from "./Form.stories";
+
+<Meta title="Patterns/Crud form manual" />
+
+# CrudForm
+
+## 1. Purpose
+
+Collects a small create/edit payload with consistent validation, error recovery and server-confirmed submission. (Platform primitives P18; engineering standards, reusable UI layer.)
+
+## 2. When to use
+
+Use for email authentication, profile descriptions, 25/50-minute prices and other schema-driven forms. The page supplies the business schema and submission callback. Booking examples below are presentation proposals, not payment contracts. (E01-S01; brief R08; approved H1/H2 and Q2.)
+
+## 3. When not to use
+
+Use MessageComposer for Enter-to-send conversation and PrivateNote for co-edited conclusions. Use checkbox groups for multi-value profile tags and StackFilter for discovery filtering; the latter is not an edit field. (E04-S01/S02; approved H1, 2026-11-16; brief R13.)
+
+## 4. Anatomy
+
+A form contains FieldGroup, one persistent label and control per configured field, optional descriptions, field errors, an optional general alert and an action row. Cancel is optional. Placeholder is an example, never the field name. (P18; WCAG 3.3.1, 3.3.2.)
+
+## 5. Variants
+
+The submit action is `default`, or `outline` when GitHub is the primary authentication action. Fields support text, email, password, number, URL, textarea, select, money and checkbox groups. Money remains a string with a visible PLN suffix; checkbox groups supply arrays. The schema owns parsing and limits. (Approved H1/H2; P18; brief R08/R29.)
+
+## 6. States
+
+| State | Presentation | Source |
+| --- | --- | --- |
+| Empty / ready | Empty; editable values and persistent labels | P18 |
+| Hover / focus / pressed | Inherited primitive styles and frozen matrices | Approved stage 2 |
+| Invalid | ValidationAndFirstErrorFocus; field text and first invalid control focused | WCAG 3.3.1 |
+| Pending / disabled | ServerWaiting; controls disabled, form busy, “Zapisywanie…” explains why | P18; WCAG 4.1.3 |
+| Field failure | ServerFieldError; entered values retained | WCAG 3.3.1 |
+| General / network failure | ServerError, NetworkUnavailable; visible alert | WCAG 4.1.3 |
+| Confirmed | ServerConfirmedSuccess; onSuccess only after ok result | P18 |
+| Selected | Select owns its chosen value; form itself is not selectable | WAI-ARIA APG Select-only Combobox |
+
+<Unstyled><Canvas of={Form.Empty} /><Canvas of={Form.ValidationAndFirstErrorFocus} /><Canvas of={Form.ServerWaiting} /><Canvas of={Form.ServerFieldError} /><Canvas of={Form.ServerError} /><Canvas of={Form.NetworkUnavailable} /><Canvas of={Form.ServerConfirmedSuccess} /></Unstyled>
+
+## 7. Behaviour and accessibility
+
+Validation runs on blur and submit. A failed submit enables controls before focusing the first invalid control, or the form-level alert. Values remain. Cmd/Ctrl+Enter submits; Escape calls onCancel when supplied. Tab follows configured field order and then actions. Controls inherit their documented minimum target sizes and visible focus styles. (P18; approved H1; WCAG 2.1.1, 2.4.3, 2.4.7, 2.5.8.)
+
+The submit callback must resolve an ApiResult, including network failures from apiCall. A rejected promise is not converted to an inline error by this component. The finally block re-enables controls, but the application must provide the documented result envelope rather than throw transport failures. No success message, redirect or reset is built in; onSuccess owns that next step. (Implemented public contract; engineering standards, API layer.)
+
+## 8. Content
+
+Write visible Polish labels and actionable errors; name the action and object. Put format rules in descriptions. No automatic required/optional indicator or text-length limit exists: express these in the label/description and shared schema. Preserve long input and test longer translations instead of truncating. (Accepted Q1; reference P17; WCAG 3.3.2, 1.4.10; missing marker API.)
+
+## 9. Responsive
+
+Fields stack at 320, 768 and 1440 px. Actions stack on narrow screens and become an end-aligned row at the existing small breakpoint. Constrain prose with max-w-reading in the page; the form has no fixed page width. (Approved F1; P18; WCAG 1.4.10.)
+
+## 10. API
+
+Import `CrudForm` from `@devmentor/ui/backend/forms`. (P18.)
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| schema | `S extends z.ZodType` | required | Validates strings or checkbox arrays and produces z.output of S |
+| fields | `readonly CrudFormField[]` | required | Ordered field configuration |
+| defaultValues | `Readonly<Record<string, string \| string[]>>` | empty object | Initial values, read when mounted; checkbox groups use arrays |
+| onSubmit | `(values: z.output<S>) => Promise<ApiResult<unknown>>` | required | Server-result callback |
+| onSuccess | `(data: unknown) => void` | absent | Called after confirmed success |
+| onCancel | `() => void` | absent | Adds cancel action and Escape handling |
+| submitLabel | `string` | Zapisz | Ready submit text |
+| cancelLabel | `string` | Anuluj | Cancel text |
+| submitVariant | `"default" \| "outline"` | default | Main or secondary emphasis |
+
+| Field property | Type | Default / meaning |
+| --- | --- | --- |
+| name, label | `string` | required; schema key and persistent name |
+| type | `"text" \| "email" \| "password" \| "number" \| "url" \| "textarea" \| "select" \| "money" \| "checkboxes"` | text |
+| description | `string` | absent; associated hint |
+| autoComplete | `string` | absent; forwarded to ordinary Input fields |
+| options | `readonly { value: string; label: string }[]` | absent; choices for select or checkboxes |
+| placeholder | `string` | absent; select falls back to Wybierz |
+
+Fields store strings even for number/money controls; checkbox groups store string arrays. Use shared schema coercion or transformation explicitly. To load a different record, mount a new form instance rather than assuming changed defaultValues reset the draft. (Implemented initialization; P18; approved H1.)
+
+## 11. Code
+
+```tsx
+import { z } from "zod";
+import { CrudForm } from "@devmentor/ui/backend/forms";
+import { apiCall } from "@devmentor/ui/backend/api";
+
+const schema = z.object({ description: z.string().min(1, "Uzupełnij opis.") });
+<CrudForm schema={schema} fields={[{ name: "description", label: "Opis", type: "textarea" }]}
+  onSubmit={saveProfile} />;
+
+// Application wiring supplies the actual approved endpoint and success transition.
+async function saveProfile(values: z.output<typeof schema>) {
+  return apiCall(profileEndpoint, { method: "PATCH", json: values });
+}
+```
+
+`profileEndpoint` is an application-supplied approved route, not a route defined by this manual. The schema shown is a presentation example; the product schema must be shared with the API. (P18; E02-S01 proposal boundary.)
+
+## 12. Do and don't
+
+The profile tag field uses the approved H1 configuration below; the application supplies its approved save callback. Empty selection is permitted by this example schema because no minimum has been decided. (H1, 2026-11-16; brief R13.)
+
+```tsx
+const tags = ["TypeScript", "React", "Python", "AI agents"] as const;
+const profileSchema = z.object({ stack: z.array(z.enum(tags)) });
+<CrudForm
+  schema={profileSchema}
+  fields={[{ name: "stack", label: "Stack", type: "checkboxes",
+    options: tags.map((tag) => ({ value: tag, label: tag })) }]}
+  defaultValues={{ stack: ["TypeScript", "React"] }}
+  onSubmit={saveProfileTags}
+/>;
+```
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Keep the shared schema and callback in application wiring | Import core into ui | Architecture boundaries |
+| Return a failed ApiResult and preserve the draft | Throw a network exception and assume inline recovery | Implemented callback contract |
+| Confirm via onSuccess | Treat clicking submit as persisted success | P18 |
+| Explain disabled pending controls with busy text | Leave an unavailable action unexplained | WCAG 3.3.2 |
+
+## 13. Related
+
+Checkbox groups were approved in H1 on 2026-11-16 for mentor stack editing. Set `type: "checkboxes"` and supply `options`; the schema receives a string array rather than a comma-separated string. Each checkbox has its own visible label; the group has a legend, shared hint and error. Tab moves through choices and Space toggles one. Validate when leaving the group and on submit; after a failed submit focus reaches the first invalid control. Empty selection is represented by `[]`; the schema decides whether it is allowed. Do not use the discovery StackFilter to edit a profile. (Owner H1; brief R13; WCAG 2.1.1, 3.3.1, 3.3.2; WAI-ARIA APG Checkbox.)
+
+Field, Input, Textarea, Select and Button define control-level states. Patterns/Form demonstrates response recovery; Screens/E02 demonstrates offer forms. DataTable handles collections rather than input. (P18; stage-3 composition plan.)

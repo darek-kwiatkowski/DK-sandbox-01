@@ -22,10 +22,10 @@ export interface GitHubButtonProps {
 /** A real link to the OAuth start route, so it works without JavaScript (E01-S01 spec). */
 export function GitHubButton({ href, children = "Zaloguj się przez GitHub", variant = "default" }: Readonly<GitHubButtonProps>) {
   return (
-    <Button asChild variant={variant} className="w-full">
+    <Button asChild variant={variant} className="h-auto min-h-8 w-full py-1 whitespace-normal">
       <a href={href}>
         <GitHubMark />
-        {children}
+        <span className="min-w-0 wrap-break-word">{children}</span>
       </a>
     </Button>
   );

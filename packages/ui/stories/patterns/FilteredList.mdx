@@ -1,0 +1,30 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Lists from "./FilteredList.stories";
+
+<Meta of={Lists} />
+
+# Filtered list pattern
+
+Compose StackFilter above MentorList so result count, active filters and removal remain visible together. The parent owns the selected array and request state. Use DataTable instead when records need column comparison. (Brief R13; engineering standards, reusable UI layer.)
+
+## State map
+
+| Situation | Story | Next step |
+| --- | --- | --- |
+| Results | ActiveFiltersAndCount | Read count, inspect active filters, open mentor (R13) |
+| One list without filter composition | Results | Reuse MentorList's ready state (R13) |
+| Loading | Loading | Announce pending data (WCAG 4.1.3) |
+| Request failed | RequestError | Retry without inventing results (engineering standards) |
+| No published records | NoPublishedMentors | Explain why no mentors are available (R13; proposal) |
+| Filter matches none | NoMatchesForFilters | Offer clear filters, not create mentor (stage-3 list requirement) |
+| Recovery from no matches | ClearNoMatchFilters | Remove active filters and refresh visible count (R13) |
+| Operator has no records yet | EmptyListWithCreateAction | Offer creation; this is not a filter empty state (approved H3) |
+| Many structured records | Pagination | Navigate DataTable's loaded pages (implemented API) |
+
+<Unstyled><Canvas of={Lists.ActiveFiltersAndCount} /><Canvas of={Lists.Loading} /><Canvas of={Lists.RequestError} /><Canvas of={Lists.NoPublishedMentors} /><Canvas of={Lists.ClearNoMatchFilters} /><Canvas of={Lists.EmptyListWithCreateAction} /><Canvas of={Lists.Pagination} /></Unstyled>
+
+## Assembly checklist
+
+Use line-separated rows, real technology names and a factual nearest-slot time. Do not add ratings, urgency signals or card shadows. Keep filters keyboard-operable and let tags wrap at 320 px; check 768 and 1440 px too. (References R01.1/R01.3/R01.5, R02.7; brief R13/R14/N02; WCAG 1.4.10, 2.1.1.)
+
+Sources: `src/components/mentors/{StackFilter,MentorList}.tsx` and `src/backend/tables/DataTable.tsx`; stories: `stories/patterns/FilteredList.stories.tsx`. Exact APIs are in the Stack filter, Mentor list and Data table manuals. These examples do not define server filtering or pagination contracts. (Approved Q2/H4; platform primitives P14.)

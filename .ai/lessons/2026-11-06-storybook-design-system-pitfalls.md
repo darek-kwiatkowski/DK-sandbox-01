@@ -1,5 +1,11 @@
 # Storybook i shadcn w `packages/ui`: pułapki
 
+## Uzupełnienie 2026-11-16
+
+- Testy `play` zależne od odpowiedzi MSW muszą czekać na wynik (`waitFor` lub `findByRole`), nie tylko na zakończenie kliknięcia. Kliknięcie nie oznacza zakończenia żądania.
+- Testy axe nie wykrywają przepełnienia długiej etykiety. Złożone kontrolki sprawdzaj przy 320 px z długim tekstem; styl odziedziczony z prymitywu może blokować zawijanie mimo poprawnych tokenów.
+- W MDX nie zakładaj, że lokalna deklaracja komponentu będzie dostępna jako JSX w skompilowanej stronie. Pomocniczy blok dokumentacji umieść w pliku TSX i importuj jawnie; sprawdź stronę w zbudowanym Storybooku.
+
 - **Data:** 2026-11-06
 - **Kontekst:** budowa design systemu DevMentor w Storybooku 10 (react-vite, addon-vitest, addon-a11y) na shadcn/Radix.
 - **Wniosek:**
@@ -11,4 +17,5 @@
   6. Radix RadioGroup przenosi fokus strzałką w `setTimeout` i zaznacza tylko przy wciśniętym klawiszu; w teście trzeba przytrzymać klawisz (`{ArrowDown>}` … `{/ArrowDown}`).
   7. Pierwsze uruchomienie testów stories po zmianie importów padało z `TypeError` przez przeładowanie zależności Vite w trakcie biegu; pomaga `optimizeDeps.include` w `vitest.storybook.config.ts`.
   8. Odcień tła z przezroczystością (`bg-destructive/20`) zmienia kontrast zależnie od podłoża (stopka `bg-muted`, hover): parę z tokenów sprawdzaj na każdym tle, na którym stoi, a testy a11y w obu motywach to wyłapują.
-- **Jak stosować:** przy CLI odpowiadaj na pytania (`yes n | npx shadcn@latest add …`) i sprawdzaj `package.json`; branding rób w `manager.ts`; motyw stosuj na `<html>` i dla stron docs; najpierw napraw stories z naruszeniami, potem diagnozuj „niezamykające się” nakładki; trzymaj klawisze w testach Radix; dopisuj zależności do `optimizeDeps.include`.
+  9. `STORYBOOK_THEME=light command` is not portable to Windows `cmd`; run each theme from a small Node launcher that passes the environment to the child process.
+- **Jak stosować:** przy CLI odpowiadaj na pytania (`yes n | npx shadcn@latest add …`) i sprawdzaj `package.json`; branding rób w `manager.ts`; motyw stosuj na `<html>` i dla stron docs; najpierw napraw stories z naruszeniami, potem diagnozuj „niezamykające się” nakładki; trzymaj klawisze w testach Radix; dopisuj zależności do `optimizeDeps.include`; uruchamiaj testy obu motywów przez przenośny launcher procesu.

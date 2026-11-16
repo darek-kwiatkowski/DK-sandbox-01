@@ -3,7 +3,9 @@ import { resolve } from "node:path";
 import { promisify } from "node:util";
 
 const run = promisify(execFile);
-const BIN = resolve("node_modules/.bin/agent-browser");
+// Execute the JavaScript entry point through Node: .bin shims are shell scripts
+// on Unix and .cmd files on Windows, neither is a portable execFile target.
+const BIN = resolve("node_modules/agent-browser/bin/agent-browser.js");
 const COMMAND_TIMEOUT_MS = 30_000;
 
 type Envelope<T> = { success: boolean; data: T; error: string | null };
@@ -16,7 +18,7 @@ export class AgentBrowser {
   async run<T = unknown>(...args: string[]): Promise<T> {
     let stdout: string;
     try {
-      ({ stdout } = await run(BIN, ["--session", this.session, "--json", ...args], { timeout: COMMAND_TIMEOUT_MS }));
+      ({ stdout } = await run(process.execPath, [BIN, "--session", this.session, "--json", ...args], { timeout: COMMAND_TIMEOUT_MS, windowsHide: true }));
     } catch (error) {
       // The CLI exits non-zero on failure but still prints the JSON envelope.
       stdout = (error as { stdout?: string }).stdout ?? "";

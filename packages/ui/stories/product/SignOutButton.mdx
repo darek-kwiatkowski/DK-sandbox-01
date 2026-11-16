@@ -1,0 +1,78 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as States from "./AuthStates.stories";
+
+<Meta title="Product/E01 Accounts and access/Sign-out button" />
+
+# Sign-out button
+
+## 1. Purpose
+
+Ends the user's sessions on every device and navigates only after confirmation. (E01-S01 logout contract.)
+
+## 2. When to use
+
+Use in signed-in account and shell actions for every role. (E01-S01 UI/UX; platform primitives P3.)
+
+## 3. When not to use
+
+Use a normal Link for navigation; never use this action just to return to login while keeping sessions active. It is not an account-deletion control. (E01-S01 logout contract.)
+
+## 4. Anatomy
+
+Outline Button, visible all-devices hint, and an optional inline error alert. (Implemented composition; WCAG 3.3.2, 4.1.3.)
+
+## 5. Variants
+
+There is one outline variant; the component exposes destination and navigation injection, not visual variants. (Implemented public API.)
+
+## 6. States
+
+Ready, hover, focus and pressed inherit Button. Pending changes the label to “Wylogowywanie…”, disables the button and sets `aria-busy`; the hint remains visible. Failure restores the action and announces the server message. Success navigates after `ok: true`. Selected is not applicable. (E01-S01 logout contract; WCAG 4.1.3; Primitives/Button state matrix.)
+
+## 7. Behaviour and accessibility
+
+<Unstyled><Canvas of={States.SignOutReady} /><Canvas of={States.SignOutPending} /><Canvas of={States.SignOutServerError} /><Canvas of={States.SignOutNetworkError} /><Canvas of={States.SignOutConfirmed} /></Unstyled>
+
+Tab reaches the native button; Enter or Space activates it. Its 32 px height exceeds the 24 px minimum target. `aria-describedby` associates the visible all-devices explanation. Errors use `role="alert"`. Render one instance per document: the current implementation uses the fixed hint ID `sign-out-hint`. (WCAG 2.1.1, 2.5.8, 4.1.2, 4.1.3; implemented ID constraint.)
+
+## 8. Content
+
+Use the fixed “Wyloguj się” action and “Wylogujemy Cię na wszystkich urządzeniach.” hint. Do not claim success after an infrastructure failure. Error text comes from the API result; the action has no custom-label or length API. (E01-S01 UI/UX and logout failure rule.)
+
+## 9. Responsive
+
+Keep the action and wrapping hint together at 320, 768 and 1440 px. AppShell wraps its header; do not hide the explanation on mobile. (Platform primitives P3; WCAG 1.4.10.)
+
+## 10. API
+
+Import from `@devmentor/ui/components/auth/SignOutButton`. (Implemented public API.)
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| redirectTo | `string` | `"/login"` | Destination after confirmed revocation |
+| navigate | `(path: string) => void` | `window.location.assign` | Full navigation; injectable in tests |
+
+The component calls `apiCall<null>("/api/auth/logout", { method: "POST" })`. (E01-S01 API contract; implemented transport.)
+
+## 11. Code
+
+```tsx
+import { SignOutButton } from "@devmentor/ui/components/auth/SignOutButton";
+
+<SignOutButton />
+<SignOutButton redirectTo="/login" navigate={recordNavigation} />
+```
+
+The second example is for a test harness: `recordNavigation` must be supplied there. Keep the default full navigation in the application so server-rendered state sees the cleared cookie. (E01-S01 architecture.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Wait for the API result | Navigate immediately on click | E01-S01 forbids false global sign-out success |
+| Retain the visible explanation | Show a bare ambiguous icon | WCAG 3.3.2 |
+| Use one instance in the shell | Duplicate its fixed hint ID | WCAG 4.1.2; implemented ID constraint |
+
+## 13. Related
+
+AppShell accepts this component as `actions`. Product/E01 `AccountAndRoleNavigation` shows that composition; transport is owned by backend/api. (Platform primitives P3; engineering standards API layer.)

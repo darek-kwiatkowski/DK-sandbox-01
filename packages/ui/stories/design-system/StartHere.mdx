@@ -1,0 +1,66 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Start here" />
+
+# Start here
+
+DevMentor helps developers get focused, paid text sessions with experienced mentors. It gives mentors a clear way to publish their expertise, prices and availability. The interface should feel factual, readable and warm while keeping attention on the next useful decision. (Product brief: scope and R01–R04; references P09, R01.4–R01.5, R02.1.)
+
+**Character:** factual, readable, warm, focused, workshop-like. **Avoid:** generic, flashy, noisy, cold and chaotic. (References P09–P10.)
+
+## Build a screen in five steps
+
+1. **Find the closest pattern** in Patterns or the relevant epic page. Reuse its state model before composing a new layout. (Approved stage-3 plan; engineering standards: reusable API and UI layer.)
+2. **Choose components with “How to choose.”** Pick controls by the user's task and preserve native semantics. (WCAG 4.1.2; WAI-ARIA Authoring Practices Guide.)
+3. **Use semantic tokens.** Choose named roles such as `bg-background`, `text-muted-foreground`, `gap-between-groups` and `max-w-reading`; do not use raw palette values. (Approved `lekcja-06/tokeny.md`; R01.4; K1.)
+4. **Design every data state.** Include loading, empty, error, partial and long content where they can occur; confirm success only after the server confirms it. (Stage-3 pattern requirements; E01-S01; WCAG 3.3.1.)
+5. **Check “What to avoid,” then test both themes and narrow widths.** Keep color from being the only signal and honor reduced motion. (References A01–A06; WCAG 1.4.1, 1.4.10; P18.)
+
+## Component decision index
+
+“When not” describes the boundary for the named component; use the linked alternative where stated. Each import comes from `@devmentor/ui` unless marked as a native HTML element. (Engineering standards: package boundaries; approved stage-0 component plan.)
+
+| Component | Import | Use when | Do not use when |
+| --- | --- | --- | --- |
+| Button | `@devmentor/ui/components/ui/button` | Submit, save, publish, or perform an in-place action. (R01.5, R01.6.) | The action navigates; use a link. |
+| Link | `<a>` or `Button` with `variant="link"` | Navigate to a page, resource, or external work sample. (WCAG 4.1.2; R04.) | The action changes state; use a button. |
+| Input | `@devmentor/ui/components/ui/input` | One-line text, email, password, URL or money input in a labeled field. (P18; WCAG 3.3.2.) | Multi-line descriptions; use Textarea. |
+| Textarea | `@devmentor/ui/components/ui/textarea` | Profile descriptions, questions or notes that need multiple lines. (P18; R02.1.) | A short, single-line value; use Input. |
+| Select | `@devmentor/ui/components/ui/select` | Choose one value from a known, compact set. (WCAG 3.3.2.) | A few equally important options that should stay visible; use Radio group. |
+| Checkbox | `@devmentor/ui/components/ui/checkbox` | Choose independent values such as mentor stack tags. (H1; WCAG 4.1.2.) | Choose exactly one of a few visible choices; use Radio group. |
+| Radio group | `@devmentor/ui/components/ui/radio-group` | Choose one visible option, such as session duration or slot. (E03-S02; WCAG 4.1.2.) | Many or searchable options; use Select or a specified search control. |
+| Field | `@devmentor/ui/components/ui/field` | Pair a visible label, hint, control and validation message. (P18; WCAG 3.3.2.) | A bare decorative label; use native text outside the field instead. |
+| Card | `@devmentor/ui/components/ui/card` | A bounded form or detail panel that benefits from its own surface. (R01.3.) | Dense list rows; use Table/DataTable with dividers. |
+| Badge | `@devmentor/ui/components/ui/badge` | A short factual status alongside text. (R01.5; WCAG 1.4.1.) | A clickable action or a status communicated only by color. |
+| Avatar | `@devmentor/ui/components/ui/avatar` | Identify a person with initials when no approved image exists. (Approved Q5.) | A decorative icon or a rating. |
+| Alert | `@devmentor/ui/components/ui/alert` | Important feedback that stays in context and may need action. (WCAG 3.3.1; R02.4.) | A transient confirmation; use a status message. Do not add a toast without approval. |
+| Dialog | `@devmentor/ui/components/ui/dialog` | A short, interruptive task that keeps the current context. (WCAG 2.4.3; WAI-ARIA Dialog Pattern.) | A destructive decision; use Alert dialog. |
+| Alert dialog | `@devmentor/ui/components/ui/alert-dialog` | Confirm a consequential action, naming the object and safe cancel action. (R27; WAI-ARIA Alert Dialog Pattern.) | A routine form or non-blocking detail. |
+| Dropdown menu | `@devmentor/ui/components/ui/dropdown-menu` | A small set of secondary actions for one object. (R01.6; WAI-ARIA Menu Button Pattern.) | The primary task or an essential always-visible action. |
+| Tooltip | `@devmentor/ui/components/ui/tooltip` | Explain a non-essential icon or label on hover/focus. (WCAG 1.4.13.) | Required instructions; put them visibly beside the control. |
+| Skeleton | `@devmentor/ui/components/ui/skeleton` | Reserve the shape of content while it loads. (Approved stage-3 pattern requirements.) | A missing-data or error state; use EmptyState/ErrorMessage. |
+| Separator | `@devmentor/ui/components/ui/separator` | Separate related regions where spacing alone is insufficient. (R01.3.) | Dense list rows; use a thin divider between rows. |
+| Table | `@devmentor/ui/components/ui/table` | Render structured rows and columns with persistent headers. (R01.1, R01.3.) | A responsive object summary; use a list or detail layout. |
+| LoadingMessage | `@devmentor/ui/backend/feedback` | Announce that a requested region is loading. (WCAG 4.1.3; engineering standards.) | A stable empty result or failure. |
+| ErrorMessage | `@devmentor/ui/backend/feedback` | Show a recoverable region-level failure and next step. (WCAG 3.3.1; engineering standards.) | A field-specific validation error; use FieldError. |
+| EmptyState | `@devmentor/ui/backend/feedback` | Explain why a list has no items and give its next action. (Approved stage-3 pattern requirements.) | Filters returned zero matches; preserve the filters and offer “clear filters.” |
+| CrudForm | `@devmentor/ui/backend/forms` | Build a schema-driven create/edit form with server errors. (Engineering standards; P18.) | A complex calendar picker or a multi-step flow not expressible as fields. |
+| DataTable | `@devmentor/ui/backend/tables` | Show a data list with loading, error, empty and pagination states. (Engineering standards; R01.1, R01.3.) | A single entity's details; use a detail pattern. |
+| AccessDenied | `@devmentor/ui/backend/feedback` | Explain that an authenticated person lacks access. (E01-S01; WCAG 3.3.1.) | An anonymous visit that should redirect to sign-in. |
+| AppShell | `@devmentor/ui/backend/layout` | Provide consistent navigation for a signed-in area. (P07; engineering standards.) | Public marketing pages. |
+| AuthMessage | `@devmentor/ui/components/auth/AuthMessage` | Explain a known authentication or OAuth result. (E01-S01.) | An unknown server detail or secret; use generic safe copy. |
+| GitHubButton | `@devmentor/ui/components/auth/GitHubButton` | Start or link GitHub authentication. (E01-S01, R06.) | A local save or unrelated external navigation. |
+| SignOutButton | `@devmentor/ui/components/auth/SignOutButton` | End the current session with server confirmation. (E01-S01; WCAG 4.1.3.) | Navigation to another local page. |
+| MentorList | `@devmentor/ui/components/mentors/MentorList` | Display stack-filtered mentors in the approved order. (R13, N02.) | A ranked or scored marketplace. |
+| MentorListRow | `@devmentor/ui/components/mentors/MentorListRow` | Present one mentor as a dense list item with the next slot visible. (R01.1, R01.5, R13.) | A profile's full description. |
+| MentorProfile | `@devmentor/ui/components/mentors/MentorProfile` | Show one mentor's expertise, prices, next slots and public work. (R04, R08, R13.) | A rating/review profile. |
+| PublicWorkLink | `@devmentor/ui/components/mentors/PublicWorkLink` | Link to a mentor's factual public work sample. (R04, N02.) | An endorsement or invented rating. |
+| StackFilter | `@devmentor/ui/components/mentors/StackFilter` | Filter mentor results by supported technologies. (R13; E03-S01.) | Search, ranking or filters not in the 1.0 brief. |
+| StackTags | `@devmentor/ui/components/mentors/StackTags` | Display or select technology tags. (R13; H1.) | Status labels or unbounded taxonomy not specified. |
+| MessageComposer | `@devmentor/ui/components/messages/MessageComposer` | Draft one message in the active text session. (R02.2, E04-S01.) | A threaded or multimedia chat. |
+| SessionTranscript | `@devmentor/ui/components/messages/SessionTranscript` | Show confirmed messages with author and time. (R02.3, R02.8.) | Drafts that are not server-confirmed. |
+| PrivateNote | `@devmentor/ui/components/notes/PrivateNote` | Show the single co-edited private note and approval state. (R26, R31, E04-S02.) | Public reviews or multiple threaded notes. |
+| ConnectStatus | `@devmentor/ui/components/payments/ConnectStatus` | Show the known Connect onboarding state and next action. (E05-S01; proposal boundary.) | A provider status not mapped by an approved contract. |
+| PayoutList | `@devmentor/ui/components/payments/PayoutList` | Show payout rows and their approved product status labels. (R05, R28, R35; G5.) | Calculating fees or implying payout timing without a contract. |
+
+See [Components](?path=/docs/design-system-components--docs) for a live catalog and [How to choose](?path=/docs/design-system-how-to-choose--docs) for comparison tables.

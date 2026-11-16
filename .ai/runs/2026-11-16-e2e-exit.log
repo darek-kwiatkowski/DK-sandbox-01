@@ -1,0 +1,20 @@
+npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm notice run devmentor@0.1.0 test:e2e
+npm notice run vitest run --config vitest.e2e.config.ts
+
+ RUN  v5.0.5 D:/Code/DK-sandbox-01
+
+[migrator] Processing 'Migration20261017073349'
+[migrator] Applied 'Migration20261017073349'
+Successfully migrated up to the latest version
+▲ Next.js 16.4.2
+- Local:         http://localhost:64774
+- Network:       http://10.193.52.96:64774
+✓ Ready in 755ms
+✓ Running next.config.ts took 245ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  10:42:44
+   Duration  54.78s (tests 84%, import 14%, transform 1%)
+

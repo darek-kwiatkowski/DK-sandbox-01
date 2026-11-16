@@ -1,0 +1,13 @@
+Checking product-e02-mentor-offer-and-e03-finding-a-mentor-parts--row-playground light 320
+Checking product-e02-mentor-offer-and-e03-finding-a-mentor-parts--row-partial light 320
+Checking product-e02-mentor-offer-and-e03-finding-a-mentor-parts--row-long light 320
+Checking product-e02-mentor-offer-and-e03-finding-a-mentor-parts--work-link-playground light 320
+Checking product-e02-mentor-offer-and-e03-finding-a-mentor-parts--work-link-long light 320
+Checking product-e02-mentor-offer-and-e03-finding-a-mentor-parts--work-link-keyboard light 320
+Checking product-e02-mentor-offer-and-e03-finding-a-mentor-parts--tags-playground light 320
+Checking product-e02-mentor-offer-and-e03-finding-a-mentor-parts--tags-empty light 320
+page.waitForFunction: Timeout 30000ms exceeded.
+    at D:\Code\DK-sandbox-01\.ai\qa\artifacts_2026-11-16-stage3-completion\browser-focused.cjs:34:66 {
+  log: [],
+  name: 'TimeoutError'
+}

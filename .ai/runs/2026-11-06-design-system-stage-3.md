@@ -1,0 +1,9 @@
+# Design system: stage 3
+
+- **Goal:** Continue the DevMentor design-system task from `packages/ui/POSTEP.md`, completing product components, patterns and screen stories for stage 3.
+- **Specification:** `.ai/specs/2026-11-06-design-system-storybook.md` (accepted); existing product sources include `.ai/specs/product-brief.md`, `.ai/specs/backlog.md` and `.ai/specs/2026-10-31-e01-s01-accounts-and-role-access.md`.
+- **Decisions:** Keep E02–E05 proposals visibly labeled because detailed screen specs are absent. Keep G1–G5 open in the progress log; do not rewrite the existing design or base components based on those proposals. E06 is explicitly Later and is not a 1.0 screen.
+- **Steps:** Read progress, lessons, accepted design-system spec, backlog and component contracts. Added E01/mentor product stories, form/list patterns, E01–E05 full-screen compositions, and an epic flow/state map. Fixed the Windows token-scan exclusion and path assertions. Replaced the Unix-only two-theme test command with a Node launcher.
+- **Commands and results:** `npm install --ignore-scripts` succeeded on retry, but installed Rolldown's Windows native binding fails to load. `npm run typecheck` passed. `npm run check:tokens` passed with zero findings. Targeted scanner and installer tests passed (46/46). `npm run test:storybook` is blocked by `ERR_DLOPEN_FAILED`. Lint reports the pre-existing `AppShell.tsx:28` Next link rule. `git diff --check` passed.
+- **Problems:** Initial install registry returned 404; public npm timed out. Retried configured `npm install`, which returned 0 but the `.node` binding is invalid for Windows. Full unit tests and browser/a11y checks could not be repeated after installation.
+- **Status:** Stage 3 in progress. Subsequent environment repair is recorded in `2026-11-06-repair-rolldown.md`: build and both story-test themes now pass. Remaining work includes E04/E05 contracts/states and unit coverage for mentor components.

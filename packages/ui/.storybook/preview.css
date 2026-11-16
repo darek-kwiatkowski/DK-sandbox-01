@@ -9,6 +9,30 @@
   color: var(--foreground);
 }
 
+/* Keep documentation tables and long identifiers inside narrow docs viewports. */
+.sbdocs-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sbdocs-content table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+}
+
+.sbdocs-content th,
+.sbdocs-content td {
+  overflow-wrap: anywhere;
+}
+
+.sbdocs-content td code,
+.sbdocs-content li code,
+.sbdocs-content p code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 /*
  * Frozen state previews, documentation only. The built-in hover, focus-visible and active
  * variants also match [data-preview-state], so a state matrix renders the component's own

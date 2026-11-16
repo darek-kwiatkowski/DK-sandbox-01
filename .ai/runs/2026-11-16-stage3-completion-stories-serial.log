@@ -1,0 +1,37 @@
+npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> devmentor@0.1.0 test:storybook
+> npm run test:storybook -w @devmentor/ui
+
+npm warn Unknown env config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @devmentor/ui@0.1.0 test:storybook
+> node .storybook/test-stories.mjs
+
+
+ RUN  v5.0.5 D:/Code/DK-sandbox-01/packages/ui
+
+
+ Test Files  34 passed (34)
+      Tests  337 passed (337)
+   Start at  11:03:32
+   Duration  152.03s (worker 96%, tests 3%, setup 1%)
+
+The browser did not close within 30000ms. The browser process will be killed when the process exits.
+close timed out after 10000ms
+Tests closed successfully but something prevents Vite server from exiting
+You can try to identify the cause by enabling "hanging-process" reporter. See https://vitest.dev/guide/reporters.html#hanging-process-reporter
+
+ RUN  v5.0.5 D:/Code/DK-sandbox-01/packages/ui
+
+
+ Test Files  34 passed (34)
+      Tests  339 passed (339)
+   Start at  11:07:40
+   Duration  184.12s (worker 96%, tests 3%, setup 1%)
+
+The browser did not close within 30000ms. The browser process will be killed when the process exits.
+close timed out after 10000ms
+Tests closed successfully but something prevents Vite server from exiting
+You can try to identify the cause by enabling "hanging-process" reporter. See https://vitest.dev/guide/reporters.html#hanging-process-reporter

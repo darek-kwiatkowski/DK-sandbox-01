@@ -1,0 +1,57 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/What is missing" />
+
+# What is missing
+
+This page separates design-system coverage from shipped product behavior. A story is a presentation fixture, not evidence that its backlog issue or API is implemented. Backlog rows currently show `Adopted: no`; it does not assign priorities, so every priority below is **unranked in the backlog**. (`.ai/specs/backlog.md`, read 2026-11-16; approved Q2 proposal boundary.)
+
+## Backlog coverage
+
+| Backlog item | Component or screen | Covered states | Remaining product work | Priority |
+| --- | --- | --- | --- | --- |
+| E01-S01 (#11) | Sign-in, registration, account, GitHub linking, role panels and access gate | Empty, validation, pending, duplicate, server/network error, confirmed; linked/takeover/link errors; denied and sign-out states | Verify the designed states against the adopted app implementation and keep OAuth/API behavior in the E01-S01 contract | Unranked in backlog |
+| E01-S02 (#12) | Invitation list, create and redeem screens | Ready/loading/error/empty, simulated create, sign-in required, unavailable and confirmed | One-time invitation token, expiry, audit and role grant behavior; the screens are proposals | Unranked in backlog |
+| E02-S01 (#13) | Mentor profile editor, stack tags, public work and profile view | Loading/error/partial/long data, validation, pending, network/server response and confirmation; checkbox keyboard/error | Persist and publish profile only through an approved endpoint contract; H1 does not specify minimum tags | Unranked in backlog |
+| E02-S02 (#14) | Operator bounds/fee and mentor prices | Missing bounds, loading/error, validation, pending, network/server error and confirmation | Fee unit/validation and settlement calculation are unspecified; no default bounds or fee are assumed | Unranked in backlog |
+| E02-S03 (#15) | Availability publication | Empty, loading/error/partial, validation, pending, network failure and confirmation | Persist, edit and prevent conflicting slots using an approved availability contract | Unranked in backlog |
+| E03-S01 (#16) | Stack-filtered mentor list and profile | Ready/loading/error/empty/no matches, long content, filter keyboard/clear, profile and public work | Share-link routing and final list query contract; no search or ranking is approved | Unranked in backlog |
+| E03-S02 (#17) | Slot selection and checkout | Ready, pending, failed, unknown network result, server-confirmed, unavailable slot and missing configuration | Approved terms (R33), payment port/Stripe adapter (#22), notifications (#23), atomic slot reservation and webhook reconciliation | Unranked in backlog |
+| E03-S03 (#18) | Booking list, detail, mentee cancellation screen and confirmation | Ready/loading/error/empty, not found or denied, cancelled, mentee cancellation confirmation, waiting/error/confirmed examples | Cancellation screen composition is documented as a fixture; the adopted product screen and cancellation contract remain unspecified. Stories have no API or payment side effect. | Unranked in backlog |
+| E04-S01 (#19) | Text session, transcript and message composer | Loading/empty/error/partial/long/many; send/pending/failure/unavailable | Realtime/reconnect, server confirmation and session timing contract | Unranked in backlog |
+| E04-S02 (#20) | Private co-edited note | Loading/empty/saving/approving/error/conflict/approved/mentor/long | Revision comparison and persisted mentee approval contract | Unranked in backlog |
+| E05-S01 (#21) | Connect onboarding and payouts | Incomplete/starting/start failure/loading/error/ready; payout loading/empty/error/partial/long/hold | Connect return flow, provider status mapping, fee/net calculation and payout timing | Unranked in backlog |
+| E03-S02-T01 (#22) | Payment port and Stripe Checkout adapter | Not a UI contract | Payment port, idempotency, webhook reconciliation and Stripe adapter | Unranked in backlog |
+| E03-S02-T02 (#23) | Notification port | Not a UI contract | In-memory notification adapter and approved event contract | Unranked in backlog |
+| E05-S01-T01 (#24) | Connect and payouts through payment port | Connect and payout presentation only | Connect onboarding and payouts integrated through the approved payment port | Unranked in backlog |
+| E06 (#10) | No 1.0 components or screen | Later scope | No 1.0 work; do not build without a new scope decision | Later per D34 |
+
+The `Screens/Epics` page links each screen-state group to its existing stories. E01–E05 have visual coverage; the statuses above describe design examples, not product completion. (Approved stage-3 plan; backlog E01–E06.)
+
+### E03-S03 mentee cancellation: decisions still needed
+
+The product rule is clear: a mentee cancellation at any time forfeits the payment, there is no refund (R27/D39), and the mentor receives the payment minus the operator-set fee after the payout hold (R34/D47). The screen example states those consequences without calculating a fee or payout date. It does not make a real request.
+
+The available backlog, product brief, decisions and component documentation do not define:
+
+- which booking/payment states permit mentee cancellation, and what happens if the mentor or operator has already changed the booking;
+- whether a confirmed cancellation can be reversed or a booking restored;
+- the cancellation endpoint, request/response schema, authorization/error codes, or idempotency key and duplicate-request behavior;
+- what to display when the request times out or the connection is lost and the server outcome is unknown, how to reconcile status, and when retry is safe;
+- whether confirmation requires a reason, additional acknowledgement or other input;
+- the payout-hold duration/condition or how and when either party is notified;
+- the post-confirmation route, treatment of session history, and whether a mentee can still open the session or contact the mentor.
+
+Resolve these in the E03-S03 product/API specification and server contract before wiring the screen. The busy, error and success examples show a presentation boundary only; they do not settle those behaviors. (R27/R34, D39/D47; backlog E03-S03; Patterns/Delete confirmation.)
+
+## Component gaps
+
+| Missing item | Why it is missing | Revisit when | Source |
+| --- | --- | --- | --- |
+| Switch | No approved screen needs a persistent binary preference | A specified product flow requires it | Approved Q5; component plan |
+| Tabs | No approved screen needs local peer views; R01.6 rejects counters and noisy header chrome | A product spec defines a real tab task | Approved Q5; R01.6 |
+| Popover / side panel | No approved use case justifies another overlay primitive | A screen spec identifies a non-modal anchored or side-panel task | Approved Q5 |
+| Toast | Product events are limited; transient messages can hide required action | A product spec defines non-actionable, time-bounded feedback | Approved Q5; R02.4; WCAG 4.1.3 |
+| Searchable select | No approved list search/filter control beyond stack filtering | E03 spec expands filter/search behavior | R13; N02 |
+
+The audit report from exercise 1 was not provided. No rules or priorities have been inferred from that missing report. (User-provided task.)

@@ -140,7 +140,7 @@ export async function run({ root, targets, write }) {
   const findings = [];
   for (const target of targets.length > 0 ? targets : DEFAULT_TARGETS) {
     for (const path of await listFiles(join(root, target))) {
-      const file = relative(root, path);
+      const file = relative(root, path).replaceAll("\\", "/");
       if (file === TOKENS_FILE) continue;
       findings.push(...scanText(await readFile(path, "utf8"), file));
     }

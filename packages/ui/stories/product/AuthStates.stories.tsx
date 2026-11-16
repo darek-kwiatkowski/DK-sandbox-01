@@ -1,0 +1,36 @@
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
+import { delay, http, HttpResponse } from "msw";
+
+import { AuthMessage } from "@devmentor/ui/components/auth/AuthMessage";
+import { GitHubButton } from "@devmentor/ui/components/auth/GitHubButton";
+import { SignOutButton } from "@devmentor/ui/components/auth/SignOutButton";
+
+const meta = { title: "Product/E01 Auth states", parameters: { docs: { description: { component: "E01-S01 UI/UX, edge cases and logout API contract; H5 approved copy. Stories use real package components. MSW intercepts /api/auth/logout; navigate is injected so no session is revoked and no real navigation occurs. Frozen states attach the documentation-only attribute to the rendered real link, reusing its own hover/focus CSS." } } } } satisfies Meta;
+export default meta;
+type Story = StoryObj<typeof meta>;
+const navigate = fn();
+const success = http.post("*/api/auth/logout", () => HttpResponse.json({ ok: true, data: null }));
+const failure = http.post("*/api/auth/logout", () => HttpResponse.json({ ok: false, error: { code: "server_error", message: "Nie udało się wylogować. Spróbuj ponownie." } }, { status: 500 }));
+const waiting = http.post("*/api/auth/logout", async () => { await delay("infinite"); return HttpResponse.json({ ok: true, data: null }); });
+export const SignOutReady: Story = { parameters: { msw: { handlers: [success] } }, render: () => <SignOutButton navigate={navigate} /> };
+export const SignOutConfirmed: Story = { parameters: { msw: { handlers: [success] } }, render: () => <SignOutButton navigate={navigate} />, play: async ({ canvasElement }) => { navigate.mockClear(); await userEvent.click(within(canvasElement).getByRole("button", { name: "Wyloguj się" })); await waitFor(() => expect(navigate).toHaveBeenCalledWith("/login")); } };
+export const SignOutPending: Story = { parameters: { msw: { handlers: [waiting] } }, render: () => <SignOutButton navigate={navigate} />, play: async ({ canvasElement }) => { const canvas = within(canvasElement); await userEvent.click(canvas.getByRole("button", { name: "Wyloguj się" })); await expect(canvas.getByRole("button", { name: "Wylogowywanie…" })).toBeDisabled(); await expect(canvas.getByText("Wylogujemy Cię na wszystkich urządzeniach.")).toBeVisible(); } };
+export const SignOutServerError: Story = { parameters: { msw: { handlers: [failure] } }, render: () => <SignOutButton navigate={navigate} />, play: async ({ canvasElement }) => { navigate.mockClear(); const canvas = within(canvasElement); await userEvent.click(canvas.getByRole("button", { name: "Wyloguj się" })); await expect(await canvas.findByRole("alert")).toHaveTextContent("Nie udało się wylogować"); await expect(canvas.getByRole("button", { name: "Wyloguj się" })).toBeEnabled(); await expect(navigate).not.toHaveBeenCalled(); } };
+export const SignOutNetworkError: Story = { parameters: { msw: { handlers: [http.post("*/api/auth/logout", () => HttpResponse.error())] } }, render: () => <SignOutButton navigate={navigate} />, play: async ({ canvasElement }) => { const canvas = within(canvasElement); await userEvent.click(canvas.getByRole("button", { name: "Wyloguj się" })); await expect(await canvas.findByRole("alert")).toHaveTextContent("Brak połączenia z serwerem"); } };
+export const GithubPrimary: Story = { render: () => <GitHubButton href="/api/auth/github/start" /> };
+export const GithubOutline: Story = { render: () => <GitHubButton href="/api/auth/github/start?intent=link" variant="outline">Połącz konto GitHub</GitHubButton> };
+export const GithubFrozenStates: Story = { render: () => <div className="grid max-w-reading gap-between-groups">{(["default", "outline"] as const).map((variant) => <section key={variant} className="flex flex-col gap-between-groups"><h2 className="text-base font-semibold">{variant}</h2>{["hover", "focus-visible", "active"].map((state) => <div key={state} data-frozen-state={state}><p className="text-sm text-muted-foreground">{state}</p><GitHubButton href="/api/auth/github/start" variant={variant} /></div>)}</section>)}</div>, play: async ({ canvasElement }) => { canvasElement.querySelectorAll<HTMLElement>("[data-frozen-state]").forEach((wrapper) => { wrapper.querySelector("a")?.setAttribute("data-preview-state", wrapper.dataset.frozenState ?? ""); }); } };
+export const GithubLongContent: Story = { render: () => <div className="max-w-reading"><GitHubButton href="/api/auth/github/start?intent=link" variant="outline">Połącz konto GitHub z kontem DevMentor Anny Kowalskiej</GitHubButton></div> };
+export const GithubKeyboardFocus: Story = { render: () => <GitHubButton href="/api/auth/github/start" />, play: async ({ canvasElement }) => { await userEvent.tab(); await expect(within(canvasElement).getByRole("link", { name: "Zaloguj się przez GitHub" })).toHaveFocus(); } };
+export const MessageAccountExists: Story = { render: () => <AuthMessage error="github_account_exists" /> };
+export const MessageProviderFailure: Story = { render: () => <AuthMessage error="github_failed" /> };
+export const MessageDenied: Story = { render: () => <AuthMessage error="github_denied" /> };
+export const MessageExpiredState: Story = { render: () => <AuthMessage error="github_state" /> };
+export const MessageEmailMismatch: Story = { render: () => <AuthMessage error="github_email_mismatch" /> };
+export const MessageNoVerifiedEmail: Story = { render: () => <AuthMessage error="github_no_verified_email" /> };
+export const MessageAlreadyLinked: Story = { render: () => <AuthMessage error="github_already_linked" /> };
+export const MessageUnavailable: Story = { render: () => <AuthMessage error="github_unavailable" /> };
+export const MessageUnknownCode: Story = { render: () => <AuthMessage error="unexpected_code" /> };
+export const MessageTakeoverNotice: Story = { render: () => <AuthMessage notice="github_linked" /> };
+export const MessageAbsent: Story = { render: () => <AuthMessage /> };

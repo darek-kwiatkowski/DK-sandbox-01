@@ -1,0 +1,36 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Epics/E03 Finding and booking" />
+
+# E03 — Finding and booking
+
+## Flow
+
+Filter mentors by stack, inspect the profile and prices, choose a slot at least two hours ahead, review price and no-refund terms, then pay and receive server-confirmed booking status. The UI examples do not make a payment or reserve a slot. (E03-S01/S02/S03; R13, R14, R27, R29, R33.)
+
+## Screens and state map
+
+| Screen | Stories and states | Source |
+| --- | --- | --- |
+| Mentor discovery | `E03FindMentor`; `MentorListReady`, `MentorListLoading`, `MentorListError`, `MentorListEmpty`, `MentorListNoFilterMatches`, `MentorListLongNamesAndManyTags`, `StackFilteredList`, `FilterKeyboardAndClear` | E03-S01; R13; N02 |
+| Slot selection and checkout | `SlotSelectionAndCheckout` | E03-S02; R01, R08, R14, R27, R29 |
+| Payment | `PaymentAwaitingServer`, `PaymentFailed`, `PaymentNetworkUnknown`, `PaymentServerConfirmed`, `SlotBecameUnavailable`, `PaymentConfigurationMissing` | E03-S02; R28, R33; approved Q2 proposal |
+| Booking list | `BookingsReady`, `BookingsLoading`, `BookingsError`, `BookingsEmpty` | E03-S03; engineering standards: DataTable |
+| Booking detail and cancellation | `BookingDetailReady`, `BookingDetailLoading`, `BookingDetailError`, `BookingDetailNotFoundOrDenied`, `BookingDetailCancelled`, `MenteeCancelsPaidBooking`, `MenteeCancellationDemoConfirmation`, `MenteeCancellationWaiting`, `MenteeCancellationError`, `MenteeCancellationConfirmed`; Patterns/Delete confirmation → `CancelBookingOpen`, `CancelIsTheSafeDefault`, `ConfirmRunsTheAction` | E03-S03; R27/R34, D39/D47; WAI-ARIA Alert Dialog Pattern |
+
+Open the [epic state map](?path=/docs/screens-epics--docs), [form response pattern](?path=/docs/patterns-form--docs) and [delete confirmation](?path=/docs/patterns-delete-confirmation--docs).
+
+## Source files
+
+- `packages/ui/stories/screens/BookingFlows.stories.tsx`
+- `packages/ui/stories/screens/KeyScreens.stories.tsx`
+- `packages/ui/stories/product/Mentors.stories.tsx`, `MentorParts.stories.tsx`
+- `packages/ui/stories/patterns/Form.stories.tsx`, `DeleteConfirmation.stories.tsx`
+- `.ai/specs/product-brief.md` (R13, R14, R27–R29, R33); `.ai/specs/backlog.md` (E03-S01/S02/S03 and tasks T01/T02)
+- `.ai/specs/research/decisions/D39-no-refunds.md`, `D47-mentee-forfeit-payout.md` (mentee cancellation outcome)
+
+## Remaining product work
+
+The backlog marks E03-S01/S02/S03 as not adopted. Real payments require founder-approved terms (R33) and an operator-set fee (R28); payment adapter, webhook reconciliation, notifications, atomic slot reservation and cancellation effects need their approved contracts. The current checkout text is a proposal and must not be used as final legal terms. (E03-S02-T01/T02; R27/R28/R32/R33; D46.)
+
+The mentee cancellation stories are also presentation-only. The definitive no-refund and payout consequences are R27/R34 (D39/D47); booking eligibility, cancellation API, idempotency, unknown-result recovery, acknowledgement, payout-hold rules, notifications and post-cancellation navigation still need an E03-S03 contract. See [What is missing](?path=/docs/design-system-what-is-missing--docs).

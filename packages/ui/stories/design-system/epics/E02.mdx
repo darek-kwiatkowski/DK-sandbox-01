@@ -1,0 +1,34 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Epics/E02 Mentor offer" />
+
+# E02 — Mentor offer
+
+## Flow
+
+An invited mentor publishes a profile and public work, sets prices inside operator-defined bounds, then publishes 25- or 50-minute slots. The operator configures price bounds and the fee; the fee unit and settlement rules are not supplied by the screen proposal. (E02-S01/S02/S03; R04, R07, R08, R14, R28, R29.)
+
+## Screens and state map
+
+| Screen | Stories and states | Source |
+| --- | --- | --- |
+| Profile and public work | `ProfileEditAndPublish`, `ProfilePublishing`, `ProfilePublishError`, `ProfileDataLoading`, `ProfileDataError`, `ProfilePartialData`, `ProfileLongDescriptionAndLink`, `ProfileFieldRejected`, `ProfileNetworkFailure`, `ProfileServerConfirmed` | E02-S01; R04, R08; P18 |
+| Technology stack | `ProfileStackKeyboardSelection`, `ProfileStackServerError` | H1 approved 2026-11-16; R13; no minimum selection count decided |
+| Mentor prices | `MentorPriceForm`, `PriceDataLoading`, `PriceDataError`, `PricesNotSet`, `PriceSaving`, `PriceFieldRejected`, `PriceNetworkFailure`, `PriceServerConfirmed`, `PricesAwaitOperatorBounds`, `MentorPriceLimitsChanged` | E02-S02; R28/R29; P18 |
+| Operator bounds | `OperatorPriceBounds`, `BoundsDataLoading`, `BoundsDataError`, `BoundsSaving`, `BoundsFieldRejected`, `BoundsServerFailure`, `BoundsNetworkFailure`, `BoundsServerConfirmed` | E02-S02; R29; no initial bounds decided |
+| Operator fee | `OperatorFeeNotConfigured` | E02-S02; R28; fee unit/validation remain unspecified |
+| Availability | `AvailabilityPublish`, `AvailabilityDataLoading`, `AvailabilityDataError`, `AvailabilityPartialData`, `AvailabilityPublishing`, `AvailabilityFieldRejected`, `AvailabilityNetworkFailure`, `AvailabilityServerConfirmed`, `AvailabilityPublishError`, `AvailabilityEmpty` | E02-S03; R14, R29 |
+
+Open the [epic state map](?path=/docs/screens-epics--docs) and the [mentor component manuals](?path=/docs/design-system-components--docs).
+
+## Source files
+
+- `packages/ui/stories/screens/OfferFlows.stories.tsx`
+- `packages/ui/stories/screens/KeyScreens.stories.tsx`
+- `packages/ui/stories/product/Mentors.stories.tsx`, `MentorParts.stories.tsx`
+- Product manuals for `MentorList`, `MentorListRow`, `MentorProfile`, `PublicWorkLink`, `StackFilter` and `StackTags` under `packages/ui/stories/product/`
+- `.ai/specs/product-brief.md` (R04, R07, R08, R13, R14, R28, R29); `.ai/specs/backlog.md` (E02-S01/S02/S03)
+
+## Remaining product work
+
+All examples are presentation fixtures and do not save or publish profile, price, fee or availability data. The backlog marks E02-S01/S02/S03 as not adopted. Before implementation, specify the API, fee unit and validation, price-bound updates, and availability conflict handling. No default fee or bounds are assumed. (E02-S01/S02/S03; R28/R29; approved Q2/H1.)

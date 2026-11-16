@@ -1,0 +1,45 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Contributing" />
+
+# Contributing
+
+Change the smallest shared surface that solves a repeated product need. Keep product copy in Polish, documentation in English, and unresolved behavior marked as a proposal. (Approved Q1/Q2; engineering standards.)
+
+## Add a component, a variant, or nothing
+
+- Add a shared component when the same user need appears in at least two places. If it has one consumer, keep it beside that screen until a second consumer exists. (Engineering standards: component placement; user design-system brief: Contributing.)
+- Add a variant only when the same component has a repeated, meaningful behavioral or semantic difference. Do not add a variant to make one screen's layout convenient. (Engineering standards: SRP/YAGNI; user design-system brief: Contributing.)
+- Add nothing when an existing component or pattern already covers the need. Put an unresolved need on “What is missing” rather than inventing a new primitive or contract. (Approved stage-0 component plan; Q5.)
+
+## Required documentation for a new component
+
+1. Add a manual with the same 13 numbered sections and source citations as existing component pages. If a rule has no source, mark it **Proposal** and request the owner's decision. (User design-system brief: stage 2, rule 4.)
+2. Add the playground, variants and state matrix; keep hover/focus examples tied to the component's real CSS. Include long copy and narrow layout. (User design-system brief: stage 2 stories; WCAG 1.4.10.)
+3. Add an interaction test for the main keyboard and pointer behavior. Keep accessibility checking enabled; document a concrete exception rather than suppressing it without explanation. (Approved addon-a11y setup; WCAG 2.1.1; user design-system brief: stage 2.)
+4. Use real package exports in stories. Storybook helpers may organize documentation examples but must not clone a package component. (User design-system brief: rule 5.)
+
+## Changing tokens
+
+- Trace the original decision and update the source comment next to every semantic token. Keep raw values inside the token file and use semantic names in components. (Approved `tokeny.md`; user design-system brief: stage 1.)
+- Recalculate text and UI contrast in both themes. Recheck component states and overlays; alpha colors depend on the surface below them. (WCAG 1.4.3, 1.4.11; Storybook lessons 2026-11-06.)
+- Run the token scanner, then render Foundations and affected stories in both themes at 320, 768 and 1440 px. (User design-system brief: stages 1 and 5.)
+
+## Review and ownership
+
+The product/design owner approves changes to product character, token decisions, new variants, component scope and rules without an existing source. Developers may fix implementation defects against an approved rule; record any rule correction in `.ai/lessons.md` as required by the repository workflow. (References decision log; `AGENTS.md` lessons and product decision rules.)
+
+## Commands
+
+Run from the repository root:
+
+~~~sh
+npm run storybook
+npm run build-storybook
+npm run test:storybook
+npm run check:tokens
+npm run lint
+npm run typecheck
+~~~
+
+To add a shadcn primitive, follow the repository rule and run the CLI from `packages/ui`; inspect `package.json` immediately afterward and remove any unplanned dependency. Do not hand-write a shadcn primitive. (AGENTS.md: Where a new reusable component goes; user design-system brief: rule 6.)

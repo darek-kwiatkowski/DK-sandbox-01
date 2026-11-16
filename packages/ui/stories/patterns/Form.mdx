@@ -1,0 +1,30 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Form from "./Form.stories";
+
+<Meta of={Form} />
+
+# Form pattern
+
+Compose the real CrudForm with the application's shared schema and an ApiResult callback. Use the **Crud form manual** for its exact props and limits. The booking-question examples are presentation proposals, not a checkout API. (Platform primitives P18; approved Q2/H1/H2.)
+
+## State map
+
+| Situation | Story | Required response |
+| --- | --- | --- |
+| Initial input | Empty | Persistent labels; placeholder is only an example (WCAG 3.3.2) |
+| Invalid submit | ValidationAndFirstErrorFocus | Focus first error and retain values (WCAG 3.3.1) |
+| Server pending | PersistentPending | Busy form, disabled controls and visible pending action (P18) |
+| Pending then response | ServerWaiting | Do not claim success on click (P18) |
+| Field rejected | ServerFieldError | Explain beside the field and preserve draft (WCAG 3.3.1) |
+| Server failure | ServerError | Focus persistent alert; offer another submit (WCAG 4.1.3) |
+| Network unavailable | NetworkUnavailable | Preserve input and explain recovery (WCAG 3.3.1) |
+| Server confirmed | VisibleServerConfirmation | Render success only from confirmed callback (P18) |
+| Callback contract | ServerConfirmedSuccess | Invoke onSuccess after ok result (P18) |
+
+<Unstyled><Canvas of={Form.Empty} /><Canvas of={Form.ValidationAndFirstErrorFocus} /><Canvas of={Form.PersistentPending} /><Canvas of={Form.ServerWaiting} /><Canvas of={Form.ServerFieldError} /><Canvas of={Form.ServerError} /><Canvas of={Form.NetworkUnavailable} /><Canvas of={Form.VisibleServerConfirmation} /></Unstyled>
+
+## Assembly checklist
+
+Keep field order meaningful, describe required formats, validate on blur and submit, and return failed ApiResults for HTTP/network recovery. Place the form within max-w-reading and test 320/768/1440 px in both themes. The application supplies access checks and the confirmed next step. (P18; approved F1; WCAG 1.4.10, 2.4.3, 3.3.2; engineering standards, authorization.)
+
+Source: `src/backend/forms/CrudForm.tsx`; stories: `stories/patterns/Form.stories.tsx`. See **Screens/E02 Offer management proposals** for product composition and the Booking checkout section of **Patterns/Product flows** for the payment boundary. (Approved H4; E02-S01/S02, E03-S02.)

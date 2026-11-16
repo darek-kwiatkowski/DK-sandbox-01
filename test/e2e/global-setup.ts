@@ -18,30 +18,45 @@ export default async function setup() {
   const database = await startTestDatabase();
   const env = { ...process.env, DATABASE_URL: database.url, NODE_ENV: "production" as const };
 
-  await runToCompletion("npm", ["run", "db:migrate"], env);
-
-  const port = await freePort();
-  const server = spawn(resolve("node_modules/.bin/next"), ["start", "--port", String(port)], {
-    cwd: APP_DIR,
-    env,
-    stdio: ["ignore", "inherit", "inherit"],
-  });
-  const baseUrl = `http://127.0.0.1:${port}`;
-  await waitForHealthy(baseUrl, server);
-
-  // Test workers start after global setup, so they inherit these.
-  process.env.E2E_BASE_URL = baseUrl;
-  process.env.E2E_DATABASE_URL = database.url;
-
+  let server: ChildProcess | undefined;
+  try {
+    // Invoke the same migration CLI as db:migrate without platform-specific npm shims.
+    await runToCompletion(process.execPath, [resolve("node_modules/@mikro-orm/cli/cli.js"), "migration:up"], env, resolve("packages/db"));
+    const port = await freePort();
+    server = spawn(process.execPath, [resolve("node_modules/next/dist/bin/next"), "start", "--port", String(port)], {
+      cwd: APP_DIR,
+      env,
+      windowsHide: true,
+      stdio: ["ignore", "inherit", "inherit"],
+    });
+    const baseUrl = `http://127.0.0.1:${port}`;
+    let spawnError: Error | undefined;
+    server.on("error", (error) => { spawnError = error; });
+    await waitForHealthy(baseUrl, server, () => spawnError);
+    // Test workers start after global setup, so they inherit these.
+    process.env.E2E_BASE_URL = baseUrl;
+    process.env.E2E_DATABASE_URL = database.url;
+  } catch (error) {
+    try {
+      if (server) await stopProcess(server);
+    } finally {
+      await database.stop();
+    }
+    throw error;
+  }
+  const startedServer = server;
   return async () => {
-    await stopProcess(server);
-    await database.stop();
+    try {
+      await stopProcess(startedServer);
+    } finally {
+      await database.stop();
+    }
   };
 }
 
-function runToCompletion(command: string, args: string[], env: NodeJS.ProcessEnv): Promise<void> {
+function runToCompletion(command: string, args: string[], env: NodeJS.ProcessEnv, cwd: string): Promise<void> {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(command, args, { env, stdio: "inherit" });
+    const child = spawn(command, args, { env, cwd, stdio: "inherit", windowsHide: true });
     child.on("error", reject);
     child.on("exit", (code) =>
       code === 0 ? resolvePromise() : reject(new Error(`${command} ${args.join(" ")} exited with ${code}`)),
@@ -60,9 +75,11 @@ function freePort(): Promise<number> {
   });
 }
 
-async function waitForHealthy(baseUrl: string, server: ChildProcess): Promise<void> {
+async function waitForHealthy(baseUrl: string, server: ChildProcess, getSpawnError: () => Error | undefined): Promise<void> {
   const deadline = Date.now() + SERVER_START_TIMEOUT_MS;
   while (Date.now() < deadline) {
+    const spawnError = getSpawnError();
+    if (spawnError) throw spawnError;
     if (server.exitCode !== null) {
       throw new Error(`next start exited early with code ${server.exitCode}`);
     }
@@ -79,7 +96,7 @@ async function waitForHealthy(baseUrl: string, server: ChildProcess): Promise<vo
 }
 
 function stopProcess(child: ChildProcess): Promise<void> {
-  if (child.exitCode !== null) {
+  if (child.exitCode !== null || child.signalCode !== null || child.pid === undefined) {
     return Promise.resolve();
   }
   return new Promise((resolvePromise) => {

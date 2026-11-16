@@ -1,0 +1,44 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/What to avoid" />
+
+# What to avoid
+
+For every item: identify the pattern in the screen and the code, explain its effect, then choose the named replacement. (User design-system brief: What to avoid; references A01–A06; engineering standards.)
+
+## Product anti-patterns
+
+| Avoid | How to recognize it in code | Why it hurts DevMentor | Use instead | Source |
+| --- | --- | --- | --- | --- |
+| Gray-on-gray default styling with no hierarchy | Unmodified shadcn neutral tokens; every heading and action has equal weight | The user cannot see the next decision | Warm semantic tokens and one priority per screen | R01.4–R01.5; K3; P01–P02 |
+| Dense cards and shadows for every row | `rounded-* shadow-*` around every list item | Adds visual weight and hides useful rows | Divided, dense rows; reserve overlay shadow for overlays | R01.1, R01.3; K1 |
+| Ratings, stars, reviews or “Top mentor” ranking | `Star`, score fields, review-count copy or ranking sort | Implies social proof and ranking rejected by product evidence | Public work, stack fit and factual next availability | A03; R04, R13; N02 |
+| Online dots, “available now” or response-time promises | Presence indicators, countdowns or “within 5 minutes” copy | Conflicts with booking at least two hours ahead | State the published date and time as a fact | R02.7, R14; K2; A06 |
+| Courses, progress bars, badges for learning progress | `Progress`, lesson counts, completion percentages | Makes a focused answer feel like a course | Show the one question and paid session context | A02 |
+| Video-call controls or emoji reactions | Camera/microphone buttons, emoji pickers, reaction rows | 1.0 is a text session with one linear conversation | Message composer and transcript | N01; R02.5, R02.8; P06, P08, A05 |
+
+## Generic AI appearance
+
+| Avoid | How to recognize it in code | Why it hurts DevMentor | Use instead | Source |
+| --- | --- | --- | --- | --- |
+| Gradients in backgrounds, text or buttons | `bg-gradient-*`, `bg-clip-text`, `text-transparent`, `from-purple-*`, `to-indigo-*` | Recreates the generic startup-AI look | Flat semantic surface and one tokenized accent | A01; P11 |
+| Glass, blur or glow | `backdrop-blur-*`, translucent outlined cards, `drop-shadow-*` glow | Adds decoration without helping a paid-session decision | Solid token surfaces and thin dividers | A01; P11; R01.3 |
+| Emoji instead of icons or sparkles as AI shorthand | Emoji glyph in an action; `Sparkles` from Lucide | Adds noise and an unapproved AI promise | A purposeful icon with a visible or accessible name | R02.5; P06; A01; user brief: What to avoid |
+| Three identical cards with icons | Repeated `Card` grid where every item has the same structure and emphasis | Makes unrelated content appear equally important | A list or editorial hierarchy with one primary action | R01.5–R01.6; A01; P11 |
+| Everything in pills, or a card nested in a card | `rounded-full` on non-status content; nested `Card` | Obscures hierarchy and increases visual density | Use badges only for short status; use whitespace and dividers | R01.3; A01; P11 |
+| Shadow as the only separation, or everything centered | Only `shadow-*` between content; `text-center` on whole page | Removes structure and makes dense information harder to scan | Alignment that follows reading order; divider tokens | R01.1, R01.3, R01.5; A01; P11 |
+
+## Implementation errors
+
+| Avoid | How to recognize it in code | Why it hurts DevMentor | Use instead | Source |
+| --- | --- | --- | --- | --- |
+| Values outside the approved token set | Hex/rgb/hsl/oklch outside `tokens.css`; palette classes such as `bg-zinc-900`; arbitrary classes such as `p-[13px]` | Breaks theme consistency and the token contract | Semantic tokens; run `npm run check:tokens` | Approved `tokeny.md`; user brief: token rule; WCAG 1.4.3 |
+| A new variant added “just in case” | Extra `variant`/prop with one speculative consumer | Expands API without a repeated need | Reuse current variants; add only after a documented need | Approved stage-0 plan; engineering standards (YAGNI) |
+| A clickable `div` | `onClick` on a non-interactive element without native role/keyboard behavior | Keyboard and assistive technology cannot use the action reliably | `<button>` for actions, `<a>` for navigation | WCAG 2.1.1, 4.1.2 |
+| Placeholder as the only label | `placeholder` with no visible associated `<label>` | The field purpose disappears when typing | Visible label and optional example placeholder | WCAG 3.3.2; P18 |
+| Status by color alone | Destructive/success color with no text or icon | Color-vision users may miss the meaning | Add a clear status label or icon with accessible name | WCAG 1.4.1; approved `tokeny.md` |
+| Disabled button with no explanation | `disabled` control without visible nearby reason or `aria-describedby` | The user cannot tell what to do | Explain the missing prerequisite next to the action | WCAG 3.3.2; R29 |
+| An action-required error in a toast | Transient toast hides while action is still needed | The user may lose the error before fixing the problem | Persistent inline error or alert with a next step | WCAG 3.3.1, 4.1.3; user brief: Content |
+| Essential instruction only in a tooltip | Required text inside `TooltipContent` | Touch and keyboard users may not discover it | Keep required instruction visible near the control | WCAG 1.4.13 |
+
+When a visual or code example has no source, label it “Proposal” and add it to [What is missing](?path=/docs/design-system-what-is-missing--docs) for owner review. (User design-system brief: rule 4.)

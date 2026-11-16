@@ -1,0 +1,91 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Mentors from "./Mentors.stories";
+import * as Parts from "./MentorParts.stories";
+
+<Meta title="Product/E02 Mentor offer and E03 Finding a mentor/Public work link" />
+
+# Public work link
+
+**Proposal boundary:** E02/E03 presentation remains a proposal under approved Q2 pending detailed screen/API specifications. Sources: product brief, references R01/R02, approved decisions in POSTEP.md. API descriptions document current source behaviour, not backend contracts.
+
+## 1. Purpose
+
+Open evidence of a mentor's work instead of ratings. (R04, N02.)
+
+## 2. When to use
+
+Within MentorProfile when public work exists. (R04.)
+
+## 3. When not to use
+
+Ordinary Link for internal navigation. This composition always opens an external new tab. (Public API; WCAG 2.4.4.)
+
+## 4. Anatomy
+
+Native anchor with public-work prefix, supplied title, decorative external-link icon and screen-reader new-tab announcement. (R04; WCAG 2.4.4.)
+
+## 5. Variants
+
+One composition without extra visual variants or sizes. Reuse tokenized primitives rather than adding ad hoc options. (Approved component plan; R01.3.)
+
+## 6. States
+
+Default/hover/focus/pressed inherit Button link. No loading/disabled/selected/error props exist; parent handles unavailable work. (Public API.)
+
+Interactive descendants inherit the primitive hover, focus-visible and pressed declarations; informational text has no interactive state. A disabled composed action needs visible explanation in its owner. (WCAG 3.3.2, 4.1.2.)
+
+<Unstyled><Canvas of={Mentors.PublicMentorProfile} /></Unstyled>
+<Unstyled><Canvas of={Parts.WorkLinkPlayground} /><Canvas of={Parts.WorkLinkLong} /><Canvas of={Parts.WorkLinkKeyboard} /><Canvas of={Parts.FrozenLinks} /></Unstyled>
+
+## 7. Behaviour and accessibility
+
+Tab focuses the anchor and Enter follows it. target is _blank and rel is noreferrer. New-tab behaviour is announced; the icon is aria-hidden. Validate destinations at the application boundary: this component does not sanitize URLs. (WCAG 2.1.1, 2.4.4; engineering standards input validation.)
+
+Native anchors use Tab/Enter; buttons use Tab and Enter/Space; checkboxes use Space. Retain primitive visible focus and minimum 24 px control targets. The parent owns loading, permissions and validated data. (WCAG 2.1.1, 2.4.7, 2.5.8; architecture dependency direction.)
+
+## 8. Content
+
+Use actual names, plain descriptions, public-work titles and the TypeScript/React/Python/AI agents pool. No ratings, invented endorsements or urgency promises. Prices are PLN from grosze inputs; missing prices never mean free. No character maximum is approved: let long labels and names wrap. (R04, R08, R13, R14, N02; platform P7; WCAG 1.4.10.)
+
+## 9. Responsive
+
+320 px: rows stack and tag/filter collections wrap. From 768 px rows are horizontal and MentorProfile has two columns; at 1440 px the parent uses max-w-page. Profile description uses max-w-reading; public-work titles wrap. No fixed-width wrapper is required for tags or links. (Approved F1/F3; R01.1, R01.3; WCAG 1.4.10.)
+
+## 10. API
+
+Import **PublicWorkLink** from **@devmentor/ui/components/mentors/PublicWorkLink**.
+
+href: string (required); title: string (required).
+
+MentorSummary requires id/name strings, readonly stack strings, nullable ISO nextSlotAt and nullable price25Minor/price50Minor numbers in grosze; avatarUrl is optional and nullable. MentorProfileData adds description and nullable publicWork with href/title. These source types live in src/components/mentors/types.ts and do not validate input. (Public API; P7; architecture dependency direction.)
+
+## 11. Code
+
+Minimal composition:
+
+~~~tsx
+import { PublicWorkLink } from "@devmentor/ui/components/mentors/PublicWorkLink";
+
+<PublicWorkLink href="https://example.test/anna" title="TypeScript project" />
+~~~
+
+Typical product composition; data/callbacks are application-owned:
+
+~~~tsx
+<PublicWorkLink href={work.href} title={work.title} />
+~~~
+
+No example implements persistence or authorization. (Approved H4; architecture dependency direction.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Describe public work | Invent ratings | Evidence replaces ratings (R04, N02) |
+| Show factual availability | Add online dots or urgent promises | Book ahead (R14; R02.7) |
+| Preserve semantic controls | Make a text badge clickable | Behaviour must match semantics (WCAG 4.1.2) |
+| Wrap descriptive names | Clip essential information | Reflow (WCAG 1.4.10) |
+
+## 13. Related
+
+Ordinary Link for internal navigation. This composition always opens an external new tab. (Public API; WCAG 2.4.4.) MentorList, MentorProfile, StackFilter and StackTags form the E03 discovery composition. Screens/Epics records missing booking contracts. (R13; approved Q2/H4.)

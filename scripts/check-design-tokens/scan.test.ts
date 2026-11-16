@@ -76,7 +76,7 @@ describe("files and run", () => {
     await put("d/node_modules/c.ts", "");
     await put("d/public/mockServiceWorker.js", "");
     await put("d/nested/e.mdx", "");
-    expect((await listFiles(join(root, "d"))).map((p) => p.slice(root.length + 1)).sort()).toEqual(["d/a.tsx", "d/nested/e.mdx"]);
+    expect((await listFiles(join(root, "d"))).map((p) => p.slice(root.length + 1).replaceAll("\\", "/")).sort()).toEqual(["d/a.tsx", "d/nested/e.mdx"]);
   });
 
   it("scans the default targets, skips the tokens file and fails on findings", async () => {
@@ -90,6 +90,16 @@ describe("files and run", () => {
       `${formatFinding({ file: "packages/ui/src/a.tsx", line: 1, rule: "palette-class", match: "text-white" })}\n`,
       "check:tokens: 1 value(s) outside the design tokens (see lekcja-06/tokeny.md).\n",
     ]);
+  });
+
+  it("skips the tokens file when Windows paths use backslashes", async () => {
+    await put(TOKENS_FILE, ":root { --x: oklch(1 0 0); }");
+    await put("packages/ui/src/clean.ts", "export const clean = true;");
+    await put("packages/ui/stories/clean.mdx", "clean");
+    await put("packages/ui/.storybook/clean.ts", "export const clean = true;");
+    const out: string[] = [];
+    expect(await run({ root, targets: [], write: (t: string) => out.push(t) })).toBe(0);
+    expect(out).toEqual(["check:tokens: no values outside the design tokens.\n"]);
   });
 
   it("scans only the given targets and passes when clean", async () => {

@@ -1,0 +1,12 @@
+npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm notice run devmentor@0.1.0 test:integration
+npm notice run vitest run --config vitest.integration.config.ts
+
+ RUN  v5.0.5 D:/Code/DK-sandbox-01
+
+
+ Test Files  2 passed (2)
+      Tests  4 passed (4)
+   Start at  10:43:46
+   Duration  8.76s (import 71%, tests 22%, transform 7%, worker 1%)
+

@@ -1,0 +1,91 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Mentors from "./Mentors.stories";
+import * as Parts from "./MentorParts.stories";
+
+<Meta title="Product/E02 Mentor offer and E03 Finding a mentor/Stack tags" />
+
+# Stack tags
+
+**Proposal boundary:** E02/E03 presentation remains a proposal under approved Q2 pending detailed screen/API specifications. Sources: product brief, references R01/R02, approved decisions in POSTEP.md. API descriptions document current source behaviour, not backend contracts.
+
+## 1. Purpose
+
+Read mentor technologies without implying interaction. (R13.)
+
+## 2. When to use
+
+Inside MentorListRow and MentorProfile. (R13.)
+
+## 3. When not to use
+
+StackFilter for changing filters; tags are informational. (R13; WCAG 4.1.2.)
+
+## 4. Anatomy
+
+Named ul containing li and outline Badge per unique tag. Empty input renders nothing. (Public API.)
+
+## 5. Variants
+
+One composition without extra visual variants or sizes. Reuse tokenized primitives rather than adding ad hoc options. (Approved component plan; R01.3.)
+
+## 6. States
+
+Empty input renders nothing; long tags wrap. Hover/focus/pressed/selected/disabled/loading/error do not apply to text badges. Parent owns data states. (Public API; WCAG 4.1.2.)
+
+Interactive descendants inherit the primitive hover, focus-visible and pressed declarations; informational text has no interactive state. A disabled composed action needs visible explanation in its owner. (WCAG 3.3.2, 4.1.2.)
+
+<Unstyled><Canvas of={Mentors.MentorListLongNamesAndManyTags} /></Unstyled>
+<Unstyled><Canvas of={Parts.TagsPlayground} /><Canvas of={Parts.TagsEmpty} /><Canvas of={Parts.TagsLong} /></Unstyled>
+
+## 7. Behaviour and accessibility
+
+Tags remain outside the Tab order. Do not attach click handlers to Badge. Use unique tag values to avoid duplicate keys. The 24 px target rule applies to real controls, not this read-only text. (WCAG 1.3.1, 2.5.8, 4.1.2.)
+
+Native anchors use Tab/Enter; buttons use Tab and Enter/Space; checkboxes use Space. Retain primitive visible focus and minimum 24 px control targets. The parent owns loading, permissions and validated data. (WCAG 2.1.1, 2.4.7, 2.5.8; architecture dependency direction.)
+
+## 8. Content
+
+Use actual names, plain descriptions, public-work titles and the TypeScript/React/Python/AI agents pool. No ratings, invented endorsements or urgency promises. Prices are PLN from grosze inputs; missing prices never mean free. No character maximum is approved: let long labels and names wrap. (R04, R08, R13, R14, N02; platform P7; WCAG 1.4.10.)
+
+## 9. Responsive
+
+320 px: rows stack and tag/filter collections wrap. From 768 px rows are horizontal and MentorProfile has two columns; at 1440 px the parent uses max-w-page. Profile description uses max-w-reading; public-work titles wrap. No fixed-width wrapper is required for tags or links. (Approved F1/F3; R01.1, R01.3; WCAG 1.4.10.)
+
+## 10. API
+
+Import **StackTags** from **@devmentor/ui/components/mentors/StackTags**.
+
+tags: readonly string[] (required); label?: string (default "Stack").
+
+MentorSummary requires id/name strings, readonly stack strings, nullable ISO nextSlotAt and nullable price25Minor/price50Minor numbers in grosze; avatarUrl is optional and nullable. MentorProfileData adds description and nullable publicWork with href/title. These source types live in src/components/mentors/types.ts and do not validate input. (Public API; P7; architecture dependency direction.)
+
+## 11. Code
+
+Minimal composition:
+
+~~~tsx
+import { StackTags } from "@devmentor/ui/components/mentors/StackTags";
+
+<StackTags tags={["TypeScript", "React"]} />
+~~~
+
+Typical product composition; data/callbacks are application-owned:
+
+~~~tsx
+<StackTags tags={mentor.stack} label="Technologie mentora" />
+~~~
+
+No example implements persistence or authorization. (Approved H4; architecture dependency direction.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Describe public work | Invent ratings | Evidence replaces ratings (R04, N02) |
+| Show factual availability | Add online dots or urgent promises | Book ahead (R14; R02.7) |
+| Preserve semantic controls | Make a text badge clickable | Behaviour must match semantics (WCAG 4.1.2) |
+| Wrap descriptive names | Clip essential information | Reflow (WCAG 1.4.10) |
+
+## 13. Related
+
+StackFilter for changing filters; tags are informational. (R13; WCAG 4.1.2.) MentorList, MentorProfile, StackFilter and StackTags form the E03 discovery composition. Screens/Epics records missing booking contracts. (R13; approved Q2/H4.)

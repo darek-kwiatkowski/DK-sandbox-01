@@ -1,0 +1,45 @@
+npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> devmentor@0.1.0 typecheck
+> npm run typecheck --workspaces --if-present && tsc -p tsconfig.json
+
+npm warn Unknown env config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @devmentor/app@0.1.0 typecheck
+> next typegen && tsc --noEmit
+
+Generating route types...
+✓ Types generated successfully
+
+> @devmentor/core@0.1.0 typecheck
+> tsc --noEmit
+
+
+> @devmentor/db@0.1.0 typecheck
+> tsc --noEmit
+
+
+> @devmentor/ui@0.1.0 typecheck
+> tsc --noEmit
+
+stories/product/MentorParts.stories.tsx(15,47): error TS2353: Object literal may only specify known properties, and 'mentor' does not exist in type 'Partial<{ title: string; parameters: { docs: { description: { component: string; }; }; }; }>'.
+stories/product/MentorParts.stories.tsx(15,165): error TS2339: Property 'mentor' does not exist on type '{ title: string; parameters: { docs: { description: { component: string; }; }; }; }'.
+stories/product/MentorParts.stories.tsx(15,201): error TS2339: Property 'href' does not exist on type '{ title: string; parameters: { docs: { description: { component: string; }; }; }; }'.
+stories/product/MentorParts.stories.tsx(18,52): error TS2353: Object literal may only specify known properties, and 'href' does not exist in type 'Partial<{ title: string; parameters: { docs: { description: { component: string; }; }; }; }>'.
+stories/product/MentorParts.stories.tsx(18,168): error TS2339: Property 'href' does not exist on type '{ title: string; parameters: { docs: { description: { component: string; }; }; }; }'.
+stories/product/MentorParts.stories.tsx(21,48): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type 'Partial<{ title: string; parameters: { docs: { description: { component: string; }; }; }; }>'.
+stories/product/MentorParts.stories.tsx(21,137): error TS2339: Property 'tags' does not exist on type '{ title: string; parameters: { docs: { description: { component: string; }; }; }; }'.
+stories/product/MentorParts.stories.tsx(21,167): error TS2339: Property 'label' does not exist on type '{ title: string; parameters: { docs: { description: { component: string; }; }; }; }'.
+stories/product/MentorParts.stories.tsx(29,50): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type 'Partial<{ title: string; parameters: { docs: { description: { component: string; }; }; }; }>'.
+stories/product/MentorParts.stories.tsx(29,201): error TS2339: Property 'tags' does not exist on type '{ title: string; parameters: { docs: { description: { component: string; }; }; }; }'.
+stories/product/MentorParts.stories.tsx(29,234): error TS2339: Property 'selected' does not exist on type '{ title: string; parameters: { docs: { description: { component: string; }; }; }; }'.
+stories/product/MentorParts.stories.tsx(29,274): error TS2339: Property 'resultCount' does not exist on type '{ title: string; parameters: { docs: { description: { component: string; }; }; }; }'.
+stories/product/MentorParts.stories.tsx(29,312): error TS2339: Property 'onChange' does not exist on type '{ title: string; parameters: { docs: { description: { component: string; }; }; }; }'.
+npm error Lifecycle script `typecheck` failed with error:
+npm error code 2
+npm error path D:\Code\DK-sandbox-01\packages\ui
+npm error workspace @devmentor/ui@0.1.0
+npm error location D:\Code\DK-sandbox-01\packages\ui
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c tsc --noEmit

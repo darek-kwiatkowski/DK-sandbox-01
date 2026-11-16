@@ -1,0 +1,78 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import { NavLinks } from "@devmentor/ui/backend/layout";
+
+<Meta title="Product/E01 Accounts and access/Navigation links" />
+
+# Navigation links
+
+## 1. Purpose
+
+Shows available destinations and identifies the current page without relying on color. (Platform primitives P3; WCAG 1.4.1.)
+
+## 2. When to use
+
+Use as AppShell's primary navigation, with destinations derived from the resolved actor by application wiring. (Platform primitives P3.)
+
+## 3. When not to use
+
+Use Button for actions, a plain link for inline navigation, and separate pages for distinct destinations. This is not a tab widget or a role-checking mechanism. (WAI-ARIA APG Tabs; platform primitives P3.)
+
+## 4. Anatomy
+
+A `nav` named “Główna” contains a wrapping unordered list of anchors. The current anchor has `aria-current="page"`, background emphasis and semibold weight. (Implemented composition; WCAG 1.3.1, 1.4.1, 4.1.2.)
+
+## 5. Variants
+
+One composition, with current and noncurrent links. There is no vertical, compact or icon-only variant. (Approved component plan; implemented API.)
+
+<Unstyled><NavLinks items={[{ href: "/account", label: "Konto" }, { href: "/mentor", label: "Panel mentora" }]} currentPath="/account" /></Unstyled>
+
+## 6. States
+
+Default links show hover background and a focus-visible ring. Current links use exact `href === currentPath` matching. Pressing activates native navigation; there is no separate pressed decoration. Loading, disabled and error states do not exist here. Omit unauthorized destinations rather than presenting unexplained disabled links. (Implemented matching/styles; platform primitives P3; WCAG 3.3.2.)
+
+## 7. Behaviour and accessibility
+
+Tab visits links in list order; Enter navigates. Arrow-key roving is not implemented or appropriate for ordinary site links. The 32 px target height exceeds 24 px; focus is visible. Avoid two primary navigation regions with the same accessible name in one document. (WCAG 2.1.1, 2.4.3, 2.4.7, 2.5.8; WAI-ARIA navigation landmark guidance.)
+
+## 8. Content
+
+Use destination names such as “Konto” and “Panel mentora”, not action verbs that imply mutation. Labels have no implemented maximum; retain readable words and test long translations rather than truncate. Use unique href values because they are list keys. (E01-S01 UI/UX; WCAG 2.4.4, 1.4.10; implemented key constraint.)
+
+## 9. Responsive
+
+The list wraps at 320, 768 and 1440 px without hiding destinations. A mobile menu has not been approved or implemented. Test the actual role-specific label set at each width. (Platform primitives P3; WCAG 1.4.10.)
+
+## 10. API
+
+Import `NavLinks` and `NavItem` from `@devmentor/ui/backend/layout`. (Implemented public API.)
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| items | `readonly NavItem[]` | required | Ordered destinations |
+| currentPath | `string` | required | Exact path used for current marking |
+
+`NavItem` is `{ href: string; label: string }`. No automatic path normalization or descendant matching occurs. (Implemented public API.)
+
+## 11. Code
+
+```tsx
+import { NavLinks } from "@devmentor/ui/backend/layout";
+
+<NavLinks items={[{ href: "/account", label: "Konto" }]} currentPath="/account" />
+<NavLinks items={mentorNavigation} currentPath="/mentor" />
+```
+
+`mentorNavigation` is supplied by application wiring after access resolution; prefer AppShell when building a whole signed-in page. (Platform primitives P3; E01-S01 authorization.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Use native anchors | Give ordinary links tab roles | WAI-ARIA APG Tabs describes a different interaction |
+| Pass the exact destination path | Expect a parent path to become current automatically | Implemented exact equality |
+| Show text and weight for the current page | Communicate location with color alone | WCAG 1.4.1 |
+
+## 13. Related
+
+AppShell places these links in the shared header. Product/E01 `AccountAndRoleNavigation` and `SkipLinkAndAccountAction` show navigation in context. (Platform primitives P3.)

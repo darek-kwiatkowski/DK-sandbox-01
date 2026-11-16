@@ -1,0 +1,88 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { ComponentCatalogRow as CatalogRow } from "../../.storybook/blocks/ComponentCatalogRow";
+import * as AlertStories from "../primitives/Alert.stories";
+import * as AlertDialogStories from "../primitives/AlertDialog.stories";
+import * as AvatarStories from "../primitives/Avatar.stories";
+import * as BadgeStories from "../primitives/Badge.stories";
+import * as ButtonStories from "../primitives/Button.stories";
+import * as CardStories from "../primitives/Card.stories";
+import * as CheckboxStories from "../primitives/Checkbox.stories";
+import * as DialogStories from "../primitives/Dialog.stories";
+import * as DropdownMenuStories from "../primitives/DropdownMenu.stories";
+import * as FeedbackStories from "../primitives/Feedback.stories";
+import * as FieldStories from "../primitives/Field.stories";
+import * as InputStories from "../primitives/Input.stories";
+import * as LinkStories from "../primitives/Link.stories";
+import * as RadioGroupStories from "../primitives/RadioGroup.stories";
+import * as SelectStories from "../primitives/Select.stories";
+import * as SeparatorStories from "../primitives/Separator.stories";
+import * as SkeletonStories from "../primitives/Skeleton.stories";
+import * as TableStories from "../primitives/Table.stories";
+import * as TextareaStories from "../primitives/Textarea.stories";
+import * as TooltipStories from "../primitives/Tooltip.stories";
+import * as AccountStories from "../product/AccountAccess.stories";
+import * as AuthStories from "../product/AuthStates.stories";
+import * as MentorStories from "../product/Mentors.stories";
+import * as MentorPartStories from "../product/MentorParts.stories";
+import * as PayoutStories from "../product/Payouts.stories";
+import * as SessionStories from "../product/Session.stories";
+import * as OfferStories from "../screens/OfferFlows.stories";
+import * as BookingStories from "../screens/BookingFlows.stories";
+
+<Meta title="Design system/Components" />
+
+# Components
+
+Each row shows a live example from an existing Storybook story and links to its usage manual. The previews render the package components; they are not separate catalog implementations. Use [How to choose](?path=/docs/design-system-how-to-choose--docs) to decide between them. (User design-system brief: Components; rule 5.)
+
+## Primitives
+
+<CatalogRow name="Button" description="A keyboard-operable in-place action. (R01.5.)" href="?path=/docs/primitives-button--docs" story={ButtonStories.Playground} />
+<CatalogRow name="Link" description="Navigate to a page or external work sample. (R04; WCAG 4.1.2.)" href="?path=/docs/primitives-link--docs" story={LinkStories.Playground} />
+<CatalogRow name="Input" description="Collect one short value with a visible label. (P18; WCAG 3.3.2.)" href="?path=/docs/primitives-input--docs" story={InputStories.Playground} />
+<CatalogRow name="Textarea" description="Collect a multi-line description, question or note. (P18; R02.1.)" href="?path=/docs/primitives-textarea--docs" story={TextareaStories.Playground} />
+<CatalogRow name="Select" description="Choose one value from a compact known set. (P18.)" href="?path=/docs/primitives-select--docs" story={SelectStories.Playground} />
+<CatalogRow name="Checkbox" description="Choose independent stack values. (H1; WCAG 4.1.2.)" href="?path=/docs/primitives-checkbox--docs" story={CheckboxStories.Playground} />
+<CatalogRow name="Radio group" description="Choose one visible option, such as duration or slot. (E03-S02.)" href="?path=/docs/primitives-radio-group--docs" story={RadioGroupStories.Playground} />
+<CatalogRow name="Field" description="Connect a visible label, hint, control and error. (P18.)" href="?path=/docs/primitives-field--docs" story={FieldStories.Playground} />
+<CatalogRow name="Card" description="Bound a form or detail panel; do not wrap dense rows. (R01.3.)" href="?path=/docs/primitives-card--docs" story={CardStories.Playground} />
+<CatalogRow name="Badge" description="Show a short factual status beside text. (R01.5; WCAG 1.4.1.)" href="?path=/docs/primitives-badge--docs" story={BadgeStories.Playground} />
+<CatalogRow name="Avatar" description="Identify a person with initials when no approved image is present. (Q5.)" href="?path=/docs/primitives-avatar--docs" story={AvatarStories.Playground} />
+<CatalogRow name="Alert" description="Keep important feedback visible in context. (WCAG 3.3.1.)" href="?path=/docs/primitives-alert--docs" story={AlertStories.Playground} />
+<CatalogRow name="Dialog" description="Handle a short interruptive task in the current context. (WAI-ARIA Dialog Pattern.)" href="?path=/docs/primitives-dialog--docs" story={DialogStories.Playground} />
+<CatalogRow name="Alert dialog" description="Confirm a consequential action and name its safe cancel action. (R27.)" href="?path=/docs/primitives-alert-dialog--docs" story={AlertDialogStories.Playground} />
+<CatalogRow name="Dropdown menu" description="Group a few secondary actions for one object. (R01.6.)" href="?path=/docs/primitives-dropdown-menu--docs" story={DropdownMenuStories.Playground} />
+<CatalogRow name="Tooltip" description="Explain non-essential content on hover or keyboard focus. (WCAG 1.4.13.)" href="?path=/docs/primitives-tooltip--docs" story={TooltipStories.Playground} />
+<CatalogRow name="Skeleton" description="Reserve content shape while data loads. (Stage-3 pattern requirements.)" href="?path=/docs/primitives-skeleton--docs" story={SkeletonStories.Playground} />
+<CatalogRow name="Separator" description="Separate related regions when spacing is not enough. (R01.3.)" href="?path=/docs/primitives-separator--docs" story={SeparatorStories.Playground} />
+<CatalogRow name="Table" description="Render structured rows with persistent headers. (R01.1, R01.3.)" href="?path=/docs/primitives-table--docs" story={TableStories.Playground} />
+<CatalogRow name="LoadingMessage" description="Announce a region that is loading. (Engineering standards; WCAG 4.1.3.)" href="?path=/docs/primitives-feedback--docs" story={FeedbackStories.Loading} />
+<CatalogRow name="ErrorMessage" description="Show a region-level failure with its recovery step. (Engineering standards; WCAG 3.3.1.)" href="?path=/docs/primitives-feedback--docs" story={FeedbackStories.Error} />
+<CatalogRow name="EmptyState" description="Explain why there are no items and give the next action. (Stage-3 pattern requirements.)" href="?path=/docs/primitives-feedback--docs" story={FeedbackStories.Empty} />
+
+## Product
+
+<CatalogRow name="AccessDenied" description="Explain that a signed-in person lacks access. (E01-S01.)" href="?path=/docs/product-e01-accounts-and-access-access-denied--docs" story={AccountStories.AccessDeniedMentee} />
+<CatalogRow name="AppShell" description="Provide navigation for a signed-in area. (P3; engineering standards.)" href="?path=/docs/product-e01-accounts-and-access-app-shell--docs" story={AccountStories.AccountAndRoleNavigation} />
+<CatalogRow name="AuthMessage" description="Explain a known authentication result without leaking provider details. (E01-S01.)" href="?path=/docs/product-e01-accounts-and-access-auth-message--docs" story={AuthStories.MessageProviderFailure} />
+<CatalogRow name="GitHubButton" description="Start GitHub sign-in or linking. (R06; E01-S01.)" href="?path=/docs/product-e01-accounts-and-access-github-button--docs" story={AuthStories.GithubPrimary} />
+<CatalogRow name="SignOutButton" description="End the session after server confirmation. (E01-S01; WCAG 4.1.3.)" href="?path=/docs/product-e01-accounts-and-access-sign-out-button--docs" story={AuthStories.SignOutReady} />
+<CatalogRow name="Navigation links" description="Move between the authenticated app sections. (P3.)" href="?path=/docs/product-e01-accounts-and-access-navigation-links--docs" story={AccountStories.SkipLinkAndAccountAction} />
+<CatalogRow name="MentorList" description="Show stack-filtered mentors in published-availability order. (R13; N02.)" href="?path=/docs/product-e02-mentor-offer-and-e03-finding-a-mentor-mentor-list--docs" story={MentorStories.MentorListReady} />
+<CatalogRow name="MentorListRow" description="Present one mentor with the next slot prominent. (R01.1, R01.5.)" href="?path=/docs/product-e02-mentor-offer-and-e03-finding-a-mentor-mentor-list-row--docs" story={MentorPartStories.RowPlayground} />
+<CatalogRow name="MentorProfile" description="Show expertise, prices, availability and public work. (R04, R08, R13.)" href="?path=/docs/product-e02-mentor-offer-and-e03-finding-a-mentor-mentor-profile--docs" story={MentorStories.PublicMentorProfile} />
+<CatalogRow name="PublicWorkLink" description="Link to factual public work without ratings. (R04; N02.)" href="?path=/docs/product-e02-mentor-offer-and-e03-finding-a-mentor-public-work-link--docs" story={MentorPartStories.WorkLinkPlayground} />
+<CatalogRow name="StackFilter" description="Filter the mentor list by supported technologies. (R13; E03-S01.)" href="?path=/docs/product-e02-mentor-offer-and-e03-finding-a-mentor-stack-filter--docs" story={MentorPartStories.FilterPlayground} />
+<CatalogRow name="StackTags" description="Display or select mentor technology tags. (R13; H1.)" href="?path=/docs/product-e02-mentor-offer-and-e03-finding-a-mentor-stack-tags--docs" story={MentorPartStories.TagsPlayground} />
+<CatalogRow name="MessageComposer" description="Draft one message in the active text session. (R02.2; E04-S01.)" href="?path=/docs/product-e04-session-and-note-proposals-message-composer--docs" story={SessionStories.ComposerSend} />
+<CatalogRow name="SessionTranscript" description="Show confirmed messages with author and time. (R02.3, R02.8.)" href="?path=/docs/product-e04-session-and-note-proposals-session-transcript--docs" story={SessionStories.TranscriptReady} />
+<CatalogRow name="PrivateNote" description="Show the single private co-edited note. (R26, R31; E04-S02.)" href="?path=/docs/product-e04-session-and-note-proposals-private-note--docs" story={SessionStories.NoteReady} />
+<CatalogRow name="ConnectStatus" description="Show the known Connect setup state and action. (E05-S01; proposal.)" href="?path=/docs/product-e05-payouts-proposals-connect-status--docs" story={PayoutStories.ConnectIncomplete} />
+<CatalogRow name="PayoutList" description="Show payout records and approved product status labels. (R05, R28, G5.)" href="?path=/docs/product-e05-payouts-proposals-payout-list--docs" story={PayoutStories.PayoutsReady} />
+
+## Reusable panel patterns
+
+<CatalogRow name="CrudForm" description="Schema-driven create/edit form with server errors and retained values. (P18; engineering standards.)" href="?path=/docs/patterns-crud-form-manual--docs" story={OfferStories.ProfileEditAndPublish} />
+<CatalogRow name="DataTable" description="Column-configured list with pagination and data states. (Engineering standards; R01.1.)" href="?path=/docs/patterns-data-table-manual--docs" story={BookingStories.BookingsReady} />
+
+The catalog lists only approved components and compositions. Switch, tabs, popover and toast remain documented as missing; they are not added by this page. (Approved Q5.)

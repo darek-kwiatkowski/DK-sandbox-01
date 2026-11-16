@@ -1,0 +1,92 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Accounts from "./AccountAccess.stories";
+import * as Flows from "../screens/AccountFlows.stories";
+
+<Meta title="Product/E01 Accounts and access/Access denied" />
+
+# Access denied
+
+## 1. Purpose
+
+Explains why a signed-in person cannot enter a protected page and can offer a safe next step. (Platform primitives P3; E01-S01 role gates.)
+
+## 2. When to use
+
+Render after page access checks refuse the actor, for example when a mentee opens the invitation-only mentor area. The application supplies the explanation and recovery action. (E01-S01 R07/R35; platform P3.)
+
+## 3. When not to use
+
+Anonymous navigation uses the application's sign-in redirect. Failed requests use ErrorMessage; an empty authorized collection uses EmptyState. This component does not check a session, permissions or record ownership. (Platform P3; engineering standards, authorization and shared feedback.)
+
+## 4. Anatomy
+
+A named section contains the fixed h1, an optional description and an optional action. There is no decorative icon or status colour. The description explains the denied context; the action belongs to the page. (Implemented public API; WCAG 1.3.1, 2.4.6.)
+
+## 5. Variants
+
+One composition. Use the default rendering for a neutral refusal, or supply contextual description and action. These props do not create role-specific visual variants. (Platform P3; implemented API.)
+
+## 6. States
+
+| State | Preview or ownership | Source |
+| --- | --- | --- |
+| Refused access | AccessDeniedMentee | E01-S01 role gates |
+| Explained mentor refusal with recovery | MentorAccessDenied | Brief R07; platform P3 |
+| Hover, focus, pressed | Supplied action inherits Button or Link states | Approved primitive rules |
+| Loading, selected, disabled, data error | Not states of this resolved refusal; page owns them | Platform P3 |
+
+<Unstyled><Canvas of={Accounts.AccessDeniedMentee} /><Canvas of={Flows.MentorAccessDenied} /></Unstyled>
+
+If a supplied action must be disabled, show its reason visibly; an absent action is not an unexplained disabled control. (WCAG 3.3.2; task stage-2 state requirement.)
+
+## 7. Behaviour and accessibility
+
+The section is labelled by `access-denied-title`. It renders an h1, so use it as the page's main refusal heading. Render one instance per document because this ID is fixed. It has no focus management or live-announcement role; the page owns navigation focus and document title. (Implemented structure; WCAG 1.3.1, 2.4.2, 2.4.6, 4.1.2.)
+
+The supplied native link supports Tab and Enter; a supplied Button supports Enter and Space and inherits its visible focus ring and 32 px control target. Do not turn the description into a click target. (WAI-ARIA APG Button; WCAG 2.1.1, 2.4.7, 2.5.8.)
+
+## 8. Content
+
+The heading is “Nie masz dostępu do tej strony.” For the mentor gate use “Mentorzy dołączają tylko z zaproszenia.” Recovery labels identify the destination, such as “Wróć do konta”. Do not reveal protected record details. No description-length limit is implemented; preserve long text through wrapping. (E01-S01 role gates; brief R07; engineering standards, authorization; WCAG 2.4.4, 1.4.10.)
+
+## 9. Responsive
+
+At 320, 768 and 1440 px the section stays in one column with `gap-in-group` and `py-section`; the parent owns width and page padding. Text and supplied actions must fit the available width. Check the contextual story at all three widths rather than adding a fixed-width wrapper. (Approved spacing tokens; WCAG 1.4.10.)
+
+## 10. API
+
+Import `AccessDenied` from `@devmentor/ui/backend/feedback`. (Implemented public export.)
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| description | `string` | absent | Optional explanation below the heading |
+| action | `ReactNode` | absent | Optional application-owned recovery control |
+
+## 11. Code
+
+```tsx
+import { AccessDenied } from "@devmentor/ui/backend/feedback";
+import { Button } from "@devmentor/ui/components/ui/button";
+
+<AccessDenied />
+
+<AccessDenied
+  description="Mentorzy dołączają tylko z zaproszenia."
+  action={<Button asChild variant="outline"><a href="/account">Wróć do konta</a></Button>}
+/>
+```
+
+Render either example after the application's access decision; these components do not replace that check. (Platform P3; engineering standards, fail-closed access.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Enforce access before protected data renders | Hide navigation and assume access is denied | Authorization belongs to the page/server (engineering standards) |
+| Explain the invitation-only mentor rule | Suggest registration grants the mentor role | Mentoring requires invitation (E01-S01 Q3; R07) |
+| Offer a named safe destination | Use “Click here” or an unexplained disabled action | Recovery must be understandable (WCAG 2.4.4, 3.3.2) |
+| Render one main refusal section | Repeat its fixed heading ID in a list | The label association must stay unambiguous (WCAG 4.1.2) |
+
+## 13. Related
+
+See [access-gate composition](?path=/docs/patterns-product-flows--docs), [app shell](?path=/docs/product-e01-accounts-and-access-app-shell--docs) and [epic state map](?path=/docs/screens-epics--docs). ErrorMessage handles request failure; EmptyState handles an authorized empty resource. (Platform P3; engineering standards, shared feedback.)

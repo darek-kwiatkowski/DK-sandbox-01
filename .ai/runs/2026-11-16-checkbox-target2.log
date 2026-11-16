@@ -1,0 +1,9 @@
+
+ RUN  v5.0.5 D:/Code/DK-sandbox-01
+
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  11:11:48
+   Duration  17.76s (import 43%, environment 37%, tests 15%, transform 5%)
+

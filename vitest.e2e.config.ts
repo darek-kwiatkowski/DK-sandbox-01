@@ -2,6 +2,9 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
+    // Vitest 5.0.5's cached globalSetup code is a Buffer, breaking Vite's
+    // error source mapping. Disable the disk module cache until that is fixed.
+    fsModuleCache: false,
     name: "e2e",
     include: ["test/e2e/**/*.e2e.test.ts"],
     globalSetup: ["test/e2e/global-setup.ts"],

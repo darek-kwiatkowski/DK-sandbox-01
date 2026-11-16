@@ -99,7 +99,7 @@
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
 
-  --overlay: oklch(0.16 0.008 65 / 0.4); /* scrim behind dialogs: warm ink, no blur (A01: no glass). Proposal, stage 2 batch 3 */
+  --overlay: oklch(0.16 0.008 65 / 0.4); /* scrim behind dialogs: warm ink, no blur (A01: no glass). G1 approved 2026-11-13 */
 
   /* Overlay shadow, warm-tinted ink. Shadows only on overlays (tokeny.md rule 4; value F4, approved 2026-11-06). */
   --shadow-overlay-color: oklch(0.16 0.008 65 / 0.14);
@@ -149,7 +149,7 @@
   --sidebar-ring: var(--ring);
 
   --shadow-overlay-color: oklch(0 0 0 / 0.5);
-  --overlay: oklch(0 0 0 / 0.6); /* A01. Proposal */
+  --overlay: oklch(0 0 0 / 0.6); /* A01; G1 approved 2026-11-13 */
 }
 
 /* ------------------------------------------------------- Layer 3: component tokens */

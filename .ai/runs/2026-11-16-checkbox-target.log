@@ -1,0 +1,40 @@
+
+ RUN  v5.0.5 D:/Code/DK-sandbox-01
+
+ ❯ |ui| src/backend/forms/CrudForm.checkboxes.test.tsx (6 tests | 4 failed) 4107ms
+   ❯ CrudForm checkbox groups (6)
+     × reads array defaults, toggles choices independently and submits arrays alongside strings 2775ms
+     × validates only when focus leaves the group and clears a corrected error 130ms
+     × focuses the first invalid checkbox after submit without calling the server 59ms
+     × locks choices while pending and preserves selection with associated server error 111ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |ui| src/backend/forms/CrudForm.checkboxes.test.tsx > CrudForm checkbox groups > reads array defaults, toggles choices independently and submits arrays alongside strings
+ FAIL  |ui| src/backend/forms/CrudForm.checkboxes.test.tsx > CrudForm checkbox groups > reads array defaults, toggles choices independently and submits arrays alongside strings
+ FAIL  |ui| src/backend/forms/CrudForm.checkboxes.test.tsx > CrudForm checkbox groups > validates only when focus leaves the group and clears a corrected error
+ FAIL  |ui| src/backend/forms/CrudForm.checkboxes.test.tsx > CrudForm checkbox groups > validates only when focus leaves the group and clears a corrected error
+ FAIL  |ui| src/backend/forms/CrudForm.checkboxes.test.tsx > CrudForm checkbox groups > focuses the first invalid checkbox after submit without calling the server
+ FAIL  |ui| src/backend/forms/CrudForm.checkboxes.test.tsx > CrudForm checkbox groups > focuses the first invalid checkbox after submit without calling the server
+ FAIL  |ui| src/backend/forms/CrudForm.checkboxes.test.tsx > CrudForm checkbox groups > locks choices while pending and preserves selection with associated server error
+ FAIL  |ui| src/backend/forms/CrudForm.checkboxes.test.tsx > CrudForm checkbox groups > locks choices while pending and preserves selection with associated server error
+ReferenceError: ResizeObserver is not defined
+ ❯ ../../node_modules/@radix-ui/react-use-size/src/use-size.tsx:14:30
+ ❯ Object.react_stack_bottom_frame ../../node_modules/react-dom/cjs/react-dom-client.development.js:28656:20
+ ❯ runWithFiberInDEV ../../node_modules/react-dom/cjs/react-dom-client.development.js:1048:13
+ ❯ commitHookEffectListMount ../../node_modules/react-dom/cjs/react-dom-client.development.js:13748:29
+ ❯ commitHookLayoutEffects ../../node_modules/react-dom/cjs/react-dom-client.development.js:13712:11
+ ❯ commitLayoutEffectOnFiber ../../node_modules/react-dom/cjs/react-dom-client.development.js:15041:13
+ ❯ recursivelyTraverseLayoutEffects ../../node_modules/react-dom/cjs/react-dom-client.development.js:16482:11
+ ❯ commitLayoutEffectOnFiber ../../node_modules/react-dom/cjs/react-dom-client.development.js:15263:11
+ ❯ recursivelyTraverseLayoutEffects ../../node_modules/react-dom/cjs/react-dom-client.development.js:16482:11
+ ❯ commitLayoutEffectOnFiber ../../node_modules/react-dom/cjs/react-dom-client.development.js:15039:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 2 passed (6)
+   Start at  11:07:52
+   Duration  74.60s (environment 48%, import 41%, tests 8%, transform 2%)
+

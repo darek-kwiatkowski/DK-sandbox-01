@@ -1,0 +1,81 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import { GitHubButton } from "@devmentor/ui/components/auth/GitHubButton";
+
+<Meta title="Product/E01 Accounts and access/GitHub button" />
+
+# GitHub button
+
+## 1. Purpose
+
+Starts GitHub authentication or explicitly links a GitHub identity. (E01-S01; brief R06.)
+
+## 2. When to use
+
+Use as the primary authentication choice on login and registration, or an outline linking action on the account page. (E01-S01 UI/UX; approved H2.)
+
+## 3. When not to use
+
+Use Button for local mutations and Link for ordinary navigation. This component always navigates to the OAuth start route; it does not submit credentials. (E01-S01 API contracts.)
+
+## 4. Anatomy
+
+A full-width Button renders a native anchor containing the local GitHub mark and visible text. The mark is decorative. (Approved F6; WCAG 1.1.1, 4.1.2.)
+
+## 5. Variants
+
+`default` is the main sign-in action; `outline` is the account linking action. These are the only supported variants. (E01-S01; approved H2.)
+
+<Unstyled><GitHubButton href="/api/auth/github/start" /><GitHubButton href="/api/auth/github/start?intent=link" variant="outline">Połącz konto GitHub</GitHubButton></Unstyled>
+
+## 6. States
+
+Default, hover, focus-visible and pressed inherit Button styles and its frozen state matrix. Loading, disabled, selected and error props do not exist: navigation is browser-owned and redirect errors belong in AuthMessage. When GitHub is unavailable show the fallback and explanation instead of inventing a disabled anchor. (E01-S01 API contracts; Primitives/Button; WCAG 3.3.2.)
+
+## 7. Behaviour and accessibility
+
+Tab focuses the anchor; Enter navigates, including without JavaScript. Do not replace it with a click-only element. It inherits the 32 px control height and visible focus ring, exceeding the 24 px minimum target. Authorization and safe `next` handling remain server responsibilities. (E01-S01; WCAG 2.1.1, 2.4.7, 2.5.8.)
+
+## 8. Content
+
+Default text is “Zaloguj się przez GitHub”; linking uses “Połącz konto GitHub”. Keep the provider name visible. No text-length limit is implemented: test translations and wrapping rather than truncating the action. (E01-S01 copy; WCAG 1.4.10; translation testing is a proposal.)
+
+## 9. Responsive
+
+The anchor fills its parent at 320, 768 and 1440 px; constrain authentication content with `max-w-reading`, not a fixed button width. (Approved F1; WCAG 1.4.10.)
+
+Long labels wrap inside the available width; the control grows from a 32 px minimum height. The icon keeps its size and the label can shrink and break long words. This change was approved on 2026-11-16 after the 320 px regression was found in `Product/E01 Auth states/GithubLongContent`. (Owner decision, task rule 12; WCAG 1.4.10, 2.5.8.)
+
+## 10. API
+
+Import from `@devmentor/ui/components/auth/GitHubButton`. (Implemented public API.)
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| href | `string` | required | OAuth start URL |
+| children | `ReactNode` | Polish sign-in text | Visible action label |
+| variant | `"default" \| "outline"` | `"default"` | Sign-in or secondary linking emphasis |
+
+## 11. Code
+
+```tsx
+import { GitHubButton } from "@devmentor/ui/components/auth/GitHubButton";
+
+<GitHubButton href="/api/auth/github/start" />
+<GitHubButton href="/api/auth/github/start?intent=link" variant="outline">
+  Połącz konto GitHub
+</GitHubButton>
+```
+
+Use the server's OAuth start route, never a hand-built provider URL. (E01-S01 API contracts.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Keep email/password as the fallback | Make GitHub the only route into the product | R06 requires both choices |
+| Explain matching verified email beside linking | Promise that any GitHub account can be attached | E01-S01 Q6 requires a matching verified email |
+| Keep an anchor | Replace it with a div and onClick | WCAG 2.1.1; E01-S01 progressive navigation |
+
+## 13. Related
+
+AuthMessage explains redirect outcomes; CrudForm supplies the password fallback. See Product/E01 `LoginChoices`, `LoginError` and Patterns/Form. (E01-S01; approved H2.)

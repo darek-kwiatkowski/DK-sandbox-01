@@ -52,6 +52,10 @@ Nazwy plików: `YYYY-MM-DD-slug.md`, gdzie data to dzień utworzenia, a `slug` t
 
 ## Architektura DevMentor (obowiązująca)
 
+### Budowanie interfejsu
+
+Przed budową lub zmianą ekranu czytaj najpierw [`.ai/docs/design-system.md`](.ai/docs/design-system.md). To skrót komponentów, tokenów, wzorców wyboru, ograniczeń i komend; szczegóły oraz przykłady stanów są w Storybooku.
+
 DevMentor to monorepo oparte na **npm workspaces** (`packages/*`). Stack:
 
 - **Next.js 16** (App Router, Turbopack), **React 19**, **TypeScript 6** (strict)

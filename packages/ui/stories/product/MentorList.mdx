@@ -1,0 +1,99 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Mentors from "./Mentors.stories";
+
+<Meta title="Product/E02 Mentor offer and E03 Finding a mentor/Mentor list" />
+
+# Mentor list
+
+**Proposal boundary:** E02/E03 compositions remain proposals under approved Q2, pending detailed screen specifications. This page documents the existing package API.
+
+## 1. Purpose
+
+Find a mentor while understanding whether results are loading, empty or unavailable. (Brief R13.)
+
+## 2. When to use
+
+Place after StackFilter on the discovery screen. Preserve server order rather than sorting by a score. (R13.)
+
+## 3. When not to use
+
+Use MentorProfile for one selected mentor and MentorListRow inside an existing list. Do not add ratings or search. (R04, R13, N02.)
+
+## 4. Anatomy
+
+A named list of MentorListRow items, or shared loading/error/empty feedback. Retry and clear-filter actions are optional. (Approved Q2; current public API.)
+
+## 5. Variants
+
+One bordered list composition; no card-grid variant or ranking variant. (R01.1, R01.3; R13.)
+
+## 6. States
+
+| State | Story |
+| --- | --- |
+| Ready | MentorListReady |
+| Loading | MentorListLoading |
+| Error | MentorListError |
+| No published mentors | MentorListEmpty |
+| No filter matches | MentorListNoFilterMatches |
+| Partial and long data | MentorListLongNamesAndManyTags |
+
+These are current presentation states under Q2. Hover, focus and pressed belong to row links and feedback buttons. There is no selected or disabled row state. Busy loading announces status; a disabled descendant action needs a visible explanation in its owning composition. (WCAG 3.3.2, 4.1.3.)
+
+<Unstyled><Canvas of={Mentors.MentorListReady} /><Canvas of={Mentors.MentorListNoFilterMatches} /></Unstyled>
+
+## 7. Behaviour and accessibility
+
+Loading sets aria-busy and announces status; skeletons are decorative. Error feedback uses alert semantics. Tab reaches links and buttons; Enter follows links and Enter/Space activates buttons. Supply onRetry and onClearFilters when recovery is available. Controls inherit the primitive minimum 24 px target. (WCAG 2.1.1, 2.5.8, 3.3.1, 4.1.3.)
+
+No fetch, access check or client sorting happens here. The parent supplies validated presentation data and destinations. (Architecture dependency direction; R13.)
+
+## 8. Content
+
+Keep no matches distinct from no published mentors. Missing prices are not free; never invent ratings, endorsements or urgency language. No character maximum is approved: long names wrap. (R08, R13, R14, N02; WCAG 1.4.10.)
+
+## 9. Responsive
+
+At 320 px rows stack; from 768 px they arrange horizontally; at 1440 px the parent constrains max-w-page. Keep separators rather than nested cards. (R01.1, R01.3; approved F3; WCAG 1.4.10.)
+
+## 10. API
+
+Import `MentorList` from `@devmentor/ui/components/mentors/MentorList`.
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| state | MentorListState | required | loading; error with optional message; ready with readonly mentors |
+| hrefFor | (mentor: MentorSummary) => string | required | Profile destination |
+| filtered | boolean | false | Distinguish no matches from no published mentors |
+| onClearFilters | () => void | undefined | Clear selection |
+| onRetry | () => void | undefined | Retry loading |
+| timeZone | string | undefined | Passed to row date formatting |
+
+MentorSummary requires id/name strings, readonly stack strings, nullable ISO nextSlotAt, nullable price25Minor/price50Minor numbers in grosze and optional nullable avatarUrl. Types live in src/components/mentors/types.ts and are not validation schemas. (Public API; platform P7.)
+
+## 11. Code
+
+```tsx
+import { MentorList } from "@devmentor/ui/components/mentors/MentorList";
+
+<MentorList state={{ status: "loading" }} hrefFor={(mentor) => `/mentors/${mentor.id}`} />
+```
+
+Typical product composition; callbacks and data come from the application:
+
+```tsx
+<MentorList state={{ status: "ready", mentors }} hrefFor={profileHref}
+  filtered onClearFilters={clearFilters} onRetry={reloadMentors} />
+```
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Preserve server order | Sort by a client score | No ranking (R13) |
+| Show a clear-filter action for no matches | Say there are no mentors | Recover from active filters (R13; WCAG 3.3.2) |
+| Use factual availability | Add online dots | No urgency promise (R14; R02.7) |
+
+## 13. Related
+
+MentorListRow, StackFilter, MentorProfile and Patterns/Filtered list. Screens/Epics maps discovery and its missing booking contract. (R13; approved Q2/H4.)

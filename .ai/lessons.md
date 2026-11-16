@@ -25,6 +25,16 @@ Szczegółowe wpisy trafiają do `.ai/lessons/YYYY-MM-DD-slug.md`. Tutaj dodaj t
 
 <!-- Dodawaj nowe wpisy poniżej, od najnowszych. -->
 
+- [2026-11-16-vitest-global-setup-cache](lessons/2026-11-16-vitest-global-setup-cache.md) — root globalSetup needs its own cache workaround in the installed Vitest; verify Docker engine readiness after revealing the original setup error.
+
+- [2026-11-06-storybook-design-system-pitfalls](lessons/2026-11-06-storybook-design-system-pitfalls.md) — Storybook MDX custom documentation blocks belong in imported TSX helpers; verify them in a built Storybook.
+
+- [2026-11-13-preserve-unicode-in-edits](lessons/2026-11-13-preserve-unicode-in-edits.md) — verify Polish copy after shell-generated edits; builds and accessibility checks do not detect literal question marks replacing diacritics.
+
+- [2026-11-06-truncated-native-npm-package](lessons/2026-11-06-truncated-native-npm-package.md) — after interrupted npm installs, check native binary completeness before changing package versions; let quiet installations finish.
+
+- [2026-11-06-windows-paths-in-scans-and-tests](lessons/2026-11-06-windows-paths-in-scans-and-tests.md) — normalize filesystem paths before comparing slash-based repo paths; build expected absolute paths with `resolve()`.
+
 - [2026-11-06-storybook-design-system-pitfalls](lessons/2026-11-06-storybook-design-system-pitfalls.md) — shadcn CLI pyta o nadpisanie, Storybook ma nazwę na sztywno, motyw na stronach docs, a11y sprawdza portale, porzucone portale psują kolejne testy, strzałki Radix w testach, `optimizeDeps`.
 - [2026-10-31-rate-limit-keys-lockout](lessons/2026-10-31-rate-limit-keys-lockout.md) — tight rate limits go on (identifier, client); identifier-only buckets are loose ceilings, otherwise anyone can lock an account out.
 - [2026-10-31-review-shared-contracts-across-flows](lessons/2026-10-31-review-shared-contracts-across-flows.md) — review shared primitives through their first consumer and all competing identity/transaction paths; reconcile summaries and tests after changing a contract.

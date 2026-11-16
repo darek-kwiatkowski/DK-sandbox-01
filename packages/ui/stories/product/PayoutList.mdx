@@ -1,0 +1,111 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Payouts from "./Payouts.stories";
+
+<Meta title="Product/E05 Payouts (proposals)/Payout list" />
+
+# Payout list
+
+**Proposal:** presentation for E05-S01. G5 approved the displayed product status labels on 2026-11-13. Provider-to-product status mapping, fee calculation, eligibility and hold transitions still require a covering specification. These fixtures are not financial records. (Approved Q2/G5; backlog E05-S01/T01.)
+
+## 1. Purpose
+
+Shows a session's payment, platform fee, mentor amount and explained settlement status without inventing missing financial values. (Brief R05, R28, R30, R35.)
+
+## 2. When to use
+
+Use in the mentor payout overview; expose `onHold` only in an authorized operator context. Pass server-authorized `canHold` for each record. (R35; engineering standards, record authorization; E05 proposal.)
+
+## 3. When not to use
+
+Use `ConnectStatus` for account onboarding and a booking checkout pattern for a mentee payment decision. This list does not calculate fees, start payments, issue refunds or decide that a session was delivered. (R05, R27, R28, R30; E03-S02/E05-S01 boundaries.)
+
+## 4. Anatomy
+
+A source-of-amounts explanation precedes optional hold error feedback and the shared `DataTable`. Columns show session, gross payment, fee, net mentor amount, status and explanation. An operator can have a final action column; mentors do not. (Implemented API; engineering standards, shared DataTable; R28, R35.)
+
+## 5. Variants
+
+The mentor view omits `onHold`. The operator view supplies it and per-record eligibility. There are no colour-only status variants; status values have visible product labels and server-supplied explanations. The approved labels do not define provider mapping or eligibility. (R35; WCAG 1.4.1; approved G5.)
+
+## 6. States
+
+| State | Story | Source |
+| --- | --- | --- |
+| Ready | PayoutsReady | E05-S01 proposal |
+| Loading | PayoutsLoading | Shared DataTable; WCAG 4.1.3 |
+| No settlements | PayoutsEmpty | Proposal: honest empty data |
+| Request failure | PayoutsError | Shared error with retry; WCAG 3.3.1 |
+| Partial values and statuses | PayoutsStatusesAndPartial | Unknown amounts stay unknown; R28; approved G5 labels |
+| Many rows, long text | PayoutsLongAndMany | Shared pagination; WCAG 1.4.10 |
+| Operator action | OperatorHold | R35; proposed callback |
+| Hold pending | OperatorHoldPending | Disable all hold actions; visible server-wait explanation; proposal |
+| Hold request failure | OperatorHoldError | Preserve rows and show persistent error; WCAG 3.3.1 |
+
+Hover/focus/pressed inherit Table and Button. Selected is not a payout interaction. An ineligible record shows why the action is unavailable in text; pending actions show that they await server confirmation. (Approved primitive rules; WCAG 3.3.2.)
+
+<Unstyled><Canvas of={Payouts.PayoutsReady} /><Canvas of={Payouts.PayoutsEmpty} /><Canvas of={Payouts.PayoutsStatusesAndPartial} /><Canvas of={Payouts.OperatorHold} /><Canvas of={Payouts.OperatorHoldPending} /><Canvas of={Payouts.OperatorHoldError} /></Unstyled>
+
+## 7. Behaviour and accessibility
+
+The table is named “Rozliczenia sesji”, uses column headers and native buttons. Tab reaches pagination and permitted row actions in DOM order. Hold buttons inherit ≥24 px size and visible focus; pending status and persistent errors are readable without relying on colour or a toast. (WCAG 1.3.1, 1.4.1, 2.4.3, 2.4.7, 2.5.8, 4.1.3.)
+
+`onHold(id)` requests a change only. The page supplies `pendingHoldId`, reconciles server-confirmed rows and checks permissions; hiding the callback is not authorization. A hold request must not locally mark a payout held before confirmation. (R35; engineering standards, authorization; E05 proposal boundary.)
+
+## 8. Content
+
+Amounts are integer grosze formatted by `formatPln`; `null` renders “Brak danych”, never zero. Explanations come from the settlement record, including cancellations or holds. Keep long session labels and explanations visible. No default fee, inferred net amount, payout date or provider status mapping is approved here. (R28; references R01.1, K4; E05 missing contract.)
+
+## 9. Responsive
+
+At 320 px the shared table can scroll horizontally within its own container while the page remains usable. At 768 and 1440 px retain the same columns within `max-w-page`; wrap session/status text and align amounts to the end with tabular numerals. Pagination remains the shared DataTable behaviour. (Approved F3; DataTable implementation; WCAG 1.4.10 table exception.)
+
+## 10. API
+
+Import `PayoutList`, `PayoutListProps`, `PayoutListState`, `PayoutRecord` and `PayoutStatus` from `@devmentor/ui/components/payments/PayoutList`.
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| state | `PayoutListState` | required | Loading; error with message; ready with readonly rows |
+| onRetry | `() => void` | required | Reload settlement data |
+| onHold | `(id: string) => void` | absent | Operator request callback; absent for mentor view |
+| pendingHoldId | `string` or `null` | `null` | In-flight row; non-null disables all hold actions |
+| holdError | `string` or `null` | `null` | Persistent operation error above the table |
+
+| PayoutRecord field | Type | Meaning |
+| --- | --- | --- |
+| id | `string` | Stable row and action identifier |
+| session | `string` | Session label |
+| status | `PayoutStatus` | Proposed `pending`, `paid`, `held`, `failed`, `not-payable` vocabulary |
+| explanation | `string` | Server-supplied settlement explanation |
+| grossMinor, feeMinor, netMinor | `number` or `null` | Integer grosze, or not supplied |
+| canHold | `boolean` | Server-supplied record eligibility |
+
+All record fields are required. The component does not validate financial arithmetic or derive transitions. The shared DataTable currently paginates at its default page size; PayoutList does not expose a pagination prop. (Implemented public API.)
+
+## 11. Code
+
+```tsx
+import { PayoutList } from "@devmentor/ui/components/payments/PayoutList";
+
+// Mentor overview.
+<PayoutList state={settlements} onRetry={reloadSettlements} />
+
+// Authorized operator view; callbacks and pending/error state belong to the page.
+<PayoutList state={settlements} onRetry={reloadSettlements}
+  onHold={requestHold} pendingHoldId={pendingId} holdError={operationError} />
+```
+
+Do not add a second fee calculation in the page to fill missing values. The operator sets the platform fee and the server supplies settlements. (R28; engineering standards, business logic in core.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Display missing fee/net values explicitly | Assume a zero or percentage fee | No default fee was decided (R28) |
+| Show status text and an explanation | Use a coloured dot alone | Meaning must not depend on colour (WCAG 1.4.1) |
+| Wait for the confirmed hold result | Change the status on button click | The server owns the operation (R35; proposal) |
+| Omit operator actions from mentor context | Infer permission from a displayed role badge | Authorization must be enforced per record (engineering standards) |
+
+## 13. Related
+
+`ConnectStatus` handles setup; `DataTable`, Badge, Button and shared feedback provide the base rendering. `Screens/Epics` records the E05 flow. Checkout, platform-fee configuration and provider transition contracts remain missing. (E03-S02, E05-S01; R28; approved component plan.)

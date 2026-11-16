@@ -15,6 +15,9 @@ export default defineConfig({
   },
   test: {
     name: `storybook-${theme}`,
+    // One browser page at a time keeps the full a11y suite within the same
+    // timeouts on Windows machines; parallel pages compete for CPU and memory.
+    fileParallelism: false,
     browser: {
       enabled: true,
       headless: true,

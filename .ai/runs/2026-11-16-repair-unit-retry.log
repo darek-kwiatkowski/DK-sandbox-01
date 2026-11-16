@@ -1,0 +1,29 @@
+npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> devmentor@0.1.0 test:unit
+> vitest run --coverage
+
+
+ RUN  v5.0.5 D:/Code/DK-sandbox-01
+      Coverage enabled with v8
+
+
+ Test Files  46 passed (46)
+      Tests  262 passed (262)
+   Start at  10:31:27
+   Duration  111.39s (environment 53%, import 36%, tests 8%, transform 2%, worker 1%)
+
+    Isolate  46 workers spawned · ~9.14s startup each (spawn + environment, per file)
+             at least ~50.93s faster with isolate: false — reuses workers across files instead of one per file
+
+ % Coverage report from v8
+No files with missing coverage.
+76 files fully covered.
+9 empty files skipped.
+
+=============================== Coverage summary ===============================
+Statements   : 100% ( 753/753 )
+Branches     : 100% ( 514/514 )
+Functions    : 100% ( 288/288 )
+Lines        : 100% ( 704/704 )
+================================================================================

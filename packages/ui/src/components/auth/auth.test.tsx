@@ -60,6 +60,17 @@ describe("GitHubButton", () => {
     );
     expect(screen.getByRole("link", { name: "Połącz konto GitHub" }).dataset.variant).toBe("outline");
   });
+
+  it("preserves a long label in a wrapping control with a minimum target height", () => {
+    const label = "Połącz konto GitHub z kontem DevMentor Anny Kowalskiej";
+    render(<GitHubButton href="/api/auth/github/start">{label}</GitHubButton>);
+    const link = screen.getByRole("link", { name: label });
+    expect(link.classList.contains("whitespace-normal")).toBe(true);
+    expect(link.classList.contains("whitespace-nowrap")).toBe(false);
+    expect(link.classList.contains("min-h-8")).toBe(true);
+    expect(link.classList.contains("h-auto")).toBe(true);
+    expect(screen.getByText(label).classList.contains("min-w-0")).toBe(true);
+  });
 });
 
 describe("SignOutButton", () => {

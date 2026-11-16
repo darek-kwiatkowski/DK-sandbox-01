@@ -50,6 +50,12 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    files: ["packages/ui/**/*.{ts,tsx}"],
+    // This package renders in Storybook and has no Next dependency. Native links
+    // are intentional here; the Next application retains its navigation rule.
+    rules: { "@next/next/no-html-link-for-pages": "off" },
+  },
+  {
     files: ["packages/**/*.{js,jsx,mjs,ts,tsx,mts}"],
     rules: {
       "import/no-relative-packages": "error",

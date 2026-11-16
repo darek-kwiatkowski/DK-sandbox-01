@@ -1,0 +1,39 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as Detail from "./DetailView.stories";
+
+<Meta of={Detail} />
+
+# Detail view
+
+Use a detail view when the mentee needs one mentor's identity, stack, public work and prices before choosing a session. Use the filtered list to compare mentors first. This composition is a proposal pending the E02/E03 screen specifications. (Backlog E02-S01, E03-S01; brief R04, R08, R13.)
+
+## Compose the view
+
+Render `MentorProfile` from `@devmentor/ui/components/mentors/MentorProfile`. Supply the booking entry action through `children`; the component already owns its heading, description, public-work link and 25/50-minute prices. Do not add ratings or a second copy of the profile in a card. (R04, R08, N02; reference R01.3.)
+
+Keep the identity, prices and primary action near the start of the page, ahead of secondary content. At 320 px the profile stacks; from 768 px its action area uses the second column; at 1440 px place it inside `max-w-page`. The requirement to keep the action visible without scrolling still needs checking with the surrounding page at each width. (Task stage 3, detail-view requirement; approved F3 layout; proposal pending E02/E03 screen specifications.)
+
+<Canvas of={Detail.Ready} />
+
+## State map
+
+| Data state | Story | Decision |
+| --- | --- | --- |
+| Profile and booking entry | Ready | Public work replaces ratings; prices describe both durations (R04, R08, N02) |
+| Request pending | Loading | Use the shared live status renderer (engineering standards, reusable UI layer; WCAG 4.1.3) |
+| Request failed | RequestError | Keep recovery beside the error; retry callback belongs to the page (engineering standards, reusable UI layer) |
+| Record unavailable | MissingOrAccessDenied | Shared AccessDenied, neutral explanation and list link (platform P3; task detail-view requirement; copy proposal) |
+| No work, prices or availability | Partial | Omit absent work and booking action; never invent data (R04, R08, R13; proposal pending publication rules) |
+| Long identity and description | LongContent | Preserve the complete text and allow wrapping (WCAG 1.4.10; reference R01.1) |
+
+<Canvas of={Detail.Loading} />
+<Canvas of={Detail.RequestError} />
+<Canvas of={Detail.MissingOrAccessDenied} />
+<Canvas of={Detail.Partial} />
+<Canvas of={Detail.LongContent} />
+
+## Behaviour and remaining work
+
+The Ready interaction checks keyboard activation of the supplied action; RequestError checks retry. The fixtures do not authorize access, choose a slot, reserve capacity or process payment. Those contracts require the E02/E03 screen and API specifications; a page must decide access before rendering protected data. (Platform P3; brief R14, R27; engineering standards, fail-closed authorization.)
+
+Use the Storybook viewport and theme controls to inspect wrapping at 320, 768 and 1440 px in both themes. Use semantic tokens inherited from the real components, visible link labels and the existing focus styles. (Task stage 3; approved F3; WCAG 1.4.10, 2.4.4, 2.4.7.)

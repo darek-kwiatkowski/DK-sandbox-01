@@ -1,0 +1,47 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Content" />
+
+# Content
+
+Documentation is in English; product UI examples remain in Polish, as approved for stage 0. Copy should be short, factual and useful. (Approved Q1; references P17, R01.5, A06.)
+
+## Voice
+
+The product is direct, calm and specific. It explains what happened and what the person can do next. It does not borrow urgency, social proof or course language. (P09, P17; A02, A03, A06; R14.)
+
+### The product says
+
+- “Sesja tekstowa z Anną Kowalską.” — name the task and the person. (R03, R20; R02.6.)
+- “Sprawdź połączenie i spróbuj ponownie.” — state the next useful action after a network failure. (P17; WCAG 3.3.1.)
+- “Termin: 20 listopada 2026, 18:00.” — present a slot as a date and time, not a speed promise. (R01.5, R14; K2.)
+
+### The product does not say
+
+- “Mentor odpowie w 5 minut!” — it promises speed the product does not guarantee. (R14; A06.)
+- “Anna ma ocenę 4.9 od 200 osób.” — ratings and invented review counts are excluded. (N02; A03.)
+- “Rozpocznij swoją ścieżkę mentoringową!” — the product is for a concrete answer, not a course journey. (A02; research summary in references.)
+
+These forbidden examples are content anti-patterns, not factual claims about DevMentor or its mentors. (A02, A03, A06.)
+
+## Buttons and links
+
+- Start action labels with a verb and name the object when it clarifies the result: “Zapisz ceny”, “Opublikuj profil”, “Usuń profil”. Avoid “OK”, “Submit” and labels that omit the consequence. (User design-system brief: Content; R01.5.)
+- Use a link label that describes its destination. For a new tab, announce that behavior in the accessible name or adjacent text. (WCAG 2.4.4; PublicWorkLink manual.)
+- Keep labels concise, but let descriptive names wrap. Do not truncate essential names or require a tooltip to understand an action. (WCAG 1.4.10, 2.5.8; R01.1.)
+
+## Errors and empty states
+
+- Say what failed and give the next step: “Nie udało się zapisać cen. Sprawdź aktualne limity operatora.” (WCAG 3.3.1, 3.3.3; R29.)
+- A field error names the field problem, stays associated with that field and does not clear other entered values. (WCAG 3.3.1; P18.)
+- An empty list explains why it is empty and what to do next. A filter with no matches offers “Wyczyść filtry”; a list that has never had items offers its create action. (Approved stage-3 filtered-list pattern.)
+- Never place an error requiring action in a toast, and never put necessary instructions only in a tooltip. (User design-system brief: Content and What to avoid; WCAG 3.3.1, 1.4.13.)
+
+## Dates, time, money and numbers
+
+- Format money in Polish locale and PLN, with two fractional digits: `120,00 zł`. The persistence contract is integer grosze; display with `formatPln(minor)` where the product helper is available. (P7; platform primitives P7/P16; R29.)
+- Show the date and time with a timezone label whenever a slot crosses timezones. Keep the displayed zone explicit, for example `Europe/Warsaw`. (R14; platform primitives P16; WCAG 3.3.2.)
+- Use the product helper `formatDateTime(iso, { timeZone })` rather than hand-building timezone-sensitive strings. (Platform primitives P16.)
+- Do not shorten price to “from …” or show a countdown, viewer count or response-time estimate. (A06; R14.)
+
+If a locale-specific format is not covered by the brief or an existing formatter, record it as a proposal before adding it. (User design-system brief: source rule.)

@@ -1,0 +1,56 @@
+npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> devmentor@0.1.0 typecheck
+> npm run typecheck --workspaces --if-present && tsc -p tsconfig.json
+
+npm warn Unknown env config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @devmentor/app@0.1.0 typecheck
+> next typegen && tsc --noEmit
+
+Generating route types...
+✓ Types generated successfully
+
+> @devmentor/core@0.1.0 typecheck
+> tsc --noEmit
+
+
+<--- Last few GCs --->
+
+[31868:000002A265136000]    32633 ms: Scavenge (interleaved) 133.7 (198.6) -> 112.7 (223.3) MB, pooled: 0 MB, 59.09 / 0.00 ms  (average mu = 0.987, current mu = 0.987) allocation failure; 
+[31868:000002A265136000]    32799 ms: Mark-Compact 113.2 (223.3) -> 111.0 (241.8) MB, pooled: 0 MB, 26.90 / 0.00 ms  (+ 3.8 ms in 7 steps since start of marking, biggest step 3.6 ms, walltime since start of marking 165 ms) (average mu = 0.998, current mu 
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF715F77976 node::SetAbortHandler+54
+ 2: 00007FF715F77EB4 node::OnFatalError+1284
+ 3: 00007FF714B637A7 v8::Function::NewInstance+423
+ 4: 00007FF7144DB4D6 v8::SnapshotCreator::GetIsolate+57750
+ 5: 00007FF7143ACAED SSL_CTX_get_client_CA_list+728765
+ 6: 00007FF7143AB79D SSL_CTX_get_client_CA_list+723821
+ 7: 00007FF7143A9557 SSL_CTX_get_client_CA_list+715047
+ 8: 00007FF714AD745F X509_STORE_CTX_set_verify+200623
+ 9: 00007FF7143AB02B SSL_CTX_get_client_CA_list+721915
+10: 00007FF71536E1EF v8::platform::DefaultJobHandle::UpdatePriority+591
+11: 00007FF715EB583B node::GetNodeReport+94715
+12: 00007FF714BB8BB6 uv_thread_detach+150
+13: 00007FF7162C6093 node::AsyncResource::CallbackScope::CallbackScope+2237683
+14: 00007FFAC102DDA7 BaseThreadInitThunk+23
+15: 00007FFAC2479C5C RtlUserThreadStart+44
+npm error Lifecycle script `typecheck` failed with error:
+npm error code 134
+npm error path D:\Code\DK-sandbox-01\packages\core
+npm error workspace @devmentor/core@0.1.0
+npm error location D:\Code\DK-sandbox-01\packages\core
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c tsc --noEmit
+
+
+> @devmentor/db@0.1.0 typecheck
+> tsc --noEmit
+
+
+> @devmentor/ui@0.1.0 typecheck
+> tsc --noEmit
+

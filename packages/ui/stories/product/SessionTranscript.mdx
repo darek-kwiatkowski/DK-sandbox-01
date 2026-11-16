@@ -1,0 +1,96 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Session from "./Session.stories";
+
+<Meta title="Product/E04 Session and note (proposals)/Session transcript" />
+
+# Session transcript
+
+**Proposal:** E04-S01 presentation; realtime ordering, delivery and reconnect contracts remain unspecified. (Approved Q2; backlog E04-S01.)
+
+## 1. Purpose
+
+Makes the session's written exchange readable with an author and time on every message. (Brief R03, R20; references R02.3, K4.)
+
+## 2. When to use
+
+Use for a text-session conversation, above `MessageComposer`, including a read-only completed conversation when the application permits access. (E04-S01; proposal.)
+
+## 3. When not to use
+
+Use `PrivateNote` for the shared final note and `DataTable` for a session index. A transcript is not a list of bookings or an editable note. (E04-S01/S02; brief R26; engineering standards.)
+
+## 4. Anatomy
+
+The ready section contains an ordered message list; each item has author, semantic `time` and plaintext body. An optional partial-data error precedes preserved messages. Loading, failure and empty data use the shared feedback components. (R02.3, K4; engineering standards, reusable feedback.)
+
+## 5. Variants
+
+One visual variant; `partial` describes incomplete fetched data, while `timeZone` controls display formatting. Neither changes the underlying messages. (Implemented API; proposal.)
+
+## 6. States
+
+| Data state | Story | Source |
+| --- | --- | --- |
+| Ready | TranscriptReady | E04-S01 |
+| Loading | TranscriptLoading | WCAG 4.1.3; shared feedback |
+| Empty | TranscriptEmpty | E04-S01 proposal |
+| Failed request | TranscriptError | WCAG 3.3.1; shared feedback |
+| Partial | TranscriptPartial | Proposal: preserve visible messages and offer retry |
+| Many and long messages | TranscriptLongAndMany | WCAG 1.4.10; R02.3 |
+
+Hover, focus and pressed apply only to the retry button. Selected, disabled and sending are not transcript states; sending belongs to `MessageComposer`. (WAI-ARIA APG Button; E04-S01 composition.)
+
+<Unstyled><Canvas of={Session.TranscriptReady} /><Canvas of={Session.TranscriptLoading} /><Canvas of={Session.TranscriptEmpty} /><Canvas of={Session.TranscriptError} /><Canvas of={Session.TranscriptPartial} /><Canvas of={Session.TranscriptLongAndMany} /></Unstyled>
+
+## 7. Behaviour and accessibility
+
+The section is named “Rozmowa sesji tekstowej”; the ordered list is named “Wiadomości”. Reading order follows the supplied array. Messages do not become tab stops. Retry is a native button with the primitive focus and ≥24 px target. Loading and errors inherit the shared status/alert semantics. (WCAG 1.3.1, 2.4.3, 2.5.8, 4.1.3.)
+
+There is no automatic scroll, live-region announcement of new messages, paging or virtualisation in this component. These behaviours need an E04 decision before implementation; do not assume the list handles them. (E04-S01 missing contract.)
+
+## 8. Content
+
+Render user-authored plaintext without invented summaries, ratings or altered wording. Preserve line breaks, wrap long text and show both author and formatted timestamp. The application must supply valid timestamps and decide ordering. No approved maximum length exists. (References R02.3, K4; WCAG 1.4.10; length/order contract missing.)
+
+## 9. Responsive
+
+At 320 px metadata wraps and message text uses one column. At 768 and 1440 px text remains within `max-w-reading`; the page can place a note beside it. Many messages extend the page rather than creating a second internal scrolling region. (Approved F1/F3; implemented layout; WCAG 1.4.10.)
+
+## 10. API
+
+Import `SessionTranscript`, `TranscriptState` and `SessionMessage` from `@devmentor/ui/components/messages/SessionTranscript`.
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| state | `TranscriptState` | required | Loading; error with message; ready with messages and optional partial flag |
+| onRetry | `() => void` | required | Application reload request |
+| timeZone | `string` | `Europe/Warsaw` | Timezone passed to `formatDateTime` |
+
+`SessionMessage` contains required `id`, `author`, `sentAt` and `text` strings. The ready state contains `readonly SessionMessage[]` and optional `partial: boolean`; the error state requires a message. (Implemented public API.)
+
+## 11. Code
+
+```tsx
+import { SessionTranscript } from "@devmentor/ui/components/messages/SessionTranscript";
+
+<SessionTranscript state={{ status: "loading" }} onRetry={reloadConversation} />
+<SessionTranscript
+  state={{ status: "ready", messages: confirmedMessages, partial: true }}
+  onRetry={reloadConversation}
+  timeZone="Europe/Warsaw"
+/>
+```
+
+The page owns `confirmedMessages`, reload and authorization; no network request is made by this component. (Engineering standards, UI separation; E04-S01.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Preserve loaded messages when a later request fails | Replace the whole exchange with a blank error | Keep partial data useful (proposal) |
+| Label authors and times explicitly | Identify speakers only by colour | Meaning cannot depend on colour (WCAG 1.4.1; R02.3) |
+| Compose the real transcript component | Recreate messages in story-only cards | Stories must use package exports (task rule 5) |
+
+## 13. Related
+
+Compose with `MessageComposer` and `PrivateNote`; use shared LoadingMessage, ErrorMessage and EmptyState for page-level requests. The E04 state map lives in `Screens/Epics`. (E04-S01/S02; engineering standards.)

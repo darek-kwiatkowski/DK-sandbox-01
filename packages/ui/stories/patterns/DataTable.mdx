@@ -1,0 +1,109 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Lists from "./FilteredList.stories";
+
+<Meta title="Patterns/Data table manual" />
+
+# DataTable
+
+## 1. Purpose
+
+Displays structured records with consistent loading, failure, empty and paginated states. (Engineering standards, reusable UI layer.)
+
+## 2. When to use
+
+Use for operator invitations and other records compared across stable columns. Supply identity and cell rendering from the page. One row represents one object. (Brief R35; reference R01.1/R01.3.)
+
+## 3. When not to use
+
+Use MentorList for discovery and MentorProfile for one mentor's details. DataTable is not a server filtering, sorting, selection or fetching layer. Compose StackFilter and the shared API layer outside it. (R13; engineering standards, API layer; implemented API.)
+
+## 4. Anatomy
+
+A wrapper contains either shared feedback, or a named Table with column headers, rows, optional row-action column and optional pagination. Empty actions are supplied by the consumer. (Implemented composition; approved H3.)
+
+## 5. Variants
+
+There is one visual table composition. Columns and rowActions configure content; pageSize controls client pagination. Do not add decorative card or density variants. (Reference R01.1/R01.3; approved component plan.)
+
+## 6. States
+
+| State | Behaviour | Source |
+| --- | --- | --- |
+| Loading | LoadingMessage replaces content, before errors are considered | Implemented precedence; WCAG 4.1.3 |
+| Error | ErrorMessage and optional onRetry replace content | Engineering standards |
+| Empty | EmptyState and optional emptyAction replace table | Approved H3 |
+| Ready | Rows with headers and optional actions | R01.1/R01.3 |
+| Many | Pagination; 20 rows by default | Implemented default |
+| Partial / long | Consumer renders honest missing-value text and wrapping cells | WCAG 1.4.10; proposal |
+| Hover / focus / pressed | Table hover and Button focus/pressed styles | Approved stage 2 |
+| Disabled | Previous at first page, Next at last page; current-page text explains boundary | Implemented pagination; WCAG 3.3.2 |
+| Selected | Not supported by DataTable | Implemented API |
+
+<Unstyled><Canvas of={Lists.Pagination} /><Canvas of={Lists.EmptyListWithCreateAction} /></Unstyled>
+
+The other filtered-list stories use MentorList, not DataTable. For real DataTable loading/error/empty compositions see Screens/E01 Account flows invitations and Screens/E03 Booking proposals bookings. Do not mistake a related list's rendering for this component's API. (Approved H4; implemented story imports.)
+
+## 7. Behaviour and accessibility
+
+The label names the native table; headers are native table headers. Tab reaches only interactive cell content and pagination actions, not every row. Enter/Space activate buttons. Changing pages updates a polite current-page announcement. When rows shrink, pagination clamps to the last available page. (Implemented behaviour; WCAG 1.3.1, 2.1.1, 4.1.3.)
+
+Row action callbacks must return accessible controls with object-specific names when repeated. Client pagination does not fetch another server page. No keyboard grid, row selection, sortable headers or focus restoration after row deletion is implemented. (WAI-ARIA APG Table; implemented API boundary.)
+
+## 8. Content
+
+Write concise Polish headers, keep exact prices visible and identify missing amounts in text. Distinguish no records yet, with create action, from no filter matches, with clear-filter action. No built-in truncation or length limit exists. (Accepted Q1; reference A06; task stage-3 filtered-list rules; WCAG 1.4.10.)
+
+## 9. Responsive
+
+At 320 px the Table wrapper can scroll horizontally; preserve header-cell relationships instead of hiding essential columns. At 768 and 1440 px use the same table inside max-w-page. Pagination remains content-sized; test long cell labels and narrow widths. (Approved F3; reference R01.1; WCAG 1.4.10.)
+
+## 10. API
+
+Import `DataTable` from `@devmentor/ui/backend/tables`. (Engineering standards, reusable UI layer.)
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| columns | `readonly DataTableColumn<T>[]` | required | Ordered column definitions |
+| rows | `readonly T[]` | empty array | Records already loaded |
+| getRowId | `(row: T) => string` | required | Stable unique row identity |
+| isLoading | `boolean` | false | Loading replacement |
+| error | `string \| null` | null | Error replacement |
+| onRetry | `() => void` | absent | Recovery action |
+| emptyTitle | `string` | Brak danych. | Empty heading |
+| emptyDescription | `string` | absent | Empty explanation |
+| emptyAction | `ReactNode` | absent | Next-step control |
+| rowActions | `(row: T) => ReactNode` | absent | Adds Akcje column |
+| pageSize | `number` | 20 | Positive integer rows per client page |
+| label | `string` | required | Accessible table name |
+
+Each column has required `id: string`, `header: string`, `cell: (row: T) => ReactNode`, and optional `className: string`. Only semantic token classes belong in className. pageSize is not validated internally; callers must provide a positive integer. (Implemented types; token rule 3.)
+
+## 11. Code
+
+```tsx
+import { DataTable } from "@devmentor/ui/backend/tables";
+import { Button } from "@devmentor/ui/components/ui/button";
+
+<DataTable label="Zaproszenia mentorów" rows={invitations}
+  getRowId={(row) => row.id}
+  columns={[{ id: "name", header: "Mentor", cell: (row) => row.name }]}
+  isLoading={isLoading} error={error} onRetry={reload}
+  emptyTitle="Nie ma jeszcze zaproszeń."
+  emptyDescription="Utwórz zaproszenie dla mentora."
+  emptyAction={<Button onClick={openCreate}>Utwórz zaproszenie</Button>} />;
+```
+
+The page supplies loaded invitations and callbacks; their API contracts are not defined here. For the smallest table omit optional feedback/action props, retaining label, rows, columns and getRowId. (E01-S02 proposal; approved H3.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Supply stable object IDs | Use page index as identity | Correct row reconciliation; implemented getRowId contract |
+| Explain no data and offer a next step | Use one generic empty message for all filters | Stage-3 list requirement |
+| Fetch via shared API layer in the consumer | Add fetch inside cell renderers | Engineering standards |
+| Keep line-separated rows | Turn every row into a shadow card | R01.3 |
+
+## 13. Related
+
+Table owns visual cells; LoadingMessage, ErrorMessage and EmptyState own feedback. MentorList and StackFilter serve discovery. Patterns/Filtered list shows collection states; Screens/Epics maps consuming flows. (Engineering standards; R13; approved stage-3 plan.)

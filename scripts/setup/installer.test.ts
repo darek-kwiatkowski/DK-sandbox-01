@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { constants } from "node:fs";
+import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const spawnSync = vi.hoisted(() => vi.fn());
@@ -390,13 +391,13 @@ describe("createContext", () => {
     const ctx = createContext("/repo", {});
 
     expect(ctx.exists(".env")).toBe(true);
-    expect(fs.existsSync).toHaveBeenCalledWith("/repo/.env");
+    expect(fs.existsSync).toHaveBeenCalledWith(resolve("/repo", ".env"));
     expect(ctx.read(".env")).toBe("content");
-    expect(fs.readFileSync).toHaveBeenCalledWith("/repo/.env", "utf8");
+    expect(fs.readFileSync).toHaveBeenCalledWith(resolve("/repo", ".env"), "utf8");
     ctx.write("a.txt", "x");
-    expect(fs.writeFileSync).toHaveBeenCalledWith("/repo/a.txt", "x");
+    expect(fs.writeFileSync).toHaveBeenCalledWith(resolve("/repo", "a.txt"), "x");
     ctx.copy(".env.example", ".env");
-    expect(fs.copyFileSync).toHaveBeenCalledWith("/repo/.env.example", "/repo/.env", constants.COPYFILE_EXCL);
+    expect(fs.copyFileSync).toHaveBeenCalledWith(resolve("/repo", ".env.example"), resolve("/repo", ".env"), constants.COPYFILE_EXCL);
   });
 
   it("prints progress to stdout and failures to stderr", () => {

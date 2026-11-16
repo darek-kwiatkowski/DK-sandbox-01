@@ -1,0 +1,53 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/How to choose" />
+
+# How to choose
+
+Use the simplest control that matches the action and keeps its meaning visible. Examples below follow the current product scope; an option described as missing is not approval to add it. (R01.5–R01.6; approved stage-0 component plan.)
+
+## Actions
+
+| If… | Use… | DevMentor example | Source |
+| --- | --- | --- | --- |
+| The user changes data or submits something | Button | “Opublikuj profil” or “Zapisz ceny” | R01.5; P18 |
+| The user navigates | Link | Open a mentor's public work or return to the account | R04; WCAG 4.1.2 |
+| A compact secondary action is attached to an object | Button with an icon and an accessible name | A row action only when the action is known and named; icon-only needs an accessible label | R01.6; WCAG 4.1.2 |
+| Several secondary actions belong to one object | Dropdown menu | Invite actions for one mentor, if the action set is approved | R01.6; WAI-ARIA Menu Button Pattern |
+
+## Choosing a value
+
+| If… | Use… | DevMentor example | Source |
+| --- | --- | --- | --- |
+| A few alternatives should remain visible and exactly one may be chosen | Radio group | 25 or 50 minute session; one available slot | E03-S02; WCAG 4.1.2 |
+| The list is known but should stay compact | Select | Session duration on a narrow form | P18; WCAG 3.3.2 |
+| The option set is large or searchable | No approved search-select exists; list it in “What is missing” until specified | Do not invent a mentor search or ranking; E03-S01 uses stack filters | R13; N02 |
+| Several independent values may be selected | Checkbox group | Mentor's TypeScript, React, Python and AI agents stack tags | H1; R13; WCAG 4.1.2 |
+| A preference turns a persistent setting on/off | Switch is not in the approved component plan | No 1.0 screen currently requires one | Approved Q5 |
+
+## Context and feedback
+
+| If… | Use… | DevMentor example | Source |
+| --- | --- | --- | --- |
+| The user needs a short interruptive task and must return to the same context | Dialog | A small in-context detail task | WAI-ARIA Dialog Pattern; WCAG 2.4.3 |
+| The user must confirm a consequential action | Alert dialog | Cancel a named paid booking, with Cancel as the safe action | R27; WAI-ARIA Alert Dialog Pattern |
+| A narrow side panel is needed | No panel primitive is approved; prefer an existing page or dialog and record the gap | Do not invent a drawer | Approved Q5; stage-0 plan |
+| The task has enough content or navigation to deserve its own URL | Separate page | Mentor profile or booking detail | E03-S01/S03; WCAG 2.4.5 |
+| A short, optional explanation is helpful on hover/focus | Tooltip | Explain a non-essential icon | WCAG 1.4.13; approved tooltip decision G2 |
+| Information is required to complete the task | Visible text beside the control | Explain why price saving is disabled until the operator sets bounds | WCAG 3.3.2; R29 |
+| An error needs the user's attention or action | Field error or persistent Alert/ErrorMessage | Correct an invalid price or retry a failed save | WCAG 3.3.1; P18 |
+| A brief success can be announced without interrupting | Inline status message | “Zapis potwierdzony” after a server success | WCAG 4.1.3; stage-3 form pattern |
+| A transient toast seems convenient | Toast is not in the approved component plan | Keep a persistent error in context; do not hide an action-required error | Approved Q5; WCAG 3.3.1 |
+| Content is loading and its eventual shape is known | Skeleton for content shape; LoadingMessage for a region-level announcement | Mentor list rows load with a skeleton; the region announces loading once | P18; WCAG 4.1.3 |
+
+## Collections and navigation
+
+| If… | Use… | DevMentor example | Source |
+| --- | --- | --- | --- |
+| Data has stable columns and repeated records | Table/DataTable | Mentor results, bookings, operator payouts | R01.1, R01.3; engineering standards |
+| Each item is a responsive object summary | List with divided rows | Mentor results with next slot prominent | R01.1, R01.3, R01.5 |
+| Each item needs a distinct bounded form/detail surface | Card | Account settings panel | R01.3; primitives manual |
+| The user moves between major tasks or URLs | Separate pages and navigation links | Mentor profile, prices and availability | R01.6; WCAG 2.4.5 |
+| The user changes a small local view inside one screen | Tabs would need an approved use case; tabs are not in the approved plan | Do not add tabs to reproduce a counter or ranking | Approved Q5; R01.6 |
+
+See [What is missing](?path=/docs/design-system-what-is-missing--docs) before adding an unlisted control.

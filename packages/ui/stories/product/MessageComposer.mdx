@@ -1,0 +1,92 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Session from "./Session.stories";
+
+<Meta title="Product/E04 Session and note (proposals)/Message composer" />
+
+# Message composer
+
+**Proposal:** presentation for E04-S01; delivery, reconnect and session timing contracts need the E04 specification. This page documents the implemented component, not a transport guarantee. (Approved stage-0 Q2; backlog E04-S01.)
+
+## 1. Purpose
+
+Lets either session participant send a written message without losing a failed draft. (Brief R03, R20; reference R02.2.)
+
+## 2. When to use
+
+Use inside an active text session below `SessionTranscript`, with `onSend` supplied by the application. (E04-S01; reference R02.2.)
+
+## 3. When not to use
+
+Use `PrivateNote` for shared conclusions and `CrudForm` for profile or booking forms. This composer has no attachment, rich-text or scheduling API; do not imply those capabilities. (E04-S01/S02; brief R26; implementation boundary.)
+
+## 4. Anatomy
+
+The form contains a persistent label, textarea, keyboard hint, optional error or success message and an outline send button. A visible `disabledReason` replaces the keyboard hint when sending is unavailable. (Reference R02.2; WCAG 3.3.2, 4.1.3.)
+
+## 5. Variants
+
+There is one visual composition. Availability comes from the session state; it is not a decorative variant. (Approved component plan; E04-S01 proposal.)
+
+## 6. States
+
+| State | Story or behaviour | Source |
+| --- | --- | --- |
+| Empty | Send unavailable until non-whitespace text exists | Proposal, implemented guard |
+| Ready, hover, focus, pressed | Textarea and Button inherit the primitive states | Approved stage-2 primitive rules |
+| Sending | ComposerWaiting; readonly draft, disabled send, busy form | WCAG 4.1.3; proposal |
+| Send failed | ComposerFailure; alert, retained draft, retry with send | WCAG 3.3.1; proposal |
+| Confirmed | ComposerSend; draft cleared after `ok: true` only | E04-S01; proposal |
+| Unavailable | ComposerUnavailable; visible session explanation | WCAG 3.3.2; proposal |
+| Selected | Not applicable: this is a text action, not a choice | WAI-ARIA APG Button |
+
+<Unstyled><Canvas of={Session.ComposerSend} /><Canvas of={Session.ComposerWaiting} /><Canvas of={Session.ComposerFailure} /><Canvas of={Session.ComposerUnavailable} /></Unstyled>
+
+## 7. Behaviour and accessibility
+
+Tab reaches the textarea then the enabled button. Enter sends; Shift+Enter inserts a line; an IME composition Enter does not send. The visible label and hint name and describe the input. Pending requests block duplicate sends. Errors use `role="alert"`; confirmed sends use `role="status"`. The send button inherits the 32 px control height and focus ring. (Reference R02.2; WCAG 2.1.1, 2.4.3, 2.4.7, 2.5.8, 4.1.3.)
+
+The component clears only its own draft. The application must append the server-confirmed message to the transcript and enforce session access. No live delivery or reconnection policy is defined here. (E04-S01; engineering standards, authorization; proposal boundary.)
+
+## 8. Content
+
+The fixed action is “Wyślij wiadomość”; the label is “Wiadomość”. User text keeps internal line breaks; leading/trailing whitespace is removed on send. No maximum length has been approved or implemented: define it with the API specification rather than silently truncating. No sharing notice is added in 1.0. (Brief R31/D44; reference R02.2; length limit missing.)
+
+## 9. Responsive
+
+At 320 px the label, textarea and action remain in one column; at 768 and 1440 px the same composition stays within `max-w-reading`. The parent supplies the session layout, with the note beside the conversation from 768 px. Verify long drafts at each width; do not replace content with ellipses. (Approved F1/F3; WCAG 1.4.10.)
+
+## 10. API
+
+Import `MessageComposer` from `@devmentor/ui/components/messages/MessageComposer`.
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| onSend | `(text: string) => Promise<ApiResult<unknown>>` | required | Receives trimmed text; resolve only when the server outcome is known |
+| disabledReason | `string` | absent | Visible reason the session cannot accept messages |
+
+`ApiResult` is exported by `@devmentor/ui/backend/api`. Rejected promises show the component's retained-draft error; failed results show `error.message`. (Implemented public API; engineering standards, API envelope.)
+
+## 11. Code
+
+```tsx
+import { MessageComposer } from "@devmentor/ui/components/messages/MessageComposer";
+
+<MessageComposer onSend={sendMessage} />
+
+// Application callback calls apiCall and reconciles the confirmed transcript.
+<MessageComposer onSend={sendMessage} disabledReason="Ta sesja jest zakończona. Rozmowa pozostaje do odczytu." />
+```
+
+`sendMessage` is supplied by the application; the endpoint and response-to-transcript mapping are still missing. (E04-S01 proposal boundary.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Preserve a failed draft beside its error | Clear immediately on click | A failed send must remain recoverable (WCAG 3.3.1; proposal) |
+| Explain a closed session visibly | Disable send without context | The user needs the next action or reason (WCAG 3.3.2) |
+| Send only through the application callback | Construct a second fetch layer in the composer | Shared API layer owns transport (engineering standards) |
+
+## 13. Related
+
+`SessionTranscript` shows the confirmed exchange; `PrivateNote` captures shared conclusions. See `Screens/Epics` for the E04 flow and missing contracts, and Primitives/Textarea and Button for frozen interaction states. (E04-S01/S02; approved primitive plan.)

@@ -1,0 +1,112 @@
+npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> devmentor@0.1.0 test:storybook
+> npm run test:storybook -w @devmentor/ui
+
+npm warn Unknown env config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @devmentor/ui@0.1.0 test:storybook
+> node .storybook/test-stories.mjs
+
+
+ RUN  v5.0.5 D:/Code/DK-sandbox-01/packages/ui
+
+ ❯ |storybook-light (chromium)| stories/primitives/Field.stories.tsx (12 tests | 1 failed) 17833ms
+   × Playground 15026ms
+ ❯ |storybook-light (chromium)| stories/product/Session.stories.tsx (20 tests | 1 failed) 20700ms
+   × Transcript Ready 15016ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |storybook-light (chromium)| stories/primitives/Field.stories.tsx > Playground
+Error: 
+[34mClick to debug the error directly in Storybook: http://localhost:6006/?path=/story/primitives-field--playground&addonPanel=storybook/interactions/panel[39m
+
+Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ task node_modules/.cache/storybook/10.6.6/8e9534e7563fcc5f18d54d211694b0258c5cce94ed7d5358a6bba77ed9912eb8/sb-vitest/vitest/d9e35dca3728b33662a11bc8080626a01335eb20/deps/plugins.DPQHVT0p-vDHaMBXC.js?v=e294105f:5136:43
+ ❯ Object.<anonymous> node_modules/.cache/storybook/10.6.6/8e9534e7563fcc5f18d54d211694b0258c5cce94ed7d5358a6bba77ed9912eb8/sb-vitest/vitest/d9e35dca3728b33662a11bc8080626a01335eb20/deps/plugins.DPQHVT0p-vDHaMBXC.js?v=e294105f:5153:16
+ ❯ Object.<anonymous> node_modules/.cache/storybook/10.6.6/8e9534e7563fcc5f18d54d211694b0258c5cce94ed7d5358a6bba77ed9912eb8/sb-vitest/vitest/d9e35dca3728b33662a11bc8080626a01335eb20/deps/plugins.DPQHVT0p-vDHaMBXC.js?v=e294105f:4939:28
+ ❯ chain node_modules/.cache/storybook/10.6.6/8e9534e7563fcc5f18d54d211694b0258c5cce94ed7d5358a6bba77ed9912eb8/sb-vitest/vitest/d9e35dca3728b33662a11bc8080626a01335eb20/deps/plugins.DPQHVT0p-vDHaMBXC.js?v=e294105f:4336:14
+ ❯ stories/primitives/Field.stories.tsx:460:3
+    170|     await expect(canvas.getByRole("alert")).toHaveTextContent("Konto z…
+    171|   },
+    172| };
+       |    ^
+    173|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  |storybook-light (chromium)| stories/product/Session.stories.tsx > Transcript Ready
+Error: 
+[34mClick to debug the error directly in Storybook: http://localhost:6006/?path=/story/product-e04-session-and-note-proposals--transcript-ready&addonPanel=storybook/interactions/panel[39m
+
+Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ task node_modules/.cache/storybook/10.6.6/8e9534e7563fcc5f18d54d211694b0258c5cce94ed7d5358a6bba77ed9912eb8/sb-vitest/vitest/d9e35dca3728b33662a11bc8080626a01335eb20/deps/plugins.DPQHVT0p-vDHaMBXC.js?v=e294105f:5136:43
+ ❯ Object.<anonymous> node_modules/.cache/storybook/10.6.6/8e9534e7563fcc5f18d54d211694b0258c5cce94ed7d5358a6bba77ed9912eb8/sb-vitest/vitest/d9e35dca3728b33662a11bc8080626a01335eb20/deps/plugins.DPQHVT0p-vDHaMBXC.js?v=e294105f:5153:16
+ ❯ Object.<anonymous> node_modules/.cache/storybook/10.6.6/8e9534e7563fcc5f18d54d211694b0258c5cce94ed7d5358a6bba77ed9912eb8/sb-vitest/vitest/d9e35dca3728b33662a11bc8080626a01335eb20/deps/plugins.DPQHVT0p-vDHaMBXC.js?v=e294105f:4939:28
+ ❯ chain node_modules/.cache/storybook/10.6.6/8e9534e7563fcc5f18d54d211694b0258c5cce94ed7d5358a6bba77ed9912eb8/sb-vitest/vitest/d9e35dca3728b33662a11bc8080626a01335eb20/deps/plugins.DPQHVT0p-vDHaMBXC.js?v=e294105f:4336:14
+ ❯ stories/product/Session.stories.tsx:340:3
+     58| export const NoteApproved: Story = { render: () => <PrivateNote {...no…
+     59| export const NoteMentor: Story = { render: () => <PrivateNote {...note…
+     60| export const NoteLong: Story = { render: () => <PrivateNote {...notePr…
+       |                                                                                                                                                          ^
+     61|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯⎯⎯ Unhandled Error ⎯⎯⎯⎯⎯⎯⎯
+Error: Failed to run the test D:/Code/DK-sandbox-01/packages/ui/stories/primitives/Badge.stories.tsx.
+ ❯ ../../node_modules/vitest/dist/chunks/index.1TqnEahn.js:4757:17
+ ❯ process.processTicksAndRejections node:internal/process/task_queues:104:5
+
+Caused by: Error: [vitest] Browser connection was closed while running tests. Was the page closed unexpectedly?
+ ❯ WebSocket.<anonymous> ../../node_modules/@vitest/browser/dist/index.js:2911:16
+ ❯ WebSocket.emit node:events:526:24
+ ❯ WebSocket.emitClose ../../node_modules/ws/lib/websocket.js:292:10
+ ❯ Receiver.receiverOnFinish ../../node_modules/ws/lib/websocket.js:1247:20
+ ❯ Receiver.emit node:events:514:28
+ ❯ finish node:internal/streams/writable:957:10
+ ❯ node:internal/streams/writable:938:13
+ ❯ process.processTicksAndRejections node:internal/process/task_queues:90:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VITEST_BROWSER_CONNECTION_CLOSED' }
+Caused by: Error: [birpc] rpc is closed, cannot call "createTesters"
+ ❯ ../../node_modules/@vitest/browser/dist/index.js:2712:34
+ ❯ Proxy.$close ../../node_modules/@vitest/browser/dist/index.js:2711:18
+ ❯ WebSocket.<anonymous> ../../node_modules/@vitest/browser/dist/index.js:2911:9
+ ❯ WebSocket.emit node:events:526:24
+ ❯ WebSocket.emitClose ../../node_modules/ws/lib/websocket.js:292:10
+ ❯ Receiver.receiverOnFinish ../../node_modules/ws/lib/websocket.js:1247:20
+ ❯ Receiver.emit node:events:514:28
+ ❯ finish node:internal/streams/writable:957:10
+ ❯ node:internal/streams/writable:938:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  2 failed | 14 passed (34)
+      Tests  2 failed | 219 passed (262)
+     Errors  1 error
+   Start at  10:58:41
+   Duration  145.48s (worker 64%, tests 19%, setup 12%, import 4%)
+
+The browser did not close within 30000ms. The browser process will be killed when the process exits.
+close timed out after 10000ms
+Tests closed successfully but something prevents Vite server from exiting
+You can try to identify the cause by enabling "hanging-process" reporter. See https://vitest.dev/guide/reporters.html#hanging-process-reporter
+npm error Lifecycle script `test:storybook` failed with error:
+npm error code 1
+npm error path D:\Code\DK-sandbox-01\packages\ui
+npm error workspace @devmentor/ui@0.1.0
+npm error location D:\Code\DK-sandbox-01\packages\ui
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node .storybook/test-stories.mjs

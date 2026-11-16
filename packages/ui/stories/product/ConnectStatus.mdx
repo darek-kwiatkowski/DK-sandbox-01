@@ -1,0 +1,91 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as Payouts from "./Payouts.stories";
+
+<Meta title="Product/E05 Payouts (proposals)/Connect status" />
+
+# Connect status
+
+**Proposal:** E05-S01 presentation states. Provider state mapping, redirect/resume and return verification require the payment-port specification; no story opens a real onboarding account. (Approved Q2; backlog E05-S01-T01.)
+
+## 1. Purpose
+
+Helps a mentor understand and complete the setup needed to receive session payouts. (Brief R05; E05-S01.)
+
+## 2. When to use
+
+Place above `PayoutList` in the mentor payout area, with status supplied by the application payment adapter. (R05; E05-S01; proposal layout.)
+
+## 3. When not to use
+
+Use `PayoutList` for a particular session's settlement or hold. A ready Connect account does not mean a session is delivered, payable or paid. (Brief R05, R28, R30, R35.)
+
+## 4. Anatomy
+
+Loading or error feedback; otherwise an incomplete/ready alert. Incomplete setup adds a primary action, optional starting status and optional start-failure error. The provider URL is not constructed by this component. (Implemented API; engineering standards, payment port.)
+
+## 5. Variants
+
+One visual composition with server-mapped ready or incomplete states; no extra success colour or provider-styled button is introduced. (Approved component/token plan; proposal.)
+
+## 6. States
+
+| State | Story | Source |
+| --- | --- | --- |
+| Loading account state | ConnectLoading | Shared feedback; WCAG 4.1.3 |
+| Cannot load account | ConnectError | Shared error and retry; WCAG 3.3.1 |
+| Incomplete account | ConnectIncomplete | R05; proposal mapping |
+| Requesting onboarding | ConnectStarting | Busy, disabled action with visible waiting explanation; WCAG 4.1.3 |
+| Cannot start onboarding | ConnectStartFailure | Error and retry remain visible; WCAG 3.3.1 |
+| Ready account | ConnectReady | R05; excludes any payout promise |
+
+Hover/focus/pressed inherit Button. Selected is not applicable; the status comes from the server rather than a user choice. (WAI-ARIA APG Button; component API.)
+
+<Unstyled><Canvas of={Payouts.ConnectIncomplete} /><Canvas of={Payouts.ConnectStarting} /><Canvas of={Payouts.ConnectStartFailure} /><Canvas of={Payouts.ConnectReady} /></Unstyled>
+
+## 7. Behaviour and accessibility
+
+The setup action is a native button reached in reading order and activated by Enter or Space. During starting it has `aria-busy`, is disabled and has a visible waiting message. Ready uses a status alert, incomplete uses a note and failures use shared alert semantics. The button inherits focus and ≥24 px target rules. (WCAG 2.1.1, 2.4.7, 2.5.8, 4.1.3.)
+
+`onContinue` requests start/resume through the application. The parent must set `starting` while pending and refresh verified provider state after return; the component does neither automatically. (E05-S01-T01; engineering standards, external adapters; proposal.)
+
+## 8. Content
+
+Say “Skonfiguruj wypłaty” and explain the requirement plainly. Do not promise a payout time, fee or eligibility from this account status. Keep provider/server errors actionable and avoid exposing raw provider internals. Longer messages wrap without truncation. (R05, R28, R30; WCAG 3.3.1, 1.4.10.)
+
+## 9. Responsive
+
+At 320, 768 and 1440 px the explanation and action stack in reading order, aligned to the start. The parent constrains the page to `max-w-page`; no fixed-width provider card is needed. (Approved F3; implemented layout; WCAG 1.4.10.)
+
+## 10. API
+
+Import `ConnectStatus`, `ConnectState` and `ConnectStatusProps` from `@devmentor/ui/components/payments/ConnectStatus`.
+
+| Prop | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| state | `ConnectState` | required | Loading, error with message, ready, or incomplete |
+| onContinue | `() => void` | required | Request provider onboarding/resume through the adapter |
+| onRetry | `() => void` | required | Reload account state after a fetch failure |
+
+The incomplete state requires `starting: boolean` and `error: string` or `null`; other states have no onboarding flags. A start error retries `onContinue`, while a fetch error retries `onRetry`. (Implemented public API.)
+
+## 11. Code
+
+```tsx
+import { ConnectStatus } from "@devmentor/ui/components/payments/ConnectStatus";
+
+<ConnectStatus state={connectState} onContinue={startOrResumeOnboarding} onRetry={reloadConnectState} />
+```
+
+The callbacks and state come from the application; do not put provider credentials or callback URL construction into UI. (Engineering standards, external payment port; E05-S01-T01.)
+
+## 12. Do and don't
+
+| Do | Don't | Why |
+| --- | --- | --- |
+| Refresh provider-confirmed status | Mark ready when the button is clicked | Setup completion requires confirmation (R05; proposal) |
+| Separate readiness from settlement | Label all sessions paid when Connect is ready | Payment depends on delivery and holds (R05, R30, R35) |
+| Explain pending setup visibly | Leave a disabled action unexplained | Users need the reason (WCAG 3.3.2) |
+
+## 13. Related
+
+`PayoutList` presents individual settlements; shared feedback handles fetching; Alert and Button provide base semantics and interaction states. `Screens/Epics` records the E05 flow and missing contracts. (E05-S01; engineering standards.)

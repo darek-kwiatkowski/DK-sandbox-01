@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { z } from "zod";
 import { Button } from "@devmentor/ui/components/ui/button";
+import { Checkbox } from "@devmentor/ui/components/ui/checkbox";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@devmentor/ui/components/ui/field";
 import { Input } from "@devmentor/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@devmentor/ui/components/ui/select";
@@ -21,20 +22,20 @@ export interface CrudFormField {
    * `textarea` for descriptions and notes, `select` for one value from `options`, `money` for an amount
    * in PLN typed as text (the schema parses it; platform primitives P18).
    */
-  type?: "text" | "email" | "password" | "number" | "url" | "textarea" | "select" | "money";
+  type?: "text" | "email" | "password" | "number" | "url" | "textarea" | "select" | "money" | "checkboxes";
   description?: string;
   autoComplete?: string;
-  /** Choices of a `select` field. */
+  /** Choices of a `select` or `checkboxes` field. */
   options?: readonly CrudFormOption[];
   /** Example shown before typing; never the label (WCAG 3.3.2). */
   placeholder?: string;
 }
 
 export interface CrudFormProps<S extends z.ZodType> {
-  /** The same schema the API route validates with. Inputs are strings: use `z.coerce` for numbers. */
+  /** Inputs are strings except `checkboxes`, which supplies a string array. */
   schema: S;
   fields: readonly CrudFormField[];
-  defaultValues?: Readonly<Record<string, string>>;
+  defaultValues?: Readonly<Record<string, string | string[]>>;
   onSubmit: (values: z.output<S>) => Promise<ApiResult<unknown>>;
   onSuccess?: (data: unknown) => void;
   onCancel?: () => void;
@@ -65,8 +66,8 @@ export function CrudForm<S extends z.ZodType>({
 }: Readonly<CrudFormProps<S>>) {
   const formId = useId();
   const formRef = useRef<HTMLFormElement>(null);
-  const [values, setValues] = useState<Record<string, string>>(() =>
-    Object.fromEntries(fields.map((field) => [field.name, defaultValues[field.name] ?? ""])),
+  const [values, setValues] = useState<Record<string, string | string[]>>(() =>
+    Object.fromEntries(fields.map((field) => [field.name, defaultValues[field.name] ?? (field.type === "checkboxes" ? [] : "")])),
   );
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -85,7 +86,7 @@ export function CrudForm<S extends z.ZodType>({
 
   function validateField(name: string) {
     const parsed = schema.safeParse(values);
-    const messages = parsed.success ? [] : parsed.error.issues.filter((issue) => issue.path.join(".") === name).map((issue) => issue.message);
+    const messages = parsed.success ? [] : issuesToFieldErrors(parsed.error.issues, fields)[name] ?? [];
     setFieldErrors((current) => {
       const next = { ...current };
       if (messages.length > 0) {
@@ -104,7 +105,7 @@ export function CrudForm<S extends z.ZodType>({
     }
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
-      setFieldErrors(issuesToFieldErrors(parsed.error.issues));
+      setFieldErrors(issuesToFieldErrors(parsed.error.issues, fields));
       setFormError(null);
       setFocusRequest((value) => value + 1);
       return;
@@ -136,7 +137,7 @@ export function CrudForm<S extends z.ZodType>({
     }
   }
 
-  const setValue = (name: string, value: string) => setValues((current) => ({ ...current, [name]: value }));
+  const setValue = (name: string, value: string | string[]) => setValues((current) => ({ ...current, [name]: value }));
   const generalErrors = fieldErrors[FORM_ERROR_KEY] ?? [];
 
   return (
@@ -154,6 +155,47 @@ export function CrudForm<S extends z.ZodType>({
             "aria-describedby": describedBy,
             disabled: isSubmitting,
           };
+          if (field.type === "checkboxes") {
+            const options = field.options ?? [];
+            const selected = values[field.name] as string[];
+            return (
+              <fieldset
+                key={field.name}
+                className="flex flex-col gap-in-group"
+                aria-describedby={describedBy}
+                aria-invalid={errors && options.length === 0 ? true : undefined}
+                tabIndex={-1}
+                disabled={isSubmitting}
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) validateField(field.name);
+                }}
+              >
+                <legend className="text-sm font-medium">{field.label}</legend>
+                {options.length === 0 ? <p className="text-sm text-muted-foreground">Brak dostępnych opcji.</p> : null}
+                {options.map((option, index) => {
+                  const optionId = `${inputId}-${index}`;
+                  return (
+                    <div key={option.value} className="flex items-center gap-in-group">
+                      <Checkbox
+                        {...common}
+                        id={optionId}
+                        name={field.name}
+                        value={option.value}
+                        checked={selected.includes(option.value)}
+                        onCheckedChange={() => setValue(field.name, selected.includes(option.value)
+                          ? selected.filter((value) => value !== option.value)
+                          : [...selected, option.value])}
+                      />
+                      <FieldLabel htmlFor={optionId}>{option.label}</FieldLabel>
+                    </div>
+                  );
+                })}
+                {field.description ? <FieldDescription id={descriptionId}>{field.description}</FieldDescription> : null}
+                <FieldError id={errorId} errors={errors?.map((message) => ({ message }))} />
+              </fieldset>
+            );
+          }
+          const value = values[field.name] as string;
           return (
             <Field key={field.name} data-invalid={errors ? true : undefined}>
               <FieldLabel htmlFor={inputId}>{field.label}</FieldLabel>
@@ -162,14 +204,14 @@ export function CrudForm<S extends z.ZodType>({
                   {...common}
                   name={field.name}
                   placeholder={field.placeholder}
-                  value={values[field.name]}
+                  value={value}
                   onChange={(event) => setValue(field.name, event.target.value)}
                   onBlur={() => validateField(field.name)}
                 />
               ) : field.type === "select" ? (
                 <Select
                   name={field.name}
-                  value={values[field.name] || undefined}
+                  value={value || undefined}
                   onValueChange={(value) => setValue(field.name, value)}
                   disabled={isSubmitting}
                 >
@@ -193,7 +235,7 @@ export function CrudForm<S extends z.ZodType>({
                     inputMode="decimal"
                     placeholder={field.placeholder}
                     className="max-w-40 text-right tabular-nums"
-                    value={values[field.name]}
+                    value={value}
                     onChange={(event) => setValue(field.name, event.target.value)}
                     onBlur={() => validateField(field.name)}
                   />
@@ -206,7 +248,7 @@ export function CrudForm<S extends z.ZodType>({
                   type={field.type ?? "text"}
                   autoComplete={field.autoComplete}
                   placeholder={field.placeholder}
-                  value={values[field.name]}
+                  value={value}
                   onChange={(event) => setValue(field.name, event.target.value)}
                   onBlur={() => validateField(field.name)}
                 />
@@ -236,10 +278,11 @@ export function CrudForm<S extends z.ZodType>({
   );
 }
 
-function issuesToFieldErrors(issues: readonly z.core.$ZodIssue[]): FieldErrors {
+function issuesToFieldErrors(issues: readonly z.core.$ZodIssue[], fields: readonly CrudFormField[]): FieldErrors {
   const errors: FieldErrors = {};
   for (const issue of issues) {
-    const key = issue.path.length > 0 ? issue.path.join(".") : FORM_ERROR_KEY;
+    const checkboxField = fields.find((field) => field.type === "checkboxes" && field.name === issue.path[0]);
+    const key = checkboxField ? checkboxField.name : issue.path.length > 0 ? issue.path.join(".") : FORM_ERROR_KEY;
     (errors[key] ??= []).push(issue.message);
   }
   return errors;

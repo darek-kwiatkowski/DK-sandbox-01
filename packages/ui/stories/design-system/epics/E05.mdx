@@ -1,0 +1,31 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Epics/E05 Payouts" />
+
+# E05 — Payouts
+
+## Flow
+
+The mentor completes Connect onboarding. A delivered session becomes payable after the platform fee; the operator can hold a payout. Product status labels G5 are approved, but provider mappings and the Connect screen contract are not. (E05-S01; R05, R28, R35; G5.)
+
+## Screens and state map
+
+| Screen | Stories and states | Source |
+| --- | --- | --- |
+| Connect onboarding | `E05PayoutSetup`; `ConnectIncomplete`, `ConnectStarting`, `ConnectStartFailure`, `ConnectLoading`, `ConnectError`, `ConnectReady` | E05-S01; R05; approved Q2 proposal |
+| Payout list | `PayoutsReady`, `PayoutsLoading`, `PayoutsEmpty`, `PayoutsError`, `PayoutsStatusesAndPartial`, `PayoutsLongAndMany` | E05-S01; R05, R28; G5 |
+| Operator hold | `OperatorHold`, `OperatorHoldPending`, `OperatorHoldError`; full-screen `E05HeldPayout` | R35; G5; proposal boundary |
+| Other full-screen data states | `E05Loading`, `E05Error`, `E05Empty`, `E05PartialAmounts` | E05-S01; stage-3 screen-state map |
+
+Open the [epic state map](?path=/docs/screens-epics--docs) and the [Payout list manual](?path=/docs/product-e05-payouts-proposals-payout-list--docs).
+
+## Source files
+
+- `packages/ui/stories/product/Payouts.stories.tsx`
+- `packages/ui/stories/screens/KeyScreens.stories.tsx`
+- `packages/ui/src/components/payments/ConnectStatus.tsx`, `PayoutList.tsx`
+- `.ai/specs/product-brief.md` (R05, R28, R35); `.ai/specs/backlog.md` (E05-S01 and task T01)
+
+## Remaining product work
+
+The backlog marks E05-S01 and E05-S01-T01 as not adopted. The presentation does not define Connect return handling, provider status mapping, fee/net calculations or payout timing. Platform primitives P17 is a sketch and defers the due-work decision to an E05-S01 specification. (E05-S01; R28, R34; platform primitives P17.)
