@@ -15,7 +15,7 @@ describe("marketing root layout", () => {
     );
 
     expect(html).toBe(
-      '<html lang="pl"><head></head><body class="min-h-svh bg-white text-slate-900 antialiased"><p>child</p></body></html>',
+      '<html lang="pl"><head></head><body class="min-h-svh bg-background text-foreground antialiased"><p>child</p></body></html>',
     );
   });
 });
