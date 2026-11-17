@@ -8,6 +8,9 @@ const workspaceRoot = fileURLToPath(new URL("../..", import.meta.url));
 loadEnvConfig(workspaceRoot);
 
 const nextConfig: NextConfig = {
+  experimental: {
+    agentUpgrade: "security",
+  },
   turbopack: {
     root: workspaceRoot,
   },

@@ -34,7 +34,7 @@
     "@types/node": "^24.19.2",
     "agent-browser": "0.39.1",
     "eslint": "^9.39.5",
-    "eslint-config-next": "16.4.2",
+    "eslint-config-next": "16.4.6",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
   }
